@@ -3,6 +3,7 @@
 .idea/
 .hvigor/
 oh_modules/
+node_modules/
 build/
 entry/build/
 local.properties

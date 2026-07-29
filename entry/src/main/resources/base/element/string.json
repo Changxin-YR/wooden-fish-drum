@@ -1,0 +1,9 @@
+{
+  "string": [
+    { "name": "module_desc", "value": "功德木鱼主模块" },
+    { "name": "entry_ability_desc", "value": "功德木鱼主界面" },
+    { "name": "entry_ability_label", "value": "功德木鱼" },
+    { "name": "vibration_reason", "value": "用于木鱼敲击时提供轻微触觉反馈" }
+  ]
+}
+

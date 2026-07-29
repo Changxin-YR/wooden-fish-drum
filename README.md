@@ -1,37 +1,24 @@
-# 木鱼
+# 功德木鱼
 
-#### 介绍
-木鱼开发
+功德木鱼是一款使用 ArkTS 与 ArkUI 开发的 HarmonyOS NEXT 单机应用。应用不申请网络权限，不包含登录、广告、支付或云同步。
 
-#### 软件架构
-软件架构说明
+## 技术基线
 
+- HarmonyOS 6.1.1 API 24
+- Stage 模型
+- ArkTS / ArkUI
+- phone、tablet、2in1
+- Preferences 本地持久化
 
-#### 安装教程
+## 构建
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-standard.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\build-harmony.ps1 -BuildMode debug
+```
 
-#### 使用说明
+构建产物位于 `entry/build/default/outputs/default/` 下。设备测试与交互证据记录在 `docs/qa/`。
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+## 当前状态
 
-#### 参与贡献
-
-1.  Fork 本仓库
-2.  新建 Feat_xxx 分支
-3.  提交代码
-4.  新建 Pull Request
-
-
-#### 特技
-
-1.  使用 Readme\_XXX.md 来支持不同的语言，例如 Readme\_en.md, Readme\_zh.md
-2.  Gitee 官方博客 [blog.gitee.com](https://blog.gitee.com)
-3.  你可以 [https://gitee.com/explore](https://gitee.com/explore) 这个地址来了解 Gitee 上的优秀开源项目
-4.  [GVP](https://gitee.com/gvp) 全称是 Gitee 最有价值开源项目，是综合评定出的优秀开源项目
-5.  Gitee 官方提供的使用手册 [https://gitee.com/help](https://gitee.com/help)
-6.  Gitee 封面人物是一档用来展示 Gitee 会员风采的栏目 [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
+V1.0 正在按五个阶段实施。真实进度、验证结果和遗留风险分别记录在 `tasks.md`、`changes.md` 与 `design-qa.md`。
