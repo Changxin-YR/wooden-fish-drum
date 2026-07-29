@@ -1,0 +1,8 @@
+.superpowers/
+.idea/
+.hvigor/
+oh_modules/
+build/
+entry/build/
+local.properties
+*.log
