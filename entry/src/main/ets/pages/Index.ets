@@ -2,7 +2,7 @@ import { common } from '@kit.AbilityKit';
 import { BottomNavBar } from '../components/BottomNavBar';
 import { JsonCodec } from '../data/JsonCodec';
 import { AppSettings, DailyRecord, SessionState, StatsSummary } from '../models/AppModels';
-import { AppTab, SessionMode, ThemeMode, UserMode } from '../models/Enums';
+import { AppTab, SessionMode, SoundType, ThemeMode, UserMode } from '../models/Enums';
 import { HomePage } from './HomePage';
 import { ModeSelectPage } from './ModeSelectPage';
 import { SettingsPage } from './SettingsPage';
@@ -21,6 +21,17 @@ struct Index {
   @State summary: StatsSummary = new StatsSummary();
   @State recentRecords: DailyRecord[] = [];
   @State session: SessionState = new SessionState();
+  @State viewportWidth: number = 390;
+
+  private contentMaxWidth(): number {
+    if (this.viewportWidth >= 1024) {
+      return 1180;
+    }
+    if (this.viewportWidth >= 600) {
+      return 920;
+    }
+    return 560;
+  }
 
   async aboutToAppear(): Promise<void> {
     const context: common.UIAbilityContext = getContext(this) as common.UIAbilityContext;
@@ -140,6 +151,14 @@ struct Index {
         onSoundToggle: (enabled: boolean): void => {
           this.updateSetting('sound', enabled);
         },
+        onSoundTypeChange: (type: SoundType): void => {
+          appStore.settings.soundType = type;
+          appStore.persistSettings().then((): void => this.syncFromStore());
+        },
+        onVolumeChange: (value: number): void => {
+          appStore.settings.volume = value;
+          appStore.persistSettings().then((): void => this.syncFromStore());
+        },
         onVibrationToggle: (enabled: boolean): void => {
           this.updateSetting('vibration', enabled);
         },
@@ -177,21 +196,40 @@ struct Index {
         }
       })
     } else {
-      Column() {
-        this.CurrentPage()
-        BottomNavBar({
-          selected: this.selectedTab,
-          onChange: (tab: AppTab): void => {
-            this.selectedTab = tab;
-            if (tab === AppTab.STATS) {
-              appStore.refreshStats().then((): void => this.syncFromStore());
-            }
+      Stack({ alignContent: Alignment.Top }) {
+        Row()
+          .width('100%')
+          .height('100%')
+          .backgroundColor('#EDE7DE')
+        Column() {
+          Column() {
+            this.CurrentPage()
           }
-        })
+          .width('100%')
+          .layoutWeight(1)
+          BottomNavBar({
+            selected: this.selectedTab,
+            onChange: (tab: AppTab): void => {
+              this.selectedTab = tab;
+              if (tab === AppTab.STATS) {
+                appStore.refreshStats().then((): void => this.syncFromStore());
+              }
+            }
+          })
+        }
+        .width('100%')
+        .height('100%')
+        .constraintSize({ maxWidth: this.contentMaxWidth() })
+        .backgroundColor('#F6F1E8')
+        .shadow(this.viewportWidth >= 600 ?
+          { radius: 20, color: '#1A5E3516', offsetY: 0 } :
+          { radius: 0, color: Color.Transparent })
       }
       .width('100%')
       .height('100%')
-      .backgroundColor('#F6F1E8')
+      .onAreaChange((_oldValue: Area, newValue: Area): void => {
+        this.viewportWidth = Number(newValue.width);
+      })
     }
   }
 }

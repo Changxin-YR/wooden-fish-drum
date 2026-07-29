@@ -88,6 +88,7 @@ export struct HomePage {
         WoodenFishView({
           dark: this.isDark(),
           label: this.settings.currentText,
+          floatingEnabled: this.settings.floatingTextEnabled,
           onHit: (): void => this.onHit()
         })
 

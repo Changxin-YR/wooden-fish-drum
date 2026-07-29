@@ -1,12 +1,14 @@
 import { USER_MODE_CONFIGS } from '../constants/UserModeConfigs';
 import { AppSettings } from '../models/AppModels';
-import { ThemeMode, UserMode } from '../models/Enums';
+import { SoundType, ThemeMode, UserMode } from '../models/Enums';
 
 @Component
 export struct SettingsPage {
   @Prop settings: AppSettings;
   onModeChange: (mode: UserMode) => void = (): void => {};
   onSoundToggle: (enabled: boolean) => void = (): void => {};
+  onSoundTypeChange: (type: SoundType) => void = (): void => {};
+  onVolumeChange: (value: number) => void = (): void => {};
   onVibrationToggle: (enabled: boolean) => void = (): void => {};
   onFloatingToggle: (enabled: boolean) => void = (): void => {};
   onThemeChange: (mode: ThemeMode) => void = (): void => {};
@@ -16,6 +18,26 @@ export struct SettingsPage {
   @State showTextEditor: boolean = false;
   @State showClearConfirm: boolean = false;
   @State customText: string = '';
+
+  private soundLabel(): string {
+    if (this.settings.soundType === SoundType.DEEP) {
+      return '木鱼 · 低沉';
+    }
+    if (this.settings.soundType === SoundType.CRISP) {
+      return '木鱼 · 清脆';
+    }
+    return '木鱼 · 柔和';
+  }
+
+  private nextSoundType(): SoundType {
+    if (this.settings.soundType === SoundType.DEEP) {
+      return SoundType.CRISP;
+    }
+    if (this.settings.soundType === SoundType.CRISP) {
+      return SoundType.SOFT;
+    }
+    return SoundType.DEEP;
+  }
 
   @Builder
   SettingRow(icon: string, title: string, detail: string) {
@@ -123,6 +145,32 @@ export struct SettingsPage {
               Toggle({ type: ToggleType.Switch, isOn: this.settings.soundEnabled })
                 .selectedColor('#9A612C')
                 .onChange((value: boolean): void => this.onSoundToggle(value))
+            }
+            Divider().color('#EEE7DE')
+            Row() {
+              this.SettingRow('♬', '音色选择', this.soundLabel())
+              Text('›').fontSize(28).fontColor('#8A5635')
+            }
+            .onClick((): void => {
+              this.onSoundTypeChange(this.nextSoundType());
+            })
+            Divider().color('#EEE7DE')
+            Column({ space: 4 }) {
+              Row() {
+                this.SettingRow('◖', '音量', `${Math.round(this.settings.volume * 100)}%`)
+              }
+              Slider({
+                value: this.settings.volume,
+                min: 0,
+                max: 1,
+                step: 0.05,
+                style: SliderStyle.OutSet
+              })
+                .selectedColor('#9A612C')
+                .trackColor('#E8E2D8')
+                .onChange((value: number): void => {
+                  this.onVolumeChange(value);
+                })
             }
             Divider().color('#EEE7DE')
             Row() {

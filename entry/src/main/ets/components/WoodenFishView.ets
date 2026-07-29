@@ -2,6 +2,7 @@
 export struct WoodenFishView {
   @Prop dark: boolean;
   @Prop label: string;
+  @Prop floatingEnabled: boolean = true;
   onHit: () => void = (): void => {};
   @State scaleValue: number = 1;
   @State floatingTexts: string[] = [];
@@ -16,9 +17,11 @@ export struct WoodenFishView {
     animateTo({ duration: 100, delay: 100 }, (): void => {
       this.scaleValue = 1;
     });
-    this.nextId++;
-    const next: string[] = this.floatingTexts.concat([`${this.label} ${this.nextId}`]);
-    this.floatingTexts = next.slice(Math.max(0, next.length - 3));
+    if (this.floatingEnabled) {
+      this.nextId++;
+      const next: string[] = this.floatingTexts.concat([`${this.label} ${this.nextId}`]);
+      this.floatingTexts = next.slice(Math.max(0, next.length - 3));
+    }
   }
 
   build() {
