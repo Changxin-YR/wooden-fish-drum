@@ -1,0 +1,12 @@
+命令：
+hdc -t 127.0.0.1:5555 shell aa dump -a
+
+关键输出：
+Mission ID #35  mission name #[#com.max.muyu:entry:EntryAbility]
+app name [com.max.muyu]
+main name [EntryAbility]
+bundle name [com.max.muyu]
+state #FOREGROUND
+app state #FOREGROUND
+process name [com.max.muyu]
+state #FOREGROUND

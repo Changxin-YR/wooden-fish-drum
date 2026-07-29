@@ -174,7 +174,7 @@ export struct SettingsPage {
             }
             Divider().color('#EEE7DE')
             Row() {
-              this.SettingRow('♒', '振动反馈', '')
+              this.SettingRow('≋', '振动反馈', '')
               Toggle({ type: ToggleType.Switch, isOn: this.settings.vibrationEnabled })
                 .selectedColor('#9A612C')
                 .onChange((value: boolean): void => this.onVibrationToggle(value))

@@ -9,6 +9,7 @@ export class StatsRepository {
   private readonly store: LocalStoreAdapter;
   private records: DailyRecord[] = [];
   private loaded: boolean = false;
+  private mutationQueue: Promise<void> = Promise.resolve();
 
   constructor(store: LocalStoreAdapter) {
     this.store = store;
@@ -23,28 +24,41 @@ export class StatsRepository {
   }
 
   async replace(records: DailyRecord[]): Promise<void> {
-    this.records = this.copyRecords(records);
-    this.loaded = true;
-    await this.persist();
+    const snapshot: DailyRecord[] = this.copyRecords(records);
+    const operation: Promise<void> = this.mutationQueue.then(async (): Promise<void> => {
+      this.records = snapshot;
+      this.loaded = true;
+      await this.persist();
+    });
+    this.mutationQueue = operation.catch((): void => {});
+    await operation;
   }
 
   async increment(date: string, automatic: boolean): Promise<DailyRecord> {
-    await this.load();
-    let record: DailyRecord | undefined = this.records.find((item: DailyRecord): boolean => item.date === date);
-    if (record === undefined) {
-      record = new DailyRecord(date);
-      this.records.push(record);
-    }
-    if (automatic) {
-      record.autoCount++;
-    } else {
-      record.manualCount++;
-    }
-    await this.persist();
-    return new DailyRecord(record.date, record.manualCount, record.autoCount, record.durationSeconds);
+    let result: DailyRecord = new DailyRecord(date);
+    const operation: Promise<void> = this.mutationQueue.then(async (): Promise<void> => {
+      await this.load();
+      let record: DailyRecord | undefined =
+        this.records.find((item: DailyRecord): boolean => item.date === date);
+      if (record === undefined) {
+        record = new DailyRecord(date);
+        this.records.push(record);
+      }
+      if (automatic) {
+        record.autoCount++;
+      } else {
+        record.manualCount++;
+      }
+      await this.persist();
+      result = new DailyRecord(record.date, record.manualCount, record.autoCount, record.durationSeconds);
+    });
+    this.mutationQueue = operation.catch((): void => {});
+    await operation;
+    return result;
   }
 
   async summary(today: string): Promise<StatsSummary> {
+    await this.mutationQueue;
     await this.load();
     const result: StatsSummary = new StatsSummary();
     this.records.forEach((record: DailyRecord): void => {
@@ -61,6 +75,7 @@ export class StatsRepository {
   }
 
   async recentDays(today: string, count: number): Promise<DailyRecord[]> {
+    await this.mutationQueue;
     await this.load();
     const result: DailyRecord[] = [];
     for (let offset: number = count - 1; offset >= 0; offset--) {
@@ -74,9 +89,13 @@ export class StatsRepository {
   }
 
   async clear(): Promise<void> {
-    this.records = [];
-    this.loaded = true;
-    await this.store.remove(STATS_KEY);
+    const operation: Promise<void> = this.mutationQueue.then(async (): Promise<void> => {
+      this.records = [];
+      this.loaded = true;
+      await this.store.remove(STATS_KEY);
+    });
+    this.mutationQueue = operation.catch((): void => {});
+    await operation;
   }
 
   private streak(today: string): number {

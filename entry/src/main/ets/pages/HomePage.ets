@@ -33,9 +33,9 @@ export struct HomePage {
   }
 
   @Builder
-  Metric(value: string, label: string) {
+  Metric(value: () => string, label: string) {
     Column({ space: 4 }) {
-      Text(value)
+      Text(value())
         .fontSize(19)
         .fontWeight(FontWeight.Bold)
         .fontColor(this.primaryText())
@@ -103,11 +103,11 @@ export struct HomePage {
         }
 
         Row() {
-          this.Metric(this.summary.totalCount.toLocaleString(), '累计功德')
+          this.Metric((): string => this.summary.totalCount.toLocaleString(), '累计功德')
           Divider().vertical(true).height(38).color(this.secondaryText())
-          this.Metric(`${this.summary.streakDays}`, '连续天数')
+          this.Metric((): string => `${this.summary.streakDays}`, '连续天数')
           Divider().vertical(true).height(38).color(this.secondaryText())
-          this.Metric(`${this.summary.maxDailyCount}`, '最大单日')
+          this.Metric((): string => `${this.summary.maxDailyCount}`, '最大单日')
         }
         .width('100%')
         .padding({ top: 16, bottom: 16 })

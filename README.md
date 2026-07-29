@@ -41,4 +41,4 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\build-harmony.ps1 
 
 ## 当前状态
 
-V1.0 功能代码与构建门禁已完成。当前机器没有连接 HarmonyOS 设备，因此 Hypium 运行态与 phone/tablet/2in1 交互验证仍明确标记为 `blocked`。真实证据记录在 `docs/qa/`。
+V1.0 功能代码、构建门禁和 phone 模拟器核心交互验收已完成。Hypium 10/10 通过，首启、敲击、统计、设置与强停重启持久化均有真实运行截图。当前缺少 tablet、2in1 目标，其实际设备视觉验收仍明确标记为 `blocked`。证据记录在 `docs/qa/`。

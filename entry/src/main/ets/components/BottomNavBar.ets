@@ -6,11 +6,12 @@ export struct BottomNavBar {
   onChange: (tab: AppTab) => void = (): void => {};
 
   @Builder
-  TabItem(tab: AppTab, icon: string, label: string) {
+  TabItem(tab: AppTab, icon: Resource, label: string) {
     Column({ space: 2 }) {
-      Text(icon)
-        .fontSize(24)
-        .fontColor(this.selected === tab ? '#8A5635' : '#8B857E')
+      Image(icon)
+        .width(30)
+        .height(34)
+        .objectFit(ImageFit.Cover)
       Text(label)
         .fontSize(12)
         .fontColor(this.selected === tab ? '#8A5635' : '#8B857E')
@@ -23,9 +24,9 @@ export struct BottomNavBar {
 
   build() {
     Row() {
-      this.TabItem(AppTab.HOME, '⌂', '首页')
-      this.TabItem(AppTab.STATS, '▥', '统计')
-      this.TabItem(AppTab.SETTINGS, '⚙', '设置')
+      this.TabItem(AppTab.HOME, $r('app.media.nav_home'), '首页')
+      this.TabItem(AppTab.STATS, $r('app.media.nav_stats'), '统计')
+      this.TabItem(AppTab.SETTINGS, $r('app.media.nav_settings'), '设置')
     }
     .width('100%')
     .backgroundColor('#FFFDF8')

@@ -24,6 +24,28 @@ class MemoryStore implements LocalStoreAdapter {
   }
 }
 
+class ReorderedWriteStore implements LocalStoreAdapter {
+  private value: string = '';
+  private writeIndex: number = 0;
+
+  async getString(_key: string, fallback: string): Promise<string> {
+    return this.value.length > 0 ? this.value : fallback;
+  }
+
+  async putString(_key: string, value: string): Promise<void> {
+    const delay: number = Math.max(0, 40 - this.writeIndex * 15);
+    this.writeIndex++;
+    await new Promise<void>((resolve: () => void): void => {
+      setTimeout(resolve, delay);
+    });
+    this.value = value;
+  }
+
+  async remove(_key: string): Promise<void> {
+    this.value = '';
+  }
+}
+
 export default function dataAndSessionTest(): void {
   describe('DataAndSession', (): void => {
     it('loadsSafeDefaultsFromInvalidSettings', 0, (): void => {
@@ -41,6 +63,18 @@ export default function dataAndSessionTest(): void {
       const recent: DailyRecord[] = await repository.recentDays('2026-07-29', 7);
       expect(recent.length).assertEqual(7);
       expect(recent[6].date).assertEqual('2026-07-29');
+    });
+
+    it('persistsRapidHitsInOrder', 0, async (): Promise<void> => {
+      const memory: ReorderedWriteStore = new ReorderedWriteStore();
+      const repository: StatsRepository = new StatsRepository(memory);
+      await Promise.all([
+        repository.increment('2026-07-30', false),
+        repository.increment('2026-07-30', false),
+        repository.increment('2026-07-30', false)
+      ]);
+      const restored: StatsRepository = new StatsRepository(memory);
+      expect((await restored.summary('2026-07-30')).totalCount).assertEqual(3);
     });
 
     it('countsRapidHitsAndStopsExactlyAtTarget', 0, (): void => {

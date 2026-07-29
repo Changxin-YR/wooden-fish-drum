@@ -23,14 +23,14 @@ export struct StatsPage {
   }
 
   @Builder
-  SummaryItem(icon: string, title: string, value: string, detail: string) {
+  SummaryItem(icon: string, title: string, value: () => string, detail: string) {
     Column({ space: 7 }) {
       Text(icon)
         .fontSize(24)
       Text(title)
         .fontSize(13)
         .fontColor('#817970')
-      Text(value)
+      Text(value())
         .fontSize(23)
         .fontWeight(FontWeight.Bold)
         .fontColor('#2E2924')
@@ -61,10 +61,10 @@ export struct StatsPage {
         .borderRadius(27)
 
         Row() {
-          this.SummaryItem('▣', '今日功德', this.summary.todayCount.toLocaleString(), '实时统计')
-          this.SummaryItem('◇', '总计功德', this.summary.totalCount.toLocaleString(), '累计功德')
-          this.SummaryItem('♧', '手动敲击', this.summary.manualCount.toLocaleString(), '手动记录')
-          this.SummaryItem('◉', '自动敲击', this.summary.autoCount.toLocaleString(), '自动记录')
+          this.SummaryItem('▣', '今日功德', (): string => this.summary.todayCount.toLocaleString(), '实时统计')
+          this.SummaryItem('◇', '总计功德', (): string => this.summary.totalCount.toLocaleString(), '累计功德')
+          this.SummaryItem('♧', '手动敲击', (): string => this.summary.manualCount.toLocaleString(), '手动记录')
+          this.SummaryItem('◉', '自动敲击', (): string => this.summary.autoCount.toLocaleString(), '自动记录')
         }
         .width('100%')
         .padding({ top: 22, bottom: 22 })

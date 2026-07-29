@@ -20,7 +20,7 @@ export default function coreModelsTest(): void {
 
     it('trimsAndLimitsCustomTextToTwelveCharacters', 0, (): void => {
       expect(TextValidator.normalize('  保持专注  ')).assertEqual('保持专注');
-      expect(TextValidator.normalize('一二三四五六七八九十十一十二十三')).assertEqual('一二三四五六七八九十十一十二');
+      expect(TextValidator.normalize('一二三四五六七八九十十一十二十三')).assertEqual('一二三四五六七八九十十一');
       expect(TextValidator.isValid('   ')).assertFalse();
     });
   });

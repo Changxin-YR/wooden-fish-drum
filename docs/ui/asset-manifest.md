@@ -12,5 +12,8 @@
 | `mode_general.png` | 同上 | 106,1200,220,235 | 普通用户模式卡 |
 | `muyu_dark.png` | `codex-clipboard-6f2ca1a5-fbed-43a8-93f5-9cdcf2067cfc.png` | 180,448,575,420 | 深色首页木鱼 |
 | `muyu_light.png` | `codex-clipboard-ddfac7ff-b094-4173-83c6-afeb6ff3f07d.png` | 690,595,300,240 | 浅色木鱼备选素材 |
+| `nav_home.png` | `codex-clipboard-94a7e43e-e486-4787-95e8-d3c129cc7a22.png` | 537,193,150,170 | 底部导航：首页原始图标 |
+| `nav_stats.png` | 同上 | 706,193,150,170 | 底部导航：统计原始图标 |
+| `nav_settings.png` | 同上 | 875,193,150,170 | 底部导航：设置原始图标 |
 
 音频使用同机已有 HarmonyOS 工程中的本地短 WAV 资源复用并按低沉、清脆、柔和语义命名，不请求网络资源。
