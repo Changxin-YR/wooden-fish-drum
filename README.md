@@ -10,15 +10,35 @@
 - phone、tablet、2in1
 - Preferences 本地持久化
 
+## 功能
+
+- 首次启动选择程序员、僧侣或普通用户模式，之后可在设置中切换。
+- 手动敲击、目标、限时和自动四种会话模式。
+- 木鱼回弹、三种音色、音量、振动与最多三条浮动文字反馈。
+- 今日、累计、手动、自动、连续天数、最大单日和最近 7 日趋势统计。
+- 自定义敲击文字、深浅色、反馈开关和二次确认清除统计。
+- Compact、Medium、Expanded 三档限宽响应式布局。
+
+## 目录
+
+- `entry/src/main/ets/pages/`：页面和应用入口编排。
+- `entry/src/main/ets/components/`：木鱼、模式卡、统计图与底部导航。
+- `entry/src/main/ets/stores/`：应用级状态和运行时依赖。
+- `entry/src/main/ets/repositories/`：设置与每日统计持久化。
+- `entry/src/main/ets/services/`：会话、音频和振动能力。
+- `entry/src/main/ets/models/`、`constants/`、`utils/`：强类型模型、配置和纯逻辑。
+
 ## 构建
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-standard.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\build-harmony.ps1 -BuildMode debug
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\build-harmony.ps1 -BuildMode debug -Target ohosTest
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\build-harmony.ps1 -BuildMode release
 ```
 
 构建产物位于 `entry/build/default/outputs/default/` 下。设备测试与交互证据记录在 `docs/qa/`。
 
 ## 当前状态
 
-V1.0 正在按五个阶段实施。真实进度、验证结果和遗留风险分别记录在 `tasks.md`、`changes.md` 与 `design-qa.md`。
+V1.0 功能代码与构建门禁已完成。当前机器没有连接 HarmonyOS 设备，因此 Hypium 运行态与 phone/tablet/2in1 交互验证仍明确标记为 `blocked`。真实证据记录在 `docs/qa/`。

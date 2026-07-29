@@ -6,5 +6,6 @@ oh_modules/
 node_modules/
 build/
 entry/build/
+entry/.test/
 local.properties
 *.log
