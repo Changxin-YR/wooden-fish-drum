@@ -8,6 +8,8 @@ import { ModeSelectPage } from './ModeSelectPage';
 import { SettingsPage } from './SettingsPage';
 import { StatsPage } from './StatsPage';
 import { appStore, preferencesStore, sessionService } from '../stores/AppRuntime';
+import { audioService } from '../services/AudioService';
+import { vibrationService } from '../services/VibrationService';
 
 @Entry
 @Component
@@ -26,6 +28,7 @@ struct Index {
       await preferencesStore.initialize(context);
     } catch {
     }
+    await audioService.initialize(context);
     await appStore.initialize();
     sessionService.setCallbacks((automatic: boolean): void => {
       this.handleRecordedHit(automatic);
@@ -38,6 +41,7 @@ struct Index {
 
   aboutToDisappear(): void {
     sessionService.onBackground();
+    audioService.release();
   }
 
   private syncFromStore(): void {
@@ -62,6 +66,12 @@ struct Index {
   }
 
   private async handleRecordedHit(automatic: boolean): Promise<void> {
+    if (this.settings.soundEnabled) {
+      audioService.play(this.settings.soundType, this.settings.volume);
+    }
+    if (this.settings.vibrationEnabled) {
+      vibrationService.impact();
+    }
     await appStore.recordHit(automatic);
     this.syncFromStore();
   }
