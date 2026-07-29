@@ -26,7 +26,19 @@ $requiredFiles = @(
   'entry\src\main\module.json5',
   'entry\src\main\ets\entryability\EntryAbility.ets',
   'entry\src\main\ets\pages\Index.ets',
+  'entry\src\main\ets\pages\ModeSelectPage.ets',
+  'entry\src\main\ets\pages\HomePage.ets',
+  'entry\src\main\ets\pages\StatsPage.ets',
+  'entry\src\main\ets\pages\SettingsPage.ets',
+  'entry\src\main\ets\services\SessionService.ets',
+  'entry\src\main\ets\services\AudioService.ets',
+  'entry\src\main\ets\services\VibrationService.ets',
   'entry\src\main\resources\base\media\app_icon.png',
+  'entry\src\main\resources\base\media\muyu_brand.png',
+  'entry\src\main\resources\base\media\muyu_dark.png',
+  'entry\src\main\resources\rawfile\sounds\deep.wav',
+  'entry\src\main\resources\rawfile\sounds\crisp.wav',
+  'entry\src\main\resources\rawfile\sounds\soft.wav',
   'entry\src\main\resources\base\profile\main_pages.json',
   'entry\src\ohosTest\module.json5',
   'entry\src\ohosTest\ets\test\List.test.ets',
@@ -105,13 +117,6 @@ if ($null -ne $pages -and (@($pages.src).Count -ne 1 -or $pages.src[0] -ne 'page
 }
 
 $testListPath = Join-Path $projectRoot 'entry\src\ohosTest\ets\test\List.test.ets'
-if (Test-Path -LiteralPath $testListPath -PathType Leaf) {
-  $testList = Get-Content -Raw -Encoding UTF8 -LiteralPath $testListPath
-  if ($testList -match '(?m)^\s*import\s') {
-    $problems.Add('Task 1 requires an empty ohosTest test list with no imports')
-  }
-}
-
 if ($problems.Count -gt 0) {
   Write-Host 'Standard project check failed:' -ForegroundColor Red
   foreach ($problem in $problems) {

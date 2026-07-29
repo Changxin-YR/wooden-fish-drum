@@ -11,10 +11,10 @@ export struct WoodenFishView {
   private handleHit(): void {
     this.onHit();
     this.scaleValue = 0.95;
-    animateTo({ duration: 100 }, (): void => {
+    this.getUIContext().animateTo({ duration: 100 }, (): void => {
       this.scaleValue = 1.02;
     });
-    animateTo({ duration: 100, delay: 100 }, (): void => {
+    this.getUIContext().animateTo({ duration: 100, delay: 100 }, (): void => {
       this.scaleValue = 1;
     });
     if (this.floatingEnabled) {

@@ -6,7 +6,12 @@ export class PreferencesStore implements LocalStoreAdapter {
   private data: preferences.Preferences | null = null;
 
   async initialize(context: common.Context): Promise<void> {
-    this.data = await preferences.getPreferences(context, 'muyu_local_data');
+    try {
+      this.data = await preferences.getPreferences(context, 'muyu_local_data');
+    } catch {
+      this.data = null;
+      throw new Error('本地存储初始化失败');
+    }
   }
 
   async getString(key: string, fallback: string): Promise<string> {
@@ -25,15 +30,23 @@ export class PreferencesStore implements LocalStoreAdapter {
     if (this.data === null) {
       throw new Error('本地存储尚未初始化');
     }
-    await this.data.put(key, value);
-    await this.data.flush();
+    try {
+      await this.data.put(key, value);
+      await this.data.flush();
+    } catch {
+      throw new Error('本地数据写入失败');
+    }
   }
 
   async remove(key: string): Promise<void> {
     if (this.data === null) {
       return;
     }
-    await this.data.delete(key);
-    await this.data.flush();
+    try {
+      await this.data.delete(key);
+      await this.data.flush();
+    } catch {
+      throw new Error('本地数据删除失败');
+    }
   }
 }

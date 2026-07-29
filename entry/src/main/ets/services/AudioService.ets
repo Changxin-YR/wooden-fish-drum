@@ -59,12 +59,16 @@ export class AudioService {
     if (this.context === null || this.pool === null) {
       return;
     }
-    const descriptor = await this.context.resourceManager.getRawFd(path);
     try {
+      const descriptor = await this.context.resourceManager.getRawFd(path);
       const soundId: number = await this.pool.load(descriptor.fd, descriptor.offset, descriptor.length);
       this.soundIds.set(type, soundId);
-    } finally {
       await this.context.resourceManager.closeRawFd(path);
+    } catch {
+      try {
+        await this.context.resourceManager.closeRawFd(path);
+      } catch {
+      }
     }
   }
 }

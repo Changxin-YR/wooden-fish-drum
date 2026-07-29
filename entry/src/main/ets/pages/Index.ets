@@ -34,12 +34,16 @@ struct Index {
   }
 
   async aboutToAppear(): Promise<void> {
-    const context: common.UIAbilityContext = getContext(this) as common.UIAbilityContext;
+    const hostContext: common.Context | undefined = this.getUIContext().getHostContext();
+    if (hostContext === undefined) {
+      this.ready = true;
+      return;
+    }
     try {
-      await preferencesStore.initialize(context);
+      await preferencesStore.initialize(hostContext);
     } catch {
     }
-    await audioService.initialize(context);
+    await audioService.initialize(hostContext);
     await appStore.initialize();
     sessionService.setCallbacks((automatic: boolean): void => {
       this.handleRecordedHit(automatic);
