@@ -51,6 +51,10 @@ export class AppStore {
     return this.settingsRepository.save(this.settings);
   }
 
+  async persistSettings(): Promise<boolean> {
+    return this.settingsRepository.save(this.settings);
+  }
+
   async saveCustomText(value: string): Promise<boolean> {
     const normalized: string = TextValidator.normalize(value);
     if (!TextValidator.isValid(normalized)) {
