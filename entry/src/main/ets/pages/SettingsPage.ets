@@ -1,11 +1,9 @@
-import { USER_MODE_CONFIGS } from '../constants/UserModeConfigs';
 import { AppSettings } from '../models/AppModels';
-import { SoundType, ThemeMode, UserMode } from '../models/Enums';
+import { SoundType, ThemeMode } from '../models/Enums';
 
 @Component
 export struct SettingsPage {
   @Prop settings: AppSettings;
-  onModeChange: (mode: UserMode) => void = (): void => {};
   onSoundToggle: (enabled: boolean) => void = (): void => {};
   onSoundTypeChange: (type: SoundType) => void = (): void => {};
   onVolumeChange: (value: number) => void = (): void => {};
@@ -14,7 +12,6 @@ export struct SettingsPage {
   onThemeChange: (mode: ThemeMode) => void = (): void => {};
   onCustomText: (value: string) => void = (): void => {};
   onClearStats: () => void = (): void => {};
-  @State showModes: boolean = false;
   @State showTextEditor: boolean = false;
   @State showClearConfirm: boolean = false;
   @State customText: string = '';
@@ -95,43 +92,6 @@ export struct SettingsPage {
             .fontSize(30)
             .fontWeight(FontWeight.Bold)
             .fontColor('#2E2924')
-
-          Column({ space: 10 }) {
-            Text('用户模式')
-              .width('100%')
-              .fontSize(16)
-              .fontWeight(FontWeight.Medium)
-              .fontColor('#2E2924')
-            Row({ space: 14 }) {
-              Image(this.settings.userMode === UserMode.PROGRAMMER ? $r('app.media.mode_programmer') :
-                this.settings.userMode === UserMode.MONK ? $r('app.media.mode_monk') :
-                  $r('app.media.mode_general'))
-                .width(64)
-                .height(64)
-                .objectFit(ImageFit.Cover)
-                .borderRadius(32)
-              Column({ space: 4 }) {
-                Text(`当前模式：${USER_MODE_CONFIGS[this.settings.userMode].title}`)
-                  .fontSize(17).fontWeight(FontWeight.Medium).fontColor('#2E2924')
-                Text(USER_MODE_CONFIGS[this.settings.userMode].description)
-                  .fontSize(11).fontColor('#817970').maxLines(1)
-              }
-              .layoutWeight(1)
-              .constraintSize({ minWidth: 0 })
-              .alignItems(HorizontalAlign.Start)
-              Text('›').fontSize(28).fontColor('#8A5635')
-            }
-            .width('100%')
-            .padding(14)
-            .backgroundColor('#FFFDF8')
-            .borderRadius(18)
-            .onClick((): void => {
-              this.showModes = true;
-            })
-          }
-          .padding(16)
-          .backgroundColor('#FBF7F0')
-          .borderRadius(20)
 
           Column() {
             Text('敲击反馈')
@@ -251,33 +211,6 @@ export struct SettingsPage {
       .scrollBar(BarState.Off)
       .backgroundColor('#F6F1E8')
 
-      if (this.showModes) {
-        Column({ space: 12 }) {
-          Text('切换用户模式').fontSize(20).fontWeight(FontWeight.Bold)
-          ForEach([UserMode.PROGRAMMER, UserMode.MONK, UserMode.GENERAL], (mode: UserMode) => {
-            Button(USER_MODE_CONFIGS[mode].title)
-              .width('100%').height(48)
-              .fontColor(this.settings.userMode === mode ? Color.White : '#8A5635')
-              .backgroundColor(this.settings.userMode === mode ? '#9A612C' : '#F7EFE4')
-              .onClick((): void => {
-                this.showModes = false;
-                this.onModeChange(mode);
-              })
-          })
-          Button('取消')
-            .width('100%').height(48)
-            .fontColor('#817970').backgroundColor('#EEE8DF')
-            .onClick((): void => {
-              this.showModes = false;
-            })
-        }
-        .width('86%')
-        .padding(20)
-        .backgroundColor('#FFFDF8')
-        .borderRadius(22)
-        .shadow({ radius: 28, color: '#55372C20' })
-      }
-
       if (this.showTextEditor) {
         Column({ space: 14 }) {
           Text('自定义敲击文字').fontSize(20).fontWeight(FontWeight.Bold)
@@ -305,7 +238,7 @@ export struct SettingsPage {
       if (this.showClearConfirm) {
         Column({ space: 14 }) {
           Text('清除统计数据？').fontSize(20).fontWeight(FontWeight.Bold)
-          Text('此操作不可撤销，但会保留当前设置与用户模式。')
+          Text('此操作不可撤销，但会保留当前设置。')
             .fontSize(14).fontColor('#817970')
           Row({ space: 10 }) {
             Button('取消').layoutWeight(1).onClick((): void => {

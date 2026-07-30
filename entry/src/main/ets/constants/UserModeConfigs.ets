@@ -32,10 +32,10 @@ const GENERAL_CONFIG: UserModeConfig = {
   title: '普通用户',
   description: '敲击解压 · 轻量体验 · 日常净心',
   detail: '减压净心 · 每日目标 · 轻松记录',
-  defaultText: '好运+1',
+  defaultText: '功德+1',
   availableTexts: ['好运+1', '压力-1', '专注+1'],
   recommendedTargets: [10, 30, 60, 100],
-  defaultTheme: ThemeMode.LIGHT,
+  defaultTheme: ThemeMode.SYSTEM,
   defaultSound: SoundType.SOFT,
   featureOrder: [SessionMode.FREE, SessionMode.TARGET, SessionMode.TIMER, SessionMode.AUTO]
 };

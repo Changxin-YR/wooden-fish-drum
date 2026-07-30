@@ -1,14 +1,14 @@
 import { SessionMode, SoundType, ThemeMode, UserMode } from './Enums';
 
 export class AppSettings {
-  initialized: boolean = false;
-  userMode: UserMode = UserMode.PROGRAMMER;
-  themeMode: ThemeMode = ThemeMode.DARK;
+  initialized: boolean = true;
+  userMode: UserMode = UserMode.GENERAL;
+  themeMode: ThemeMode = ThemeMode.SYSTEM;
   themeManuallyChanged: boolean = false;
-  currentText: string = 'Bug-1';
+  currentText: string = '功德+1';
   customTexts: string[] = [];
   soundEnabled: boolean = true;
-  soundType: SoundType = SoundType.CRISP;
+  soundType: SoundType = SoundType.SOFT;
   volume: number = 0.7;
   vibrationEnabled: boolean = true;
   floatingTextEnabled: boolean = true;

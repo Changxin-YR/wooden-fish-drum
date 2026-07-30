@@ -4,7 +4,7 @@ import { SoundType, ThemeMode, UserMode } from '../models/Enums';
 
 export class JsonCodec {
   static createDefaultSettings(): AppSettings {
-    return JsonCodec.createSettingsForMode(UserMode.PROGRAMMER, false);
+    return JsonCodec.createSettingsForMode(UserMode.GENERAL, true);
   }
 
   static createSettingsForMode(mode: UserMode, initialized: boolean = true): AppSettings {
@@ -32,8 +32,8 @@ export class JsonCodec {
         return defaults;
       }
       const result: AppSettings = new AppSettings();
-      result.initialized = typeof parsed.initialized === 'boolean' ? parsed.initialized : defaults.initialized;
-      result.userMode = JsonCodec.isUserMode(parsed.userMode) ? parsed.userMode : defaults.userMode;
+      result.initialized = true;
+      result.userMode = UserMode.GENERAL;
       result.themeMode = JsonCodec.isThemeMode(parsed.themeMode) ? parsed.themeMode : defaults.themeMode;
       result.themeManuallyChanged = typeof parsed.themeManuallyChanged === 'boolean' ?
         parsed.themeManuallyChanged : defaults.themeManuallyChanged;

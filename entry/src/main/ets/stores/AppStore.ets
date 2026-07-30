@@ -1,7 +1,6 @@
-import { USER_MODE_CONFIGS } from '../constants/UserModeConfigs';
 import { JsonCodec } from '../data/JsonCodec';
 import { AppSettings, DailyRecord, StatsSummary } from '../models/AppModels';
-import { ThemeMode, UserMode } from '../models/Enums';
+import { ThemeMode } from '../models/Enums';
 import { SettingsRepository } from '../repositories/SettingsRepository';
 import { StatsRepository } from '../repositories/StatsRepository';
 import { DateUtil } from '../utils/DateUtil';
@@ -22,27 +21,6 @@ export class AppStore {
   async initialize(): Promise<void> {
     this.settings = await this.settingsRepository.load();
     await this.refreshStats();
-  }
-
-  async selectInitialMode(mode: UserMode): Promise<boolean> {
-    this.settings = JsonCodec.createSettingsForMode(mode);
-    return this.settingsRepository.save(this.settings);
-  }
-
-  async switchMode(mode: UserMode): Promise<boolean> {
-    const currentPreset: boolean =
-      USER_MODE_CONFIGS[this.settings.userMode].availableTexts.includes(this.settings.currentText);
-    const next: AppSettings = JsonCodec.decodeSettings(JsonCodec.encodeSettings(this.settings));
-    next.userMode = mode;
-    if (currentPreset) {
-      next.currentText = USER_MODE_CONFIGS[mode].defaultText;
-    }
-    if (!next.themeManuallyChanged) {
-      next.themeMode = USER_MODE_CONFIGS[mode].defaultTheme;
-    }
-    next.soundType = USER_MODE_CONFIGS[mode].defaultSound;
-    this.settings = next;
-    return this.settingsRepository.save(next);
   }
 
   async setThemeMode(mode: ThemeMode): Promise<boolean> {

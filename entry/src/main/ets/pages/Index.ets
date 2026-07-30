@@ -2,9 +2,8 @@ import { common } from '@kit.AbilityKit';
 import { BottomNavBar } from '../components/BottomNavBar';
 import { JsonCodec } from '../data/JsonCodec';
 import { AppSettings, DailyRecord, SessionState, StatsSummary } from '../models/AppModels';
-import { AppTab, SessionMode, SoundType, ThemeMode, UserMode } from '../models/Enums';
+import { AppTab, SessionMode, SoundType, ThemeMode } from '../models/Enums';
 import { HomePage } from './HomePage';
-import { ModeSelectPage } from './ModeSelectPage';
 import { SettingsPage } from './SettingsPage';
 import { StatsPage } from './StatsPage';
 import { appStore, preferencesStore, sessionService } from '../stores/AppRuntime';
@@ -15,7 +14,6 @@ import { vibrationService } from '../services/VibrationService';
 @Component
 struct Index {
   @State ready: boolean = false;
-  @State initialized: boolean = false;
   @State selectedTab: AppTab = AppTab.HOME;
   @State settings: AppSettings = JsonCodec.createDefaultSettings();
   @State summary: StatsSummary = new StatsSummary();
@@ -61,7 +59,6 @@ struct Index {
 
   private syncFromStore(): void {
     this.settings = JsonCodec.decodeSettings(JsonCodec.encodeSettings(appStore.settings));
-    this.initialized = this.settings.initialized;
     this.summary = appStore.summary;
     this.recentRecords = appStore.recentRecords;
     this.refreshSessionState();
@@ -111,17 +108,6 @@ struct Index {
     this.refreshSessionState();
   }
 
-  private async selectInitialMode(mode: UserMode): Promise<void> {
-    await appStore.selectInitialMode(mode);
-    await appStore.refreshStats();
-    this.syncFromStore();
-  }
-
-  private async changeMode(mode: UserMode): Promise<void> {
-    await appStore.switchMode(mode);
-    this.syncFromStore();
-  }
-
   private async updateSetting(action: string, value: boolean): Promise<void> {
     if (action === 'sound') {
       appStore.settings.soundEnabled = value;
@@ -149,9 +135,6 @@ struct Index {
     } else {
       SettingsPage({
         settings: this.settings,
-        onModeChange: (mode: UserMode): void => {
-          this.changeMode(mode);
-        },
         onSoundToggle: (enabled: boolean): void => {
           this.updateSetting('sound', enabled);
         },
@@ -193,12 +176,6 @@ struct Index {
       .height('100%')
       .justifyContent(FlexAlign.Center)
       .backgroundColor('#F6F1E8')
-    } else if (!this.initialized) {
-      ModeSelectPage({
-        onConfirm: (mode: UserMode): void => {
-          this.selectInitialMode(mode);
-        }
-      })
     } else {
       Stack({ alignContent: Alignment.Top }) {
         Row()

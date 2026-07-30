@@ -1,15 +1,16 @@
 import { describe, expect, it } from '@ohos/hypium';
-import { USER_MODE_CONFIGS } from '../../../main/ets/constants/UserModeConfigs';
+import { JsonCodec } from '../../../main/ets/data/JsonCodec';
 import { LayoutSize, ResponsiveLayout } from '../../../main/ets/utils/ResponsiveLayout';
 import { TextValidator } from '../../../main/ets/utils/TextValidator';
-import { UserMode } from '../../../main/ets/models/Enums';
+import { ThemeMode, UserMode } from '../../../main/ets/models/Enums';
 
 export default function coreModelsTest(): void {
   describe('CoreModels', (): void => {
-    it('providesThreeDistinctUserModeDefaults', 0, (): void => {
-      expect(USER_MODE_CONFIGS[UserMode.PROGRAMMER].defaultText).assertEqual('Bug-1');
-      expect(USER_MODE_CONFIGS[UserMode.MONK].defaultText).assertEqual('功德+1');
-      expect(USER_MODE_CONFIGS[UserMode.GENERAL].defaultText).assertEqual('好运+1');
+    it('usesOneReadyGeneralUserDefault', 0, (): void => {
+      expect(JsonCodec.createDefaultSettings().initialized).assertTrue();
+      expect(JsonCodec.createDefaultSettings().userMode).assertEqual(UserMode.GENERAL);
+      expect(JsonCodec.createDefaultSettings().currentText).assertEqual('功德+1');
+      expect(JsonCodec.createDefaultSettings().themeMode).assertEqual(ThemeMode.SYSTEM);
     });
 
     it('usesDocumentedResponsiveBreakpoints', 0, (): void => {

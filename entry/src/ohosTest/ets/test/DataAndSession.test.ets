@@ -2,11 +2,9 @@ import { describe, expect, it } from '@ohos/hypium';
 import { JsonCodec } from '../../../main/ets/data/JsonCodec';
 import { LocalStoreAdapter } from '../../../main/ets/data/LocalStoreAdapter';
 import { DailyRecord } from '../../../main/ets/models/AppModels';
-import { UserMode } from '../../../main/ets/models/Enums';
-import { SettingsRepository } from '../../../main/ets/repositories/SettingsRepository';
+import { SoundType, ThemeMode, UserMode } from '../../../main/ets/models/Enums';
 import { StatsRepository } from '../../../main/ets/repositories/StatsRepository';
 import { SessionService } from '../../../main/ets/services/SessionService';
-import { AppStore } from '../../../main/ets/stores/AppStore';
 
 class MemoryStore implements LocalStoreAdapter {
   private values: Map<string, string> = new Map<string, string>();
@@ -49,8 +47,8 @@ class ReorderedWriteStore implements LocalStoreAdapter {
 export default function dataAndSessionTest(): void {
   describe('DataAndSession', (): void => {
     it('loadsSafeDefaultsFromInvalidSettings', 0, (): void => {
-      expect(JsonCodec.decodeSettings('{broken').initialized).assertFalse();
-      expect(JsonCodec.decodeSettings('{broken').userMode).assertEqual(UserMode.PROGRAMMER);
+      expect(JsonCodec.decodeSettings('{broken').initialized).assertTrue();
+      expect(JsonCodec.decodeSettings('{broken').userMode).assertEqual(UserMode.GENERAL);
     });
 
     it('derivesTotalsAndSevenOrderedDays', 0, async (): Promise<void> => {
@@ -98,12 +96,20 @@ export default function dataAndSessionTest(): void {
       session.stop();
     });
 
-    it('initializesSelectedMode', 0, async (): Promise<void> => {
-      const memory: MemoryStore = new MemoryStore();
-      const store: AppStore = new AppStore(new SettingsRepository(memory), new StatsRepository(memory));
-      await store.selectInitialMode(UserMode.MONK);
-      expect(store.settings.initialized).assertTrue();
-      expect(store.settings.currentText).assertEqual('功德+1');
+    it('migratesLegacyModeAndPreservesPreferences', 0, (): void => {
+      const legacy: string = JSON.stringify({
+        initialized: true,
+        userMode: UserMode.PROGRAMMER,
+        themeMode: ThemeMode.DARK,
+        currentText: '保持专注',
+        soundType: SoundType.DEEP,
+        volume: 0.35
+      });
+      expect(JsonCodec.decodeSettings(legacy).userMode).assertEqual(UserMode.GENERAL);
+      expect(JsonCodec.decodeSettings(legacy).currentText).assertEqual('保持专注');
+      expect(JsonCodec.decodeSettings(legacy).themeMode).assertEqual(ThemeMode.DARK);
+      expect(JsonCodec.decodeSettings(legacy).soundType).assertEqual(SoundType.DEEP);
+      expect(JsonCodec.decodeSettings(legacy).volume).assertEqual(0.35);
     });
   });
 }

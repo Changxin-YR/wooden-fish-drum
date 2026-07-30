@@ -1,5 +1,4 @@
 import { WoodenFishView } from '../components/WoodenFishView';
-import { USER_MODE_CONFIGS } from '../constants/UserModeConfigs';
 import { AppSettings, SessionState, StatsSummary } from '../models/AppModels';
 import { SessionMode, ThemeMode } from '../models/Enums';
 
@@ -65,25 +64,13 @@ export struct HomePage {
   build() {
     Scroll() {
       Column({ space: 18 }) {
-        Row() {
-          Text(`◉ ${USER_MODE_CONFIGS[this.settings.userMode].title}模式`)
-            .fontSize(16)
-            .fontWeight(FontWeight.Medium)
-            .fontColor(this.primaryText())
-            .padding({ left: 18, right: 18, top: 12, bottom: 12 })
-            .backgroundColor(this.card())
-            .borderRadius(24)
-          Blank()
-          Text(`今日功德  ${this.summary.todayCount.toLocaleString()}`)
-            .fontSize(15)
-            .fontColor(this.secondaryText())
-        }
-        .width('100%')
-
-        Text(this.settings.currentText)
-          .fontSize(30)
-          .fontWeight(FontWeight.Bold)
+        Text(`今日功德  ${this.summary.todayCount.toLocaleString()}`)
+          .width('100%')
+          .fontSize(17)
+          .fontWeight(FontWeight.Medium)
           .fontColor(this.primaryText())
+          .textAlign(TextAlign.End)
+        .width('100%')
 
         WoodenFishView({
           dark: this.isDark(),
