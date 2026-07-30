@@ -72,6 +72,7 @@ struct Index {
     const source: SessionState = sessionService.state;
     const next: SessionState = new SessionState();
     next.mode = source.mode;
+    next.hitSequence = source.hitSequence;
     next.running = source.running;
     next.paused = source.paused;
     next.targetCompleted = source.targetCompleted;
@@ -82,6 +83,7 @@ struct Index {
   }
 
   private async handleRecordedHit(automatic: boolean): Promise<void> {
+    this.refreshSessionState();
     if (this.settings.soundEnabled) {
       audioService.play(this.settings.soundType, this.settings.volume);
     }

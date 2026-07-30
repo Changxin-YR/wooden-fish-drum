@@ -110,6 +110,17 @@ export default function dataAndSessionTest(): void {
       expect(session.state.mode).assertEqual(SessionMode.FREE);
     });
 
+    it('incrementsOneSharedHitSequenceForManualAndAutoFeedback', 0, (): void => {
+      const session: SessionService = new SessionService();
+      session.startFree();
+      session.recordManualHit();
+      expect(session.state.hitSequence).assertEqual(1);
+      session.selectMode(SessionMode.AUTO, 108, 2000);
+      session.recordAutoHit();
+      expect(session.state.hitSequence).assertEqual(2);
+      session.stop();
+    });
+
     it('migratesLegacyModeAndPreservesPreferences', 0, (): void => {
       const legacy: string = JSON.stringify({
         initialized: true,

@@ -72,20 +72,11 @@ export struct HomePage {
 
         WoodenFishView({
           dark: this.isDark(),
+          hitSequence: this.session.hitSequence,
           label: this.settings.currentText,
           floatingEnabled: this.settings.floatingTextEnabled,
           onHit: (): void => this.onHit()
         })
-
-        Column({ space: 3 }) {
-          Text('今日功德')
-            .fontSize(16)
-            .fontColor(this.secondaryText())
-          Text(this.summary.todayCount.toLocaleString())
-            .fontSize(48)
-            .fontWeight(FontWeight.Bold)
-            .fontColor(this.primaryText())
-        }
 
         Row() {
           this.Metric((): string => this.summary.totalCount.toLocaleString(), '累计功德')

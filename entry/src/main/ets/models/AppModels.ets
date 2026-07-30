@@ -68,6 +68,7 @@ export class StatsPeriodView {
 
 export class SessionState {
   mode: SessionMode = SessionMode.FREE;
+  hitSequence: number = 0;
   running: boolean = false;
   paused: boolean = false;
   targetCompleted: boolean = false;

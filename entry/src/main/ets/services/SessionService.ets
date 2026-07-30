@@ -100,6 +100,7 @@ export class SessionService {
       return false;
     }
     this.state.currentCount++;
+    this.state.hitSequence++;
     if (this.onHit !== null) {
       this.onHit(automatic);
     }
@@ -111,8 +112,10 @@ export class SessionService {
   }
 
   private resetState(mode: SessionMode): void {
+    const hitSequence: number = this.state.hitSequence;
     this.state = new SessionState();
     this.state.mode = mode;
+    this.state.hitSequence = hitSequence;
     this.state.startedAt = Date.now();
   }
 
