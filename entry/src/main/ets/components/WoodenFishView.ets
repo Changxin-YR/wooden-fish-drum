@@ -21,8 +21,12 @@ export struct WoodenFishView {
     this.lastAnimatedSequence = this.hitSequence;
     this.playHitAnimation();
     if (this.floatingEnabled) {
-      const next: string[] = this.floatingTexts.concat([`${this.hitSequence}:${this.label}`]);
+      const entry: string = `${this.hitSequence}:${this.label}`;
+      const next: string[] = this.floatingTexts.concat([entry]);
       this.floatingTexts = next.slice(Math.max(0, next.length - 3));
+      setTimeout((): void => {
+        this.floatingTexts = this.floatingTexts.filter((item: string): boolean => item !== entry);
+      }, 760);
     }
   }
 
