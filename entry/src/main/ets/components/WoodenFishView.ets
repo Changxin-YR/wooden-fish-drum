@@ -1,3 +1,5 @@
+import { DesignTokens } from '../constants/DesignTokens';
+
 @Component
 export struct WoodenFishView {
   @Prop dark: boolean;
@@ -121,5 +123,6 @@ export struct WoodenFishView {
     .width('100%')
     .height(this.dark ? 300 : 250)
     .onClick((): void => this.onHit())
+    .accessibilityText('木鱼，点击敲击积累功德')
   }
 }

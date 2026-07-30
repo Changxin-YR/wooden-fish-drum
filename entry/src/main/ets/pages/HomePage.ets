@@ -1,6 +1,7 @@
 import { WoodenFishView } from '../components/WoodenFishView';
 import { AppSettings, SessionState, StatsSummary } from '../models/AppModels';
 import { SessionMode } from '../models/Enums';
+import { DesignTokens } from '../constants/DesignTokens';
 
 @Component
 export struct HomePage {
@@ -15,19 +16,19 @@ export struct HomePage {
   }
 
   private pageBackground(): string {
-    return this.isDark() ? '#171513' : '#F6F1E8';
+    return this.isDark() ? DesignTokens.darkBackground : DesignTokens.lightBackground;
   }
 
   private card(): string {
-    return this.isDark() ? '#24211E' : '#FFFDF8';
+    return this.isDark() ? DesignTokens.darkCard : DesignTokens.lightCard;
   }
 
   private primaryText(): string {
-    return this.isDark() ? '#F1ECE4' : '#2E2924';
+    return this.isDark() ? DesignTokens.darkText : DesignTokens.lightText;
   }
 
   private secondaryText(): string {
-    return this.isDark() ? '#AAA198' : '#817970';
+    return this.isDark() ? DesignTokens.darkSecondary : DesignTokens.lightSecondary;
   }
 
   @Builder
@@ -57,6 +58,7 @@ export struct HomePage {
       .onClick((): void => {
         this.onSessionChange(mode);
       })
+      .accessibilityText(`${label}敲击模式`)
   }
 
   build() {

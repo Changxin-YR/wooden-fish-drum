@@ -1,4 +1,5 @@
 import { AppTab } from '../models/Enums';
+import { DesignTokens } from '../constants/DesignTokens';
 
 @Component
 export struct BottomNavBar {
@@ -16,13 +17,14 @@ export struct BottomNavBar {
         .borderRadius(9)
       Text(label)
         .fontSize(12)
-        .fontColor(this.selected === tab ? (this.dark ? '#D8B28C' : '#8A5635') :
-          (this.dark ? '#AAA198' : '#8B857E'))
+        .fontColor(this.selected === tab ? (this.dark ? DesignTokens.accentLight : DesignTokens.wood) :
+          (this.dark ? DesignTokens.darkSecondary : DesignTokens.lightSecondary))
     }
     .layoutWeight(1)
     .height(64)
     .justifyContent(FlexAlign.Center)
     .onClick((): void => this.onChange(tab))
+    .accessibilityText(label)
   }
 
   build() {
@@ -32,7 +34,7 @@ export struct BottomNavBar {
       this.TabItem(AppTab.SETTINGS, $r('app.media.nav_settings'), '设置')
     }
     .width('100%')
-    .backgroundColor(this.dark ? '#24211E' : '#FFFDF8')
-    .border({ width: { top: 1 }, color: this.dark ? '#3B3530' : '#E8E2D8' })
+    .backgroundColor(this.dark ? DesignTokens.darkCard : DesignTokens.lightCard)
+    .border({ width: { top: 1 }, color: this.dark ? DesignTokens.darkDivider : DesignTokens.lightDivider })
   }
 }

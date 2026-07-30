@@ -1,5 +1,7 @@
 import { AppSettings } from '../models/AppModels';
 import { SoundType, ThemeMode } from '../models/Enums';
+import { GENERAL_AVAILABLE_TEXTS } from '../constants/UserModeConfigs';
+import { DesignTokens } from '../constants/DesignTokens';
 
 @Component
 export struct SettingsPage {
@@ -19,27 +21,27 @@ export struct SettingsPage {
   @State customText: string = '';
 
   private pageBackground(): string {
-    return this.dark ? '#171513' : '#F6F1E8';
+    return this.dark ? DesignTokens.darkBackground : DesignTokens.lightBackground;
   }
 
   private card(): string {
-    return this.dark ? '#24211E' : '#FBF7F0';
+    return this.dark ? DesignTokens.darkCard : DesignTokens.lightCard;
   }
 
   private field(): string {
-    return this.dark ? '#2D2925' : '#FFFDF8';
+    return this.dark ? DesignTokens.darkField : DesignTokens.lightCard;
   }
 
   private primaryText(): string {
-    return this.dark ? '#F1ECE4' : '#2E2924';
+    return this.dark ? DesignTokens.darkText : DesignTokens.lightText;
   }
 
   private secondaryText(): string {
-    return this.dark ? '#AAA198' : '#817970';
+    return this.dark ? DesignTokens.darkSecondary : DesignTokens.lightSecondary;
   }
 
   private divider(): string {
-    return this.dark ? '#3B3530' : '#EEE7DE';
+    return this.dark ? DesignTokens.darkDivider : DesignTokens.lightDivider;
   }
 
   private soundLabel(): string {
@@ -156,6 +158,7 @@ export struct SettingsPage {
               Toggle({ type: ToggleType.Switch, isOn: this.settings.soundEnabled })
                 .selectedColor('#9A612C')
                 .onChange((value: boolean): void => this.onSoundToggle(value))
+                .accessibilityText('音效开关')
             }
             Divider().color(this.divider())
             Row() {
@@ -165,6 +168,7 @@ export struct SettingsPage {
             .onClick((): void => {
               this.showSoundPicker = true;
             })
+            .accessibilityText(`当前音色：${this.soundLabel()}，点击选择音色`)
             Divider().color(this.divider())
             Column({ space: 4 }) {
               Row() {
@@ -189,6 +193,7 @@ export struct SettingsPage {
               Toggle({ type: ToggleType.Switch, isOn: this.settings.vibrationEnabled })
                 .selectedColor('#9A612C')
                 .onChange((value: boolean): void => this.onVibrationToggle(value))
+                .accessibilityText('振动反馈开关')
             }
             Divider().color(this.divider())
             Row() {
@@ -196,6 +201,7 @@ export struct SettingsPage {
               Toggle({ type: ToggleType.Switch, isOn: this.settings.floatingTextEnabled })
                 .selectedColor('#9A612C')
                 .onChange((value: boolean): void => this.onFloatingToggle(value))
+                .accessibilityText('浮动文字开关')
             }
             Divider().color(this.divider())
             Row() {
@@ -289,6 +295,25 @@ export struct SettingsPage {
       if (this.showTextEditor) {
         Column({ space: 14 }) {
           Text('自定义敲击文字').fontSize(20).fontWeight(FontWeight.Bold).fontColor(this.primaryText())
+          Text('选择预设或输入自定义文字（1-12个字符）')
+            .fontSize(12)
+            .fontColor(this.secondaryText())
+          Row({ space: 8 }) {
+            ForEach(GENERAL_AVAILABLE_TEXTS, (text: string) => {
+              Text(text)
+                .fontSize(14)
+                .fontColor(this.customText === text ? '#FFFFFF' : this.primaryText())
+                .padding({ left: 14, right: 14, top: 8, bottom: 8 })
+                .backgroundColor(this.customText === text ? '#9A612C' :
+                  (this.dark ? '#3B3530' : '#F7EFE4'))
+                .borderRadius(20)
+                .onClick((): void => {
+                  this.customText = text;
+                })
+            })
+          }
+          .width('100%')
+          .flexWrap(FlexWrap.Wrap)
           TextInput({ text: this.customText, placeholder: '请输入 1-12 个字符' })
             .height(50)
             .onChange((value: string): void => {

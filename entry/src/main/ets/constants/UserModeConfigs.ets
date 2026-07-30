@@ -33,7 +33,7 @@ const GENERAL_CONFIG: UserModeConfig = {
   description: '敲击解压 · 轻量体验 · 日常净心',
   detail: '减压净心 · 每日目标 · 轻松记录',
   defaultText: '功德+1',
-  availableTexts: ['好运+1', '压力-1', '专注+1'],
+  availableTexts: ['功德+1', '好运+1', '压力-1', '专注+1'],
   recommendedTargets: [10, 30, 60, 100],
   defaultTheme: ThemeMode.SYSTEM,
   defaultSound: SoundType.SOFT,
@@ -45,3 +45,5 @@ export const USER_MODE_CONFIGS: Record<UserMode, UserModeConfig> = {
   [UserMode.MONK]: MONK_CONFIG,
   [UserMode.GENERAL]: GENERAL_CONFIG
 };
+
+export const GENERAL_AVAILABLE_TEXTS: string[] = GENERAL_CONFIG.availableTexts;

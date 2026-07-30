@@ -1,5 +1,6 @@
 import { common } from '@kit.AbilityKit';
 import { BottomNavBar } from '../components/BottomNavBar';
+import { DesignTokens } from '../constants/DesignTokens';
 import { JsonCodec } from '../data/JsonCodec';
 import { AppSettings, DailyRecord, SessionState, StatsSummary } from '../models/AppModels';
 import { AppTab, SessionMode, SoundType, ThemeMode } from '../models/Enums';
@@ -173,19 +174,19 @@ struct Index {
     if (!this.ready) {
       Column({ space: 14 }) {
         Image($r('app.media.app_icon')).width(120).height(120).borderRadius(28)
-        LoadingProgress().color('#8A5635')
-        Text('正在静心准备…').fontSize(14).fontColor('#817970')
+        LoadingProgress().color(DesignTokens.wood)
+        Text('正在静心准备…').fontSize(14).fontColor(DesignTokens.lightSecondary)
       }
       .width('100%')
       .height('100%')
       .justifyContent(FlexAlign.Center)
-      .backgroundColor(this.isDark() ? '#171513' : '#F6F1E8')
+      .backgroundColor(this.isDark() ? DesignTokens.darkBackground : DesignTokens.lightBackground)
     } else {
       Stack({ alignContent: Alignment.Top }) {
         Row()
           .width('100%')
           .height('100%')
-          .backgroundColor(this.isDark() ? '#100F0E' : '#EDE7DE')
+          .backgroundColor(this.isDark() ? DesignTokens.darkBackground : DesignTokens.lightBackground)
         Column() {
           Column() {
             this.CurrentPage()
@@ -206,7 +207,7 @@ struct Index {
         .width('100%')
         .height('100%')
         .constraintSize({ maxWidth: this.contentMaxWidth() })
-        .backgroundColor(this.isDark() ? '#171513' : '#F6F1E8')
+        .backgroundColor(this.isDark() ? DesignTokens.darkBackground : DesignTokens.lightBackground)
         .shadow(this.viewportWidth >= 600 ?
           { radius: 20, color: '#1A5E3516', offsetY: 0 } :
           { radius: 0, color: Color.Transparent })

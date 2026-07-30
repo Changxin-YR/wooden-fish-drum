@@ -3,6 +3,7 @@ import { DailyRecord, StatsPeriodView, StatsSummary } from '../models/AppModels'
 import { StatsPeriod } from '../models/Enums';
 import { StatsPeriodService } from '../services/StatsPeriodService';
 import { DateUtil } from '../utils/DateUtil';
+import { DesignTokens } from '../constants/DesignTokens';
 
 @Component
 export struct StatsPage {
@@ -12,19 +13,19 @@ export struct StatsPage {
   @State period: StatsPeriod = StatsPeriod.DAY;
 
   private pageBackground(): string {
-    return this.dark ? '#171513' : '#F6F1E8';
+    return this.dark ? DesignTokens.darkBackground : DesignTokens.lightBackground;
   }
 
   private card(): string {
-    return this.dark ? '#24211E' : '#FFFDF8';
+    return this.dark ? DesignTokens.darkCard : DesignTokens.lightCard;
   }
 
   private primaryText(): string {
-    return this.dark ? '#F1ECE4' : '#2E2924';
+    return this.dark ? DesignTokens.darkText : DesignTokens.lightText;
   }
 
   private secondaryText(): string {
-    return this.dark ? '#AAA198' : '#817970';
+    return this.dark ? DesignTokens.darkSecondary : DesignTokens.lightSecondary;
   }
 
   private currentView(): StatsPeriodView {
@@ -44,6 +45,7 @@ export struct StatsPage {
       .onClick((): void => {
         this.period = period;
       })
+      .accessibilityText(`切换${label}统计`)
   }
 
   @Builder
