@@ -3,6 +3,7 @@ import { StatsBucket } from '../models/AppModels';
 @Component
 export struct StatsBarChart {
   @Prop buckets: StatsBucket[];
+  @Prop dark: boolean;
 
   private maxValue(): number {
     let value: number = 1;
@@ -23,7 +24,7 @@ export struct StatsBarChart {
           Column({ space: 5 }) {
             Text(`${bucket.totalCount}`)
               .fontSize(10)
-              .fontColor('#817970')
+              .fontColor(this.dark ? '#AAA198' : '#817970')
             Blank()
             Row()
               .width(24)
@@ -32,7 +33,7 @@ export struct StatsBarChart {
               .borderRadius({ topLeft: 5, topRight: 5 })
             Text(bucket.label)
               .fontSize(10)
-              .fontColor('#817970')
+              .fontColor(this.dark ? '#AAA198' : '#817970')
               .maxLines(1)
           }
           .width(46)

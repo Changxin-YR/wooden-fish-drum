@@ -1,16 +1,17 @@
 import { WoodenFishView } from '../components/WoodenFishView';
 import { AppSettings, SessionState, StatsSummary } from '../models/AppModels';
-import { SessionMode, ThemeMode } from '../models/Enums';
+import { SessionMode } from '../models/Enums';
 
 @Component
 export struct HomePage {
   @Prop settings: AppSettings;
   @Prop summary: StatsSummary;
   @Prop session: SessionState;
+  @Prop dark: boolean;
   onHit: () => void = (): void => {};
   onSessionChange: (mode: SessionMode) => void = (): void => {};
   private isDark(): boolean {
-    return this.settings.themeMode === ThemeMode.DARK;
+    return this.dark;
   }
 
   private pageBackground(): string {

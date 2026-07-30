@@ -3,6 +3,7 @@ import { AppTab } from '../models/Enums';
 @Component
 export struct BottomNavBar {
   @Prop selected: AppTab;
+  @Prop dark: boolean;
   onChange: (tab: AppTab) => void = (): void => {};
 
   @Builder
@@ -12,9 +13,11 @@ export struct BottomNavBar {
         .width(30)
         .height(34)
         .objectFit(ImageFit.Cover)
+        .borderRadius(9)
       Text(label)
         .fontSize(12)
-        .fontColor(this.selected === tab ? '#8A5635' : '#8B857E')
+        .fontColor(this.selected === tab ? (this.dark ? '#D8B28C' : '#8A5635') :
+          (this.dark ? '#AAA198' : '#8B857E'))
     }
     .layoutWeight(1)
     .height(64)
@@ -29,7 +32,7 @@ export struct BottomNavBar {
       this.TabItem(AppTab.SETTINGS, $r('app.media.nav_settings'), '设置')
     }
     .width('100%')
-    .backgroundColor('#FFFDF8')
-    .border({ width: { top: 1 }, color: '#E8E2D8' })
+    .backgroundColor(this.dark ? '#24211E' : '#FFFDF8')
+    .border({ width: { top: 1 }, color: this.dark ? '#3B3530' : '#E8E2D8' })
   }
 }

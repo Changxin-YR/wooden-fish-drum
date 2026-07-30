@@ -4,6 +4,7 @@ import { SoundType, ThemeMode } from '../models/Enums';
 @Component
 export struct SettingsPage {
   @Prop settings: AppSettings;
+  @Prop dark: boolean;
   onSoundToggle: (enabled: boolean) => void = (): void => {};
   onSoundTypeChange: (type: SoundType) => void = (): void => {};
   onVolumeChange: (value: number) => void = (): void => {};
@@ -14,7 +15,32 @@ export struct SettingsPage {
   onClearStats: () => void = (): void => {};
   @State showTextEditor: boolean = false;
   @State showClearConfirm: boolean = false;
+  @State showSoundPicker: boolean = false;
   @State customText: string = '';
+
+  private pageBackground(): string {
+    return this.dark ? '#171513' : '#F6F1E8';
+  }
+
+  private card(): string {
+    return this.dark ? '#24211E' : '#FBF7F0';
+  }
+
+  private field(): string {
+    return this.dark ? '#2D2925' : '#FFFDF8';
+  }
+
+  private primaryText(): string {
+    return this.dark ? '#F1ECE4' : '#2E2924';
+  }
+
+  private secondaryText(): string {
+    return this.dark ? '#AAA198' : '#817970';
+  }
+
+  private divider(): string {
+    return this.dark ? '#3B3530' : '#EEE7DE';
+  }
 
   private soundLabel(): string {
     if (this.settings.soundType === SoundType.DEEP) {
@@ -26,16 +52,6 @@ export struct SettingsPage {
     return '木鱼 · 柔和';
   }
 
-  private nextSoundType(): SoundType {
-    if (this.settings.soundType === SoundType.DEEP) {
-      return SoundType.CRISP;
-    }
-    if (this.settings.soundType === SoundType.CRISP) {
-      return SoundType.SOFT;
-    }
-    return SoundType.DEEP;
-  }
-
   @Builder
   SettingRow(icon: string, title: string, detail: string) {
     Row({ space: 12 }) {
@@ -45,12 +61,12 @@ export struct SettingsPage {
         .textAlign(TextAlign.Center)
         .fontSize(20)
         .fontColor('#8A5635')
-        .backgroundColor('#F7EFE4')
+        .backgroundColor(this.dark ? '#3B3530' : '#F7EFE4')
         .borderRadius(19)
       Column({ space: 3 }) {
-        Text(title).fontSize(16).fontColor('#2E2924')
+        Text(title).fontSize(16).fontColor(this.primaryText())
         if (detail.length > 0) {
-          Text(detail).fontSize(11).fontColor('#817970')
+          Text(detail).fontSize(11).fontColor(this.secondaryText())
         }
       }
       .layoutWeight(1)
@@ -66,21 +82,56 @@ export struct SettingsPage {
     Row({ space: 7 }) {
       Text(icon)
         .fontSize(18)
-        .fontColor(this.settings.themeMode === mode ? '#8A5635' : '#817970')
+        .fontColor(this.settings.themeMode === mode ? (this.dark ? '#D8B28C' : '#8A5635') :
+          this.secondaryText())
       Text(label)
         .fontSize(14)
-        .fontColor(this.settings.themeMode === mode ? '#8A5635' : '#817970')
+        .fontColor(this.settings.themeMode === mode ? (this.dark ? '#D8B28C' : '#8A5635') :
+          this.secondaryText())
     }
     .layoutWeight(1)
     .height(50)
     .justifyContent(FlexAlign.Center)
-    .backgroundColor(this.settings.themeMode === mode ? '#FBF4EA' : Color.Transparent)
+    .backgroundColor(this.settings.themeMode === mode ? (this.dark ? '#3B3530' : '#FBF4EA') :
+      Color.Transparent)
     .border({
       width: this.settings.themeMode === mode ? 1 : 0,
       color: '#A9824B'
     })
     .borderRadius(16)
     .onClick((): void => this.onThemeChange(mode))
+  }
+
+  @Builder
+  SoundOption(type: SoundType, title: string, detail: string) {
+    Row({ space: 12 }) {
+      Text(type === SoundType.DEEP ? '●' : (type === SoundType.CRISP ? '◆' : '◌'))
+        .width(40)
+        .height(40)
+        .textAlign(TextAlign.Center)
+        .fontSize(20)
+        .fontColor('#A9824B')
+        .backgroundColor(this.dark ? '#3B3530' : '#F7EFE4')
+        .borderRadius(20)
+      Column({ space: 3 }) {
+        Text(title).fontSize(16).fontColor(this.primaryText())
+        Text(detail).fontSize(12).fontColor(this.secondaryText())
+      }
+      .layoutWeight(1)
+      .alignItems(HorizontalAlign.Start)
+      Text(this.settings.soundType === type ? '✓' : '')
+        .fontSize(20)
+        .fontColor('#A9824B')
+    }
+    .width('100%')
+    .padding(12)
+    .backgroundColor(this.settings.soundType === type ? (this.dark ? '#3B3530' : '#FBF4EA') :
+      Color.Transparent)
+    .borderRadius(16)
+    .onClick((): void => {
+      this.showSoundPicker = false;
+      this.onSoundTypeChange(type);
+    })
   }
 
   build() {
@@ -91,14 +142,14 @@ export struct SettingsPage {
             .width('100%')
             .fontSize(30)
             .fontWeight(FontWeight.Bold)
-            .fontColor('#2E2924')
+            .fontColor(this.primaryText())
 
           Column() {
             Text('敲击反馈')
               .width('100%')
               .fontSize(16)
               .fontWeight(FontWeight.Medium)
-              .fontColor('#2E2924')
+              .fontColor(this.primaryText())
               .margin({ bottom: 8 })
             Row() {
               this.SettingRow('♪', '音效开关', '')
@@ -106,15 +157,15 @@ export struct SettingsPage {
                 .selectedColor('#9A612C')
                 .onChange((value: boolean): void => this.onSoundToggle(value))
             }
-            Divider().color('#EEE7DE')
+            Divider().color(this.divider())
             Row() {
               this.SettingRow('♬', '音色选择', this.soundLabel())
               Text('›').fontSize(28).fontColor('#8A5635')
             }
             .onClick((): void => {
-              this.onSoundTypeChange(this.nextSoundType());
+              this.showSoundPicker = true;
             })
-            Divider().color('#EEE7DE')
+            Divider().color(this.divider())
             Column({ space: 4 }) {
               Row() {
                 this.SettingRow('◖', '音量', `${Math.round(this.settings.volume * 100)}%`)
@@ -132,21 +183,21 @@ export struct SettingsPage {
                   this.onVolumeChange(value);
                 })
             }
-            Divider().color('#EEE7DE')
+            Divider().color(this.divider())
             Row() {
               this.SettingRow('≋', '振动反馈', '')
               Toggle({ type: ToggleType.Switch, isOn: this.settings.vibrationEnabled })
                 .selectedColor('#9A612C')
                 .onChange((value: boolean): void => this.onVibrationToggle(value))
             }
-            Divider().color('#EEE7DE')
+            Divider().color(this.divider())
             Row() {
               this.SettingRow('T', '浮动文字', '显示敲击功德浮动文字')
               Toggle({ type: ToggleType.Switch, isOn: this.settings.floatingTextEnabled })
                 .selectedColor('#9A612C')
                 .onChange((value: boolean): void => this.onFloatingToggle(value))
             }
-            Divider().color('#EEE7DE')
+            Divider().color(this.divider())
             Row() {
               this.SettingRow('✎', '自定义文字', this.settings.currentText)
               Text('›').fontSize(28).fontColor('#8A5635')
@@ -157,7 +208,7 @@ export struct SettingsPage {
             })
           }
           .padding(16)
-          .backgroundColor('#FBF7F0')
+          .backgroundColor(this.card())
           .borderRadius(20)
 
           Column({ space: 10 }) {
@@ -165,18 +216,18 @@ export struct SettingsPage {
               .width('100%')
               .fontSize(16)
               .fontWeight(FontWeight.Medium)
-              .fontColor('#2E2924')
+              .fontColor(this.primaryText())
             Row({ space: 3 }) {
               this.ThemeButton(ThemeMode.SYSTEM, '◐', '跟随系统')
               this.ThemeButton(ThemeMode.LIGHT, '☼', '浅色')
               this.ThemeButton(ThemeMode.DARK, '☾', '深色')
             }
             .padding(3)
-            .backgroundColor('#FFFDF8')
+            .backgroundColor(this.field())
             .borderRadius(18)
           }
           .padding(16)
-          .backgroundColor('#FBF7F0')
+          .backgroundColor(this.card())
           .borderRadius(20)
 
           Column() {
@@ -184,7 +235,7 @@ export struct SettingsPage {
               .width('100%')
               .fontSize(16)
               .fontWeight(FontWeight.Medium)
-              .fontColor('#2E2924')
+              .fontColor(this.primaryText())
               .margin({ bottom: 8 })
             Row() {
               this.SettingRow('⌫', '清除所有数据', '将清除所有敲击记录与统计数据')
@@ -193,13 +244,13 @@ export struct SettingsPage {
             .onClick((): void => {
               this.showClearConfirm = true;
             })
-            Divider().color('#EEE7DE')
+            Divider().color(this.divider())
             this.SettingRow('ⓘ', '隐私说明', '数据仅保存在本机，不申请网络权限')
-            Divider().color('#EEE7DE')
+            Divider().color(this.divider())
             this.SettingRow('i', '关于应用', '功德木鱼 1.0.0')
           }
           .padding(16)
-          .backgroundColor('#FBF7F0')
+          .backgroundColor(this.card())
           .borderRadius(20)
           .margin({ bottom: 20 })
         }
@@ -209,11 +260,35 @@ export struct SettingsPage {
       .width('100%')
       .height('100%')
       .scrollBar(BarState.Off)
-      .backgroundColor('#F6F1E8')
+      .backgroundColor(this.pageBackground())
+
+      if (this.showSoundPicker) {
+        Column({ space: 10 }) {
+          Row() {
+            Text('选择音色').fontSize(20).fontWeight(FontWeight.Bold).fontColor(this.primaryText())
+            Blank()
+            Text('×').fontSize(28).fontColor(this.secondaryText()).onClick((): void => {
+              this.showSoundPicker = false;
+            })
+          }
+          Text('选择后立即试听，所有音色均为本地资源。')
+            .width('100%')
+            .fontSize(12)
+            .fontColor(this.secondaryText())
+          this.SoundOption(SoundType.DEEP, '低沉木鱼', '厚实、沉稳，适合静心')
+          this.SoundOption(SoundType.CRISP, '清脆木鱼', '明亮、清晰，反馈明确')
+          this.SoundOption(SoundType.SOFT, '柔和木鱼', '轻柔、耐听，适合长时间使用')
+        }
+        .width('88%')
+        .padding(20)
+        .backgroundColor(this.field())
+        .borderRadius(22)
+        .shadow({ radius: 18, color: '#4017130F', offsetY: 6 })
+      }
 
       if (this.showTextEditor) {
         Column({ space: 14 }) {
-          Text('自定义敲击文字').fontSize(20).fontWeight(FontWeight.Bold)
+          Text('自定义敲击文字').fontSize(20).fontWeight(FontWeight.Bold).fontColor(this.primaryText())
           TextInput({ text: this.customText, placeholder: '请输入 1-12 个字符' })
             .height(50)
             .onChange((value: string): void => {
@@ -231,15 +306,15 @@ export struct SettingsPage {
         }
         .width('86%')
         .padding(20)
-        .backgroundColor('#FFFDF8')
+        .backgroundColor(this.field())
         .borderRadius(22)
       }
 
       if (this.showClearConfirm) {
         Column({ space: 14 }) {
-          Text('清除统计数据？').fontSize(20).fontWeight(FontWeight.Bold)
+          Text('清除统计数据？').fontSize(20).fontWeight(FontWeight.Bold).fontColor(this.primaryText())
           Text('此操作不可撤销，但会保留当前设置。')
-            .fontSize(14).fontColor('#817970')
+            .fontSize(14).fontColor(this.secondaryText())
           Row({ space: 10 }) {
             Button('取消').layoutWeight(1).onClick((): void => {
               this.showClearConfirm = false;
@@ -252,7 +327,7 @@ export struct SettingsPage {
         }
         .width('86%')
         .padding(20)
-        .backgroundColor('#FFFDF8')
+        .backgroundColor(this.field())
         .borderRadius(22)
       }
     }

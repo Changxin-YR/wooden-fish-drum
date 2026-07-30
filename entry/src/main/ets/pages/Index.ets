@@ -9,10 +9,12 @@ import { StatsPage } from './StatsPage';
 import { appStore, preferencesStore, sessionService } from '../stores/AppRuntime';
 import { audioService } from '../services/AudioService';
 import { vibrationService } from '../services/VibrationService';
+import { ThemeResolver } from '../utils/ThemeResolver';
 
 @Entry
 @Component
 struct Index {
+  @StorageLink('systemDark') systemDark: boolean = false;
   @State ready: boolean = false;
   @State selectedTab: AppTab = AppTab.HOME;
   @State settings: AppSettings = JsonCodec.createDefaultSettings();
@@ -101,6 +103,10 @@ struct Index {
     this.refreshSessionState();
   }
 
+  private isDark(): boolean {
+    return ThemeResolver.isDark(this.settings.themeMode, this.systemDark);
+  }
+
   private async updateSetting(action: string, value: boolean): Promise<void> {
     if (action === 'sound') {
       appStore.settings.soundEnabled = value;
@@ -120,19 +126,22 @@ struct Index {
         settings: this.settings,
         summary: this.summary,
         session: this.session,
+        dark: this.isDark(),
         onHit: (): void => this.handleManualHit(),
         onSessionChange: (mode: SessionMode): void => this.handleSessionChange(mode)
       })
     } else if (this.selectedTab === AppTab.STATS) {
-      StatsPage({ summary: this.summary, records: this.allRecords })
+      StatsPage({ summary: this.summary, records: this.allRecords, dark: this.isDark() })
     } else {
       SettingsPage({
         settings: this.settings,
+        dark: this.isDark(),
         onSoundToggle: (enabled: boolean): void => {
           this.updateSetting('sound', enabled);
         },
         onSoundTypeChange: (type: SoundType): void => {
           appStore.settings.soundType = type;
+          audioService.play(type, appStore.settings.volume);
           appStore.persistSettings().then((): void => this.syncFromStore());
         },
         onVolumeChange: (value: number): void => {
@@ -168,13 +177,13 @@ struct Index {
       .width('100%')
       .height('100%')
       .justifyContent(FlexAlign.Center)
-      .backgroundColor('#F6F1E8')
+      .backgroundColor(this.isDark() ? '#171513' : '#F6F1E8')
     } else {
       Stack({ alignContent: Alignment.Top }) {
         Row()
           .width('100%')
           .height('100%')
-          .backgroundColor('#EDE7DE')
+          .backgroundColor(this.isDark() ? '#100F0E' : '#EDE7DE')
         Column() {
           Column() {
             this.CurrentPage()
@@ -183,6 +192,7 @@ struct Index {
           .layoutWeight(1)
           BottomNavBar({
             selected: this.selectedTab,
+            dark: this.isDark(),
             onChange: (tab: AppTab): void => {
               this.selectedTab = tab;
               if (tab === AppTab.STATS) {
@@ -194,7 +204,7 @@ struct Index {
         .width('100%')
         .height('100%')
         .constraintSize({ maxWidth: this.contentMaxWidth() })
-        .backgroundColor('#F6F1E8')
+        .backgroundColor(this.isDark() ? '#171513' : '#F6F1E8')
         .shadow(this.viewportWidth >= 600 ?
           { radius: 20, color: '#1A5E3516', offsetY: 0 } :
           { radius: 0, color: Color.Transparent })
