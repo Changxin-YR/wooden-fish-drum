@@ -1,14 +1,13 @@
-import { DailyRecord } from '../models/AppModels';
-import { DateUtil } from '../utils/DateUtil';
+import { StatsBucket } from '../models/AppModels';
 
 @Component
 export struct StatsBarChart {
-  @Prop records: DailyRecord[];
+  @Prop buckets: StatsBucket[];
 
   private maxValue(): number {
     let value: number = 1;
-    this.records.forEach((record: DailyRecord): void => {
-      value = Math.max(value, record.totalCount);
+    this.buckets.forEach((bucket: StatsBucket): void => {
+      value = Math.max(value, bucket.totalCount);
     });
     return value;
   }
@@ -18,29 +17,37 @@ export struct StatsBarChart {
   }
 
   build() {
-    Row({ space: 8 }) {
-      ForEach(this.records, (record: DailyRecord) => {
-        Column({ space: 5 }) {
-          Text(`${record.totalCount}`)
-            .fontSize(10)
-            .fontColor('#817970')
-          Blank()
-          Row()
-            .width(24)
-            .height(this.barHeight(record.totalCount))
-            .backgroundColor(record === this.records[this.records.length - 1] ? '#8A5635' : '#D4AD7D')
-            .borderRadius({ topLeft: 5, topRight: 5 })
-          Text(DateUtil.shortLabel(record.date))
-            .fontSize(10)
-            .fontColor('#817970')
+    Scroll() {
+      Row({ space: 8 }) {
+        ForEach(this.buckets, (bucket: StatsBucket, index: number) => {
+          Column({ space: 5 }) {
+            Text(`${bucket.totalCount}`)
+              .fontSize(10)
+              .fontColor('#817970')
+            Blank()
+            Row()
+              .width(24)
+              .height(this.barHeight(bucket.totalCount))
+              .backgroundColor(index === this.buckets.length - 1 ? '#8A5635' : '#D4AD7D')
+              .borderRadius({ topLeft: 5, topRight: 5 })
+            Text(bucket.label)
+              .fontSize(10)
+              .fontColor('#817970')
+              .maxLines(1)
+          }
+          .width(46)
+          .height(195)
+          .justifyContent(FlexAlign.End)
         }
-        .height(195)
-        .layoutWeight(1)
-        .justifyContent(FlexAlign.End)
-      })
+        )
+      }
+      .width(Math.max(320, this.buckets.length * 54))
+      .height(205)
+      .alignItems(VerticalAlign.Bottom)
     }
     .width('100%')
     .height(205)
-    .alignItems(VerticalAlign.Bottom)
+    .scrollable(ScrollDirection.Horizontal)
+    .scrollBar(BarState.Off)
   }
 }

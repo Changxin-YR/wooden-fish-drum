@@ -10,6 +10,7 @@ export class AppStore {
   settings: AppSettings = JsonCodec.createDefaultSettings();
   summary: StatsSummary = new StatsSummary();
   recentRecords: DailyRecord[] = [];
+  allRecords: DailyRecord[] = [];
   private readonly settingsRepository: SettingsRepository;
   private readonly statsRepository: StatsRepository;
 
@@ -54,6 +55,7 @@ export class AppStore {
     const today: string = DateUtil.todayKey();
     this.summary = await this.statsRepository.summary(today);
     this.recentRecords = await this.statsRepository.recentDays(today, 7);
+    this.allRecords = await this.statsRepository.allRecords();
   }
 
   async clearStats(): Promise<void> {

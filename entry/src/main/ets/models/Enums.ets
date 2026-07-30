@@ -27,3 +27,10 @@ export enum AppTab {
   STATS = 'stats',
   SETTINGS = 'settings'
 }
+
+export enum StatsPeriod {
+  DAY = 'day',
+  WEEK = 'week',
+  MONTH = 'month',
+  YEAR = 'year'
+}

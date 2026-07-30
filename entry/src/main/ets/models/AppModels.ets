@@ -43,6 +43,29 @@ export class StatsSummary {
   maxDailyCount: number = 0;
 }
 
+export class StatsBucket {
+  label: string;
+  totalCount: number;
+  manualCount: number;
+  autoCount: number;
+
+  constructor(label: string, manualCount: number = 0, autoCount: number = 0) {
+    this.label = label;
+    this.manualCount = manualCount;
+    this.autoCount = autoCount;
+    this.totalCount = manualCount + autoCount;
+  }
+}
+
+export class StatsPeriodView {
+  title: string = '';
+  scopeLabel: string = '';
+  totalCount: number = 0;
+  manualCount: number = 0;
+  autoCount: number = 0;
+  buckets: StatsBucket[] = [];
+}
+
 export class SessionState {
   mode: SessionMode = SessionMode.FREE;
   running: boolean = false;

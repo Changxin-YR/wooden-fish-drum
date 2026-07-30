@@ -18,6 +18,7 @@ struct Index {
   @State settings: AppSettings = JsonCodec.createDefaultSettings();
   @State summary: StatsSummary = new StatsSummary();
   @State recentRecords: DailyRecord[] = [];
+  @State allRecords: DailyRecord[] = [];
   @State session: SessionState = new SessionState();
   @State viewportWidth: number = 390;
 
@@ -61,6 +62,7 @@ struct Index {
     this.settings = JsonCodec.decodeSettings(JsonCodec.encodeSettings(appStore.settings));
     this.summary = appStore.summary;
     this.recentRecords = appStore.recentRecords;
+    this.allRecords = appStore.allRecords;
     this.refreshSessionState();
   }
 
@@ -122,7 +124,7 @@ struct Index {
         onSessionChange: (mode: SessionMode): void => this.handleSessionChange(mode)
       })
     } else if (this.selectedTab === AppTab.STATS) {
-      StatsPage({ summary: this.summary, records: this.recentRecords })
+      StatsPage({ summary: this.summary, records: this.allRecords })
     } else {
       SettingsPage({
         settings: this.settings,

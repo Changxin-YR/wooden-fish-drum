@@ -1,24 +1,31 @@
 import { StatsBarChart } from '../components/StatsBarChart';
-import { DailyRecord, StatsSummary } from '../models/AppModels';
+import { DailyRecord, StatsPeriodView, StatsSummary } from '../models/AppModels';
+import { StatsPeriod } from '../models/Enums';
+import { StatsPeriodService } from '../services/StatsPeriodService';
+import { DateUtil } from '../utils/DateUtil';
 
 @Component
 export struct StatsPage {
   @Prop summary: StatsSummary;
   @Prop records: DailyRecord[];
-  @State period: number = 0;
+  @State period: StatsPeriod = StatsPeriod.DAY;
+
+  private currentView(): StatsPeriodView {
+    return StatsPeriodService.build(this.records, DateUtil.todayKey(), this.period);
+  }
 
   @Builder
-  PeriodTab(index: number, label: string) {
+  PeriodTab(period: StatsPeriod, label: string) {
     Text(label)
       .layoutWeight(1)
       .height(46)
       .textAlign(TextAlign.Center)
       .fontSize(16)
-      .fontColor(this.period === index ? Color.White : '#817970')
-      .backgroundColor(this.period === index ? '#9A612C' : Color.Transparent)
+      .fontColor(this.period === period ? Color.White : '#817970')
+      .backgroundColor(this.period === period ? '#9A612C' : Color.Transparent)
       .borderRadius(23)
       .onClick((): void => {
-        this.period = index;
+        this.period = period;
       })
   }
 
@@ -50,10 +57,10 @@ export struct StatsPage {
           .fontColor('#2E2924')
 
         Row({ space: 4 }) {
-          this.PeriodTab(0, '日')
-          this.PeriodTab(1, '周')
-          this.PeriodTab(2, '月')
-          this.PeriodTab(3, '年')
+          this.PeriodTab(StatsPeriod.DAY, '日')
+          this.PeriodTab(StatsPeriod.WEEK, '周')
+          this.PeriodTab(StatsPeriod.MONTH, '月')
+          this.PeriodTab(StatsPeriod.YEAR, '年')
         }
         .padding(4)
         .width('100%')
@@ -61,10 +68,13 @@ export struct StatsPage {
         .borderRadius(27)
 
         Row() {
-          this.SummaryItem('▣', '今日功德', (): string => this.summary.todayCount.toLocaleString(), '实时统计')
+          this.SummaryItem('▣', this.currentView().scopeLabel,
+            (): string => this.currentView().totalCount.toLocaleString(), '当前口径')
           this.SummaryItem('◇', '总计功德', (): string => this.summary.totalCount.toLocaleString(), '累计功德')
-          this.SummaryItem('♧', '手动敲击', (): string => this.summary.manualCount.toLocaleString(), '手动记录')
-          this.SummaryItem('◉', '自动敲击', (): string => this.summary.autoCount.toLocaleString(), '自动记录')
+          this.SummaryItem('♧', '手动敲击',
+            (): string => this.currentView().manualCount.toLocaleString(), '当前口径')
+          this.SummaryItem('◉', '自动敲击',
+            (): string => this.currentView().autoCount.toLocaleString(), '当前口径')
         }
         .width('100%')
         .padding({ top: 22, bottom: 22 })
@@ -74,7 +84,7 @@ export struct StatsPage {
 
         Column({ space: 14 }) {
           Row() {
-            Text('近 7 日功德趋势')
+            Text(this.currentView().title)
               .fontSize(19)
               .fontWeight(FontWeight.Medium)
               .fontColor('#2E2924')
@@ -83,7 +93,7 @@ export struct StatsPage {
               .fontSize(12)
               .fontColor('#817970')
           }
-          StatsBarChart({ records: this.records })
+          StatsBarChart({ buckets: this.currentView().buckets })
         }
         .width('100%')
         .padding(18)

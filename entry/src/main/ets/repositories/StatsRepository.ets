@@ -88,6 +88,11 @@ export class StatsRepository {
     return result;
   }
 
+  async allRecords(): Promise<DailyRecord[]> {
+    await this.mutationQueue;
+    return this.load();
+  }
+
   async clear(): Promise<void> {
     const operation: Promise<void> = this.mutationQueue.then(async (): Promise<void> => {
       this.records = [];
