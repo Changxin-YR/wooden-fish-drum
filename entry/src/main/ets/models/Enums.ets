@@ -19,7 +19,6 @@ export enum SoundType {
 export enum SessionMode {
   FREE = 'free',
   TARGET = 'target',
-  TIMER = 'timer',
   AUTO = 'auto'
 }
 

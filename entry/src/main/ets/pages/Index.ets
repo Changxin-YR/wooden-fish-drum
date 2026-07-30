@@ -70,9 +70,9 @@ struct Index {
     next.mode = source.mode;
     next.running = source.running;
     next.paused = source.paused;
+    next.targetCompleted = source.targetCompleted;
     next.currentCount = source.currentCount;
     next.targetCount = source.targetCount;
-    next.remainingSeconds = source.remainingSeconds;
     next.startedAt = source.startedAt;
     this.session = next;
   }
@@ -95,16 +95,7 @@ struct Index {
   }
 
   private handleSessionChange(mode: SessionMode): void {
-    sessionService.stop();
-    if (mode === SessionMode.FREE) {
-      sessionService.startFree();
-    } else if (mode === SessionMode.TARGET) {
-      sessionService.startTarget(108);
-    } else if (mode === SessionMode.TIMER) {
-      sessionService.startTimer(300);
-    } else {
-      sessionService.startAuto(this.settings.autoInterval);
-    }
+    sessionService.selectMode(mode, 108, this.settings.autoInterval);
     this.refreshSessionState();
   }
 

@@ -47,9 +47,9 @@ export class SessionState {
   mode: SessionMode = SessionMode.FREE;
   running: boolean = false;
   paused: boolean = false;
+  targetCompleted: boolean = false;
   currentCount: number = 0;
   targetCount: number = 0;
-  remainingSeconds: number = 0;
   startedAt: number = 0;
 }
 

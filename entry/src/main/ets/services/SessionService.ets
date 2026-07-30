@@ -29,7 +29,23 @@ export class SessionService {
     return this.recordHit(true);
   }
 
+  selectMode(mode: SessionMode, target: number = 108, intervalMs: number = 1000): void {
+    if (mode === SessionMode.AUTO && this.state.mode === SessionMode.AUTO && this.state.running) {
+      this.startFree();
+      return;
+    }
+    this.stop();
+    if (mode === SessionMode.FREE) {
+      this.startFree();
+    } else if (mode === SessionMode.TARGET) {
+      this.startTarget(target);
+    } else {
+      this.startAuto(intervalMs);
+    }
+  }
+
   startFree(): void {
+    this.clearTimer();
     this.resetState(SessionMode.FREE);
     this.state.running = true;
   }
@@ -39,26 +55,6 @@ export class SessionService {
     this.resetState(SessionMode.TARGET);
     this.state.running = true;
     this.state.targetCount = Math.max(1, target);
-  }
-
-  startTimer(seconds: number): boolean {
-    if (this.timerId !== -1) {
-      return false;
-    }
-    this.resetState(SessionMode.TIMER);
-    this.state.running = true;
-    this.state.remainingSeconds = Math.max(1, seconds);
-    this.timerId = setInterval((): void => {
-      this.state.remainingSeconds--;
-      if (this.onTick !== null) {
-        this.onTick(this.state.remainingSeconds);
-      }
-      if (this.state.remainingSeconds <= 0) {
-        this.stopTimerOnly();
-        this.state.running = false;
-      }
-    }, 1000);
-    return true;
   }
 
   startAuto(intervalMs: number): boolean {
@@ -109,6 +105,7 @@ export class SessionService {
     }
     if (this.state.mode === SessionMode.TARGET && this.state.currentCount >= this.state.targetCount) {
       this.state.running = false;
+      this.state.targetCompleted = true;
     }
     return true;
   }

@@ -11,7 +11,7 @@ const PROGRAMMER_CONFIG: UserModeConfig = {
   recommendedTargets: [10, 30, 60, 108],
   defaultTheme: ThemeMode.DARK,
   defaultSound: SoundType.CRISP,
-  featureOrder: [SessionMode.FREE, SessionMode.TIMER, SessionMode.TARGET, SessionMode.AUTO]
+  featureOrder: [SessionMode.FREE, SessionMode.TARGET, SessionMode.AUTO]
 };
 
 const MONK_CONFIG: UserModeConfig = {
@@ -24,7 +24,7 @@ const MONK_CONFIG: UserModeConfig = {
   recommendedTargets: [18, 36, 54, 108],
   defaultTheme: ThemeMode.LIGHT,
   defaultSound: SoundType.DEEP,
-  featureOrder: [SessionMode.FREE, SessionMode.AUTO, SessionMode.TIMER, SessionMode.TARGET]
+  featureOrder: [SessionMode.FREE, SessionMode.AUTO, SessionMode.TARGET]
 };
 
 const GENERAL_CONFIG: UserModeConfig = {
@@ -37,7 +37,7 @@ const GENERAL_CONFIG: UserModeConfig = {
   recommendedTargets: [10, 30, 60, 100],
   defaultTheme: ThemeMode.SYSTEM,
   defaultSound: SoundType.SOFT,
-  featureOrder: [SessionMode.FREE, SessionMode.TARGET, SessionMode.TIMER, SessionMode.AUTO]
+  featureOrder: [SessionMode.FREE, SessionMode.TARGET, SessionMode.AUTO]
 };
 
 export const USER_MODE_CONFIGS: Record<UserMode, UserModeConfig> = {

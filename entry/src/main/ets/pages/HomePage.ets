@@ -9,8 +9,6 @@ export struct HomePage {
   @Prop session: SessionState;
   onHit: () => void = (): void => {};
   onSessionChange: (mode: SessionMode) => void = (): void => {};
-  @State selectedSession: SessionMode = SessionMode.FREE;
-
   private isDark(): boolean {
     return this.settings.themeMode === ThemeMode.DARK;
   }
@@ -52,11 +50,10 @@ export struct HomePage {
       .height(48)
       .textAlign(TextAlign.Center)
       .fontSize(15)
-      .fontColor(this.selectedSession === mode ? '#FFFFFF' : this.secondaryText())
-      .backgroundColor(this.selectedSession === mode ? '#9A612C' : Color.Transparent)
+      .fontColor(this.session.mode === mode ? '#FFFFFF' : this.secondaryText())
+      .backgroundColor(this.session.mode === mode ? '#9A612C' : Color.Transparent)
       .borderRadius(24)
       .onClick((): void => {
-        this.selectedSession = mode;
         this.onSessionChange(mode);
       })
   }
@@ -104,7 +101,6 @@ export struct HomePage {
         Row({ space: 4 }) {
           this.SessionTab(SessionMode.FREE, '自由')
           this.SessionTab(SessionMode.TARGET, '目标')
-          this.SessionTab(SessionMode.TIMER, '限时')
           this.SessionTab(SessionMode.AUTO, '自动')
         }
         .width('100%')
@@ -112,13 +108,39 @@ export struct HomePage {
         .backgroundColor(this.card())
         .borderRadius(28)
 
-        Text(this.selectedSession === SessionMode.FREE ? '自由模式 · 无拘无束，随心而敲' :
-          this.selectedSession === SessionMode.TARGET ? '目标模式 · 完成 108 次功德' :
-            this.selectedSession === SessionMode.TIMER ? '限时模式 · 专注 5 分钟' :
-              (this.session.running ? '自动敲击运行中 · 点击切换可停止' : '自动模式 · 每秒自动敲击'))
-          .fontSize(13)
-          .fontColor(this.secondaryText())
+        if (this.session.mode === SessionMode.TARGET) {
+          Column({ space: 8 }) {
+            Row() {
+              Text(this.session.targetCompleted ? '目标达成 · 功德圆满' : '目标进度')
+                .fontSize(14)
+                .fontWeight(FontWeight.Medium)
+                .fontColor(this.session.targetCompleted ? '#A9824B' : this.secondaryText())
+              Blank()
+              Text(`${this.session.currentCount} / ${this.session.targetCount}`)
+                .fontSize(14)
+                .fontColor(this.primaryText())
+            }
+            Progress({
+              value: this.session.currentCount,
+              total: Math.max(1, this.session.targetCount),
+              type: ProgressType.Linear
+            })
+              .height(8)
+              .color('#A9824B')
+              .backgroundColor(this.isDark() ? '#3B3530' : '#E8E2D8')
+          }
+          .width('100%')
+          .padding(16)
+          .backgroundColor(this.card())
+          .borderRadius(18)
           .margin({ bottom: 18 })
+        } else {
+          Text(this.session.mode === SessionMode.FREE ? '自由模式 · 无拘无束，随心而敲' :
+            (this.session.running ? '自动敲击运行中 · 再次点击自动可关闭' : '自动模式 · 每秒自动敲击'))
+            .fontSize(13)
+            .fontColor(this.secondaryText())
+            .margin({ bottom: 18 })
+        }
       }
       .width('100%')
       .padding({ left: 20, right: 20, top: 24 })

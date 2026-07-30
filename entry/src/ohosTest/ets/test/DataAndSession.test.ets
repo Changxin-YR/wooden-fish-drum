@@ -2,7 +2,7 @@ import { describe, expect, it } from '@ohos/hypium';
 import { JsonCodec } from '../../../main/ets/data/JsonCodec';
 import { LocalStoreAdapter } from '../../../main/ets/data/LocalStoreAdapter';
 import { DailyRecord } from '../../../main/ets/models/AppModels';
-import { SoundType, ThemeMode, UserMode } from '../../../main/ets/models/Enums';
+import { SessionMode, SoundType, ThemeMode, UserMode } from '../../../main/ets/models/Enums';
 import { StatsRepository } from '../../../main/ets/repositories/StatsRepository';
 import { SessionService } from '../../../main/ets/services/SessionService';
 
@@ -86,14 +86,28 @@ export default function dataAndSessionTest(): void {
       session.recordManualHit();
       session.recordManualHit();
       expect(session.state.running).assertFalse();
+      expect(session.state.targetCompleted).assertTrue();
+      expect(session.state.currentCount).assertEqual(3);
+      expect(session.recordManualHit()).assertFalse();
       expect(session.state.currentCount).assertEqual(3);
     });
 
-    it('rejectsASecondAutoTimer', 0, (): void => {
+    it('stopsAutoImmediatelyWhenAnotherModeIsSelected', 0, (): void => {
       const session: SessionService = new SessionService();
-      expect(session.startAuto(1000)).assertTrue();
-      expect(session.startAuto(1000)).assertFalse();
-      session.stop();
+      session.selectMode(SessionMode.AUTO, 108, 1000);
+      expect(session.hasTimer()).assertTrue();
+      session.selectMode(SessionMode.TARGET, 3, 1000);
+      expect(session.hasTimer()).assertFalse();
+      expect(session.state.mode).assertEqual(SessionMode.TARGET);
+      expect(session.state.targetCount).assertEqual(3);
+    });
+
+    it('togglesAutoOffIntoFreeMode', 0, (): void => {
+      const session: SessionService = new SessionService();
+      session.selectMode(SessionMode.AUTO, 108, 1000);
+      session.selectMode(SessionMode.AUTO, 108, 1000);
+      expect(session.hasTimer()).assertFalse();
+      expect(session.state.mode).assertEqual(SessionMode.FREE);
     });
 
     it('migratesLegacyModeAndPreservesPreferences', 0, (): void => {
