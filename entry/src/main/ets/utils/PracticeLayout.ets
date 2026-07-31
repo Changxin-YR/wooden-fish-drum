@@ -19,7 +19,7 @@ export class PracticeLayoutMetrics {
 export class PracticeLayout {
   static resolve(width: number): PracticeLayoutMetrics {
     if (width < 600) {
-      return new PracticeLayoutMetrics(true, 4, 150);
+      return new PracticeLayoutMetrics(true, 10, 150);
     }
     return new PracticeLayoutMetrics(false, 18, 330);
   }

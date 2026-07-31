@@ -143,7 +143,7 @@ git commit -m "feat: 重塑共享摘要工具条和底栏"
 - Modify: `entry/src/main/ets/utils/PracticeLayout.ets`
 - Modify: `entry/src/ohosTest/ets/test/CoreModels.test.ets`
 
-- [ ] **Step 1: 写入并验证 Compact 布局 RED**
+- [x] **Step 1: 写入并验证 Compact 布局 RED**
 
 修改布局测试，要求参考稿的 Compact 画布和间距：
 
@@ -156,7 +156,7 @@ expect(compact.messageInControlDock).assertTrue();
 
 先把期望值设置为当前实现不同的批准值，运行 ohosTest 构建并确认失败原因是尺寸不符。
 
-- [ ] **Step 2: 重排首页骨架**
+- [x] **Step 2: 重排首页骨架**
 
 `HomePage.PhoneContent()` 严格按以下顺序组合：
 
@@ -170,13 +170,13 @@ this.Controls(true)
 
 Header 使用 32fp 品牌标题和 48vp 离线胶囊；页面使用 `ThemePalette.resolve(this.dark)`，不在页面散落新颜色常量。
 
-- [ ] **Step 3: 贴合三个主体画布**
+- [x] **Step 3: 贴合三个主体画布**
 
 - 木鱼、念珠和一炷香都在 150vp Compact 画布内保持完整主体，不裁切关键部分。
 - 主体区不放装饰卡片；浅色使用柔和暖光，深色只使用低对比暖光。
 - 计数和计时位于主体下方，真实状态文案不固定为参考图示例。
 
-- [ ] **Step 4: 重塑控制台**
+- [x] **Step 4: 重塑控制台**
 
 `PracticeControlDock` 保持现有回调接口，按参考稿实现：
 
@@ -184,7 +184,7 @@ Header 使用 32fp 品牌标题和 48vp 离线胶囊；页面使用 `ThemePalett
 - 一炷香：五档时长、主开始/暂停/继续按钮、结束、祝语、音频条。
 - 音频条包含 `mode_general` 缩略图、音色名、播放按钮、音量 Slider 和振动 Toggle。
 
-- [ ] **Step 5: GREEN、设备 smoke test 和提交**
+- [x] **Step 5: GREEN、设备 smoke test 和提交**
 
 运行 ohosTest 构建和 debug 构建；安装 debug HAP 后切换三工具，确认每个主命令可见且底栏不遮挡。提交：
 

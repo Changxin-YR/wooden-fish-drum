@@ -1,4 +1,5 @@
 import { PracticeStatus } from '../models/Enums';
+import { ThemeColors, ThemePalette } from '../constants/ThemePalette';
 
 @Component
 export struct IncenseView {
@@ -9,6 +10,8 @@ export struct IncenseView {
   @Prop reducedMotion: boolean = false;
   @Prop compact: boolean = false;
   @Prop canvasHeight: number = 330;
+
+  private colors(): ThemeColors { return ThemePalette.resolve(this.dark); }
 
   private visualHeight(): number {
     return this.compact ? this.canvasHeight - 10 : 286;
@@ -44,9 +47,9 @@ export struct IncenseView {
           Text('本次静心已完成')
             .fontSize(16)
             .fontWeight(FontWeight.Medium)
-            .fontColor(this.dark ? '#F1D0AD' : '#6D4428')
+            .fontColor(this.colors().primary)
             .padding({ left: 18, right: 18, top: 10, bottom: 10 })
-            .backgroundColor(this.dark ? '#E62A2724' : '#F2FFFDF8')
+            .backgroundColor(this.colors().card)
             .borderRadius(22)
         }
       }
@@ -59,13 +62,13 @@ export struct IncenseView {
         Progress({ value: this.progressValue() * 100, total: 100, type: ProgressType.Linear })
           .width('86%')
           .height(8)
-          .color('#A66C39')
-          .backgroundColor(this.dark ? '#4A433D' : '#EDE3D7')
+          .color(this.colors().accent)
+          .backgroundColor(this.colors().divider)
         if (!this.compact) {
           Text(this.timeText())
             .fontSize(30)
             .fontWeight(FontWeight.Bold)
-            .fontColor(this.dark ? '#F1ECE4' : '#56371F')
+            .fontColor(this.colors().primary)
         }
       }
     }

@@ -1,4 +1,4 @@
-import { DesignTokens } from '../constants/DesignTokens';
+import { ThemeColors, ThemePalette } from '../constants/ThemePalette';
 
 @Component
 export struct WoodenFishView {
@@ -15,6 +15,8 @@ export struct WoodenFishView {
   @State waveOpacity: number = 0;
   @State floatingTexts: string[] = [];
   private lastAnimatedSequence: number = 0;
+
+  private colors(): ThemeColors { return ThemePalette.resolve(this.dark); }
 
   private onHitSequenceChanged(): void {
     if (this.hitSequence <= this.lastAnimatedSequence) {
@@ -55,7 +57,7 @@ export struct WoodenFishView {
       Row()
         .width(this.compact ? 130 : 286)
         .height(this.compact ? 130 : 286)
-        .border({ width: 2, color: this.dark ? '#6BC29961' : '#69D8B27F' })
+        .border({ width: 2, color: this.colors().accent })
         .borderRadius(this.compact ? 65 : 143)
         .opacity(this.waveOpacity)
         .scale({ x: this.waveScale, y: this.waveScale })
@@ -71,9 +73,9 @@ export struct WoodenFishView {
           Text(item.substring(item.indexOf(':') + 1))
             .fontSize(17)
             .fontWeight(FontWeight.Medium)
-            .fontColor(this.dark ? '#F1D0AD' : '#7B4A2A')
+            .fontColor(this.colors().primary)
             .padding({ left: 16, right: 16, top: 8, bottom: 8 })
-            .backgroundColor(this.dark ? '#E62A2724' : '#F2FFFDF8')
+            .backgroundColor(this.colors().card)
             .borderRadius(20)
         }, (item: string): string => item)
       }

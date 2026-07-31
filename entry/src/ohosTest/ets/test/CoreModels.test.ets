@@ -25,10 +25,11 @@ export default function coreModelsTest(): void {
     });
 
     it('usesCompactPhonePracticeMetrics', 0, (): void => {
-      const phone = PracticeLayout.resolve(440);
+      const phone = PracticeLayout.resolve(390);
       expect(phone.compact).assertTrue();
       expect(phone.minimumTouchTarget).assertLargerOrEqual(48);
       expect(phone.canvasHeight).assertEqual(150);
+      expect(phone.pageSpacing).assertEqual(10);
       expect(phone.consoleSliderMinWidth).assertLargerOrEqual(64);
       expect(phone.messageInControlDock).assertTrue();
       const wide = PracticeLayout.resolve(600);

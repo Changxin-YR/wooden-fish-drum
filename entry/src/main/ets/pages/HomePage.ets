@@ -5,6 +5,7 @@ import { TodaySummaryCard } from '../components/TodaySummaryCard';
 import { ToolSegmentedControl } from '../components/ToolSegmentedControl';
 import { WoodenFishView } from '../components/WoodenFishView';
 import { DesignTokens } from '../constants/DesignTokens';
+import { ThemeColors, ThemePalette } from '../constants/ThemePalette';
 import { AppSettings, StatsSummary } from '../models/AppModels';
 import { PracticeState } from '../models/PracticeModels';
 import { PracticeStatus, ToolType } from '../models/Enums';
@@ -33,17 +34,7 @@ export struct HomePage {
   onStopIncense: () => void = (): void => {};
   @State viewportWidth: number = 390;
 
-  private pageBackground(): string {
-    return this.dark ? DesignTokens.darkBackground : '#FBF8F3';
-  }
-
-  private primaryText(): string {
-    return this.dark ? DesignTokens.darkText : '#4E301C';
-  }
-
-  private secondaryText(): string {
-    return this.dark ? DesignTokens.darkSecondary : '#8B7C6E';
-  }
+  private colors(): ThemeColors { return ThemePalette.resolve(this.dark); }
 
   private countValue(): number {
     return this.practice.manualCount + this.practice.automaticCount;
@@ -86,20 +77,20 @@ export struct HomePage {
 
   @Builder
   Header(compact: boolean) {
-    Column({ space: compact ? 6 : 10 }) {
+    Column({ space: compact ? 5 : 8 }) {
       Text('静心木鱼')
         .width('100%')
-        .fontSize(30)
+        .fontSize(DesignTokens.titleSize(this.viewportWidth))
         .fontWeight(FontWeight.Bold)
-        .fontColor(this.primaryText())
+        .fontColor(this.colors().primary)
       Row({ space: 8 }) {
-        Text('叶').fontSize(14).fontWeight(FontWeight.Bold).fontColor('#8B6846')
-        Text('单机版 · 离线使用').fontSize(13).fontColor(this.secondaryText())
+        Text('▢').fontSize(13).fontWeight(FontWeight.Bold).fontColor(this.colors().accent)
+        Text('单机版 · 离线使用').fontSize(13).fontColor(this.colors().secondary)
       }
-      .height(compact ? 40 : 48)
+      .height(compact ? 32 : 40)
       .padding({ left: 14, right: 14 })
-      .backgroundColor(this.dark ? '#2A2622' : '#FFF9F1')
-      .border({ width: 1, color: this.dark ? DesignTokens.darkDivider : '#E7D6C2' })
+      .backgroundColor(this.colors().card)
+      .border({ width: 1, color: this.colors().divider })
       .borderRadius(24)
       .alignSelf(ItemAlign.Start)
     }
@@ -108,7 +99,7 @@ export struct HomePage {
 
   @Builder
   PracticeCanvas(compact: boolean) {
-    Column({ space: 2 }) {
+    Column({ space: 1 }) {
       if (this.practice.selectedTool === ToolType.WOODEN_FISH) {
         WoodenFishView({
           dark: this.dark,
@@ -142,20 +133,20 @@ export struct HomePage {
       }
 
       Text(this.toolLabel())
-        .fontSize(14)
-        .fontColor(this.secondaryText())
+        .fontSize(13)
+        .fontColor(this.colors().secondary)
       Text(this.practice.selectedTool === ToolType.INCENSE ? this.incenseTimeText() : `${this.countValue()}`)
-        .fontSize(this.practice.selectedTool === ToolType.INCENSE ? 24 : (compact ? 42 : 54))
-        .fontWeight(FontWeight.Bold)
-        .fontColor(this.primaryText())
+        .fontSize(this.practice.selectedTool === ToolType.INCENSE ? 24 : (compact ? 34 : 52))
+        .fontWeight(FontWeight.Medium)
+        .fontColor(this.colors().primary)
       if (!compact) {
         Text(this.practiceMessage())
           .width('100%')
           .height(48)
           .fontSize(14)
-          .fontColor(this.primaryText())
+          .fontColor(this.colors().primary)
           .textAlign(TextAlign.Center)
-          .backgroundColor(this.dark ? '#2B2723' : '#FCF5EA')
+          .backgroundColor(this.colors().accentSoft)
           .borderRadius(DesignTokens.radiusControl)
       }
     }
@@ -234,10 +225,11 @@ export struct HomePage {
     }
     .width('100%')
     .height('100%')
-    .padding({ left: 20, right: 20, top: this.viewportWidth < 600 ? 14 : 22,
+    .padding({ left: DesignTokens.pageInset(this.viewportWidth), right: DesignTokens.pageInset(this.viewportWidth),
+      top: this.viewportWidth < 600 ? 10 : 22,
       bottom: this.viewportWidth < 600 ? 12 : 24 })
     .scrollBar(BarState.Off)
-    .backgroundColor(this.pageBackground())
+    .backgroundColor(this.colors().page)
     .onAreaChange((_oldValue: Area, newValue: Area): void => {
       this.viewportWidth = Number(newValue.width);
     })

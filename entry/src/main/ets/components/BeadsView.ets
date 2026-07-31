@@ -1,3 +1,5 @@
+import { ThemeColors, ThemePalette } from '../constants/ThemePalette';
+
 const SOURCE_WIDTH: number = 604;
 const SOURCE_HEIGHT: number = 1095;
 const BEAD_COUNT: number = 27;
@@ -23,6 +25,8 @@ export struct BeadsView {
   @State suppressNextClick: boolean = false;
   private gestureSequence: number = 0;
   private activeGestureId: number = -1;
+
+  private colors(): ThemeColors { return ThemePalette.resolve(this.dark); }
 
   private beadPoints(): BeadPoint[] {
     const points: BeadPoint[] = [];
@@ -85,9 +89,9 @@ export struct BeadsView {
           Circle()
             .width(22)
             .height(22)
-            .fill('#70FFF8EC')
-            .border({ width: 3, color: this.dark ? '#F2D5A6' : '#9A612C' })
-            .shadow({ radius: 7, color: '#99F2C078' })
+            .fill(this.colors().accentSoft)
+            .border({ width: 3, color: this.colors().accent })
+            .shadow({ radius: 7, color: this.colors().accent })
             .scale({ x: this.reducedMotion ? 1 : 1.08, y: this.reducedMotion ? 1 : 1.08 })
             .position({
               x: point.x * this.imageWidth() / SOURCE_WIDTH - 11,
