@@ -39,3 +39,16 @@
 | `practice_incense.png` | `codex-clipboard-0e62e54a-c38a-4a3a-8b39-55d61ae7d863.png` | 144,67,759,1329 | 待用户提供原创或商用授权证明 | 一炷香原型；主体和烟雾未分层，发布前需分层源图 |
 
 当前环境未提供内置图像编辑工具，且未获准使用需要 API Key 的 CLI 回退，因此未对木鱼纹理、光圈或香烟雾做生成式修补。原型开发可使用上述裁切图；“无光圈木鱼”“香体/烟雾分层”和“商用授权证明”在发布验收中保持 `blocked`。
+
+## 2026-07-31 深浅主题 UI 基准
+
+用户提供了首页、练习记录和设置页各一套浅色/深色 phone 稿。为避免临时附件丢失且控制仓库体积，项目在 `docs/ui/reference-2026-07-31/` 保存 471px 宽、JPEG 质量 88 的 QA 缩略图，总计约 270 KB。缩略图不打包进 HAP，也不作为整页背景。
+
+| QA 缩略图 | 用户原始文件 | 用途 |
+| --- | --- | --- |
+| `home-light.jpg` | `codex-clipboard-f066878d-7e27-4a06-ad4d-46f86aa633cf.png` | 浅色首页基准 |
+| `home-dark.jpg` | `codex-clipboard-bbadb233-a294-4388-9bc5-1f90452085b7.png` | 深色首页基准 |
+| `stats-light.jpg` | `codex-clipboard-c1c83073-7e9a-4bb1-8164-8f5c4e097e78.png` | 浅色记录基准 |
+| `stats-dark.jpg` | `codex-clipboard-d852d31c-e7cf-4535-826a-d2da4da9ab02.png` | 深色记录基准 |
+| `settings-light.jpg` | `codex-clipboard-dec4c210-1cf8-455d-8002-b94530e1c49a.png` | 浅色设置基准 |
+| `settings-dark.jpg` | `codex-clipboard-f097d64a-9632-4282-9f21-7227c2004b9c.png` | 深色设置基准 |
