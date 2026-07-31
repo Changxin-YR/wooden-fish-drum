@@ -4,6 +4,7 @@ import { ToolType } from '../models/Enums';
 export struct ToolSegmentedControl {
   @Prop selected: ToolType = ToolType.WOODEN_FISH;
   @Prop dark: boolean = false;
+  @Prop compact: boolean = false;
   onChange: (toolType: ToolType) => void = (): void => {};
 
   @Builder
@@ -20,7 +21,7 @@ export struct ToolSegmentedControl {
       .width('100%')
     }
     .layoutWeight(1)
-    .height(52)
+    .height(this.compact ? 48 : 52)
     .type(ButtonType.Normal)
     .fontColor(this.selected === toolType ? '#FFFFFF' : (this.dark ? '#E8E0D7' : '#4A3A2D'))
     .backgroundColor(this.selected === toolType ? '#9A612C' : Color.Transparent)
@@ -40,7 +41,7 @@ export struct ToolSegmentedControl {
       this.ToolButton(ToolType.INCENSE, '香', '一炷香')
     }
     .width('100%')
-    .padding(4)
+    .padding(this.compact ? 3 : 4)
     .backgroundColor(this.dark ? '#2A2622' : '#F3EDE4')
     .borderRadius(8)
   }

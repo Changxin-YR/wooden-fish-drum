@@ -1,7 +1,5 @@
 const SOURCE_WIDTH: number = 604;
 const SOURCE_HEIGHT: number = 1095;
-const CANVAS_HEIGHT: number = 330;
-const IMAGE_WIDTH: number = CANVAS_HEIGHT * SOURCE_WIDTH / SOURCE_HEIGHT;
 const BEAD_COUNT: number = 27;
 
 class BeadPoint {
@@ -19,6 +17,8 @@ export struct BeadsView {
   @Prop count: number = 0;
   @Prop dark: boolean = false;
   @Prop reducedMotion: boolean = false;
+  @Prop compact: boolean = false;
+  @Prop canvasHeight: number = 330;
   onGesture: (gestureId: number) => void = (_gestureId: number): void => {};
   @State suppressNextClick: boolean = false;
   private gestureSequence: number = 0;
@@ -38,6 +38,14 @@ export struct BeadsView {
 
   private activeIndex(): number {
     return this.count <= 0 ? -1 : (this.count - 1) % BEAD_COUNT;
+  }
+
+  private resolvedCanvasHeight(): number {
+    return this.canvasHeight;
+  }
+
+  private imageWidth(): number {
+    return this.resolvedCanvasHeight() * SOURCE_WIDTH / SOURCE_HEIGHT;
   }
 
   private nextGestureId(): number {
@@ -68,8 +76,8 @@ export struct BeadsView {
   build() {
     Stack({ alignContent: Alignment.TopStart }) {
       Image($r('app.media.practice_beads'))
-        .width(IMAGE_WIDTH)
-        .height(CANVAS_HEIGHT)
+        .width(this.imageWidth())
+        .height(this.resolvedCanvasHeight())
         .objectFit(ImageFit.Contain)
 
       ForEach(this.beadPoints(), (point: BeadPoint, index: number) => {
@@ -82,14 +90,14 @@ export struct BeadsView {
             .shadow({ radius: 7, color: '#99F2C078' })
             .scale({ x: this.reducedMotion ? 1 : 1.08, y: this.reducedMotion ? 1 : 1.08 })
             .position({
-              x: point.x * IMAGE_WIDTH / SOURCE_WIDTH - 11,
-              y: point.y * CANVAS_HEIGHT / SOURCE_HEIGHT - 11
+              x: point.x * this.imageWidth() / SOURCE_WIDTH - 11,
+              y: point.y * this.resolvedCanvasHeight() / SOURCE_HEIGHT - 11
             })
         }
       }, (_point: BeadPoint, index: number): string => `${index}`)
     }
-    .width(IMAGE_WIDTH)
-    .height(CANVAS_HEIGHT)
+    .width(this.imageWidth())
+    .height(this.resolvedCanvasHeight())
     .onClick((): void => this.handleClick())
     .gesture(
       PanGesture({ direction: PanDirection.All, distance: 6 })

@@ -4,6 +4,7 @@ import { LayoutSize, ResponsiveLayout } from '../../../main/ets/utils/Responsive
 import { TextValidator } from '../../../main/ets/utils/TextValidator';
 import { SceneMode, ThemeMode, ToolType } from '../../../main/ets/models/Enums';
 import { ThemeResolver } from '../../../main/ets/utils/ThemeResolver';
+import { PracticeLayout } from '../../../main/ets/utils/PracticeLayout';
 
 export default function coreModelsTest(): void {
   describe('CoreModels', (): void => {
@@ -19,6 +20,19 @@ export default function coreModelsTest(): void {
       expect(ResponsiveLayout.resolve(599)).assertEqual(LayoutSize.COMPACT);
       expect(ResponsiveLayout.resolve(600)).assertEqual(LayoutSize.MEDIUM);
       expect(ResponsiveLayout.resolve(1024)).assertEqual(LayoutSize.EXPANDED);
+    });
+
+    it('usesCompactPhonePracticeMetrics', 0, (): void => {
+      const phone = PracticeLayout.resolve(440);
+      expect(phone.compact).assertTrue();
+      expect(phone.minimumTouchTarget).assertLargerOrEqual(48);
+      expect(phone.canvasHeight).assertEqual(150);
+      expect(phone.consoleSliderMinWidth).assertLargerOrEqual(64);
+      expect(phone.messageInControlDock).assertTrue();
+      const wide = PracticeLayout.resolve(600);
+      expect(wide.compact).assertFalse();
+      expect(wide.messageInControlDock).assertFalse();
+      expect(wide.canvasHeight).assertEqual(330);
     });
 
     it('trimsAndLimitsCustomTextToTwelveCharacters', 0, (): void => {

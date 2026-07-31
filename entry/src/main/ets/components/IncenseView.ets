@@ -7,6 +7,12 @@ export struct IncenseView {
   @Prop status: PracticeStatus = PracticeStatus.IDLE;
   @Prop dark: boolean = false;
   @Prop reducedMotion: boolean = false;
+  @Prop compact: boolean = false;
+  @Prop canvasHeight: number = 330;
+
+  private visualHeight(): number {
+    return this.compact ? this.canvasHeight - 10 : 286;
+  }
 
   private progressValue(): number {
     if (this.targetSeconds <= 0) {
@@ -23,11 +29,11 @@ export struct IncenseView {
   }
 
   build() {
-    Column({ space: 10 }) {
+    Column({ space: this.compact ? 6 : 10 }) {
       Stack({ alignContent: Alignment.Center }) {
         Image($r('app.media.practice_incense'))
           .width('100%')
-          .height(286)
+          .height(this.visualHeight())
           .objectFit(ImageFit.Contain)
           .opacity(this.status === PracticeStatus.COMPLETED ? 0.72 : 1)
           .scale({
@@ -45,7 +51,7 @@ export struct IncenseView {
         }
       }
       .width('100%')
-      .height(286)
+      .height(this.visualHeight())
       .accessibilityText('一炷香静心计时画布')
       .accessibilityDescription('点击香体不会增加次数')
 
@@ -55,10 +61,12 @@ export struct IncenseView {
           .height(8)
           .color('#A66C39')
           .backgroundColor(this.dark ? '#4A433D' : '#EDE3D7')
-        Text(this.timeText())
-          .fontSize(30)
-          .fontWeight(FontWeight.Bold)
-          .fontColor(this.dark ? '#F1ECE4' : '#56371F')
+        if (!this.compact) {
+          Text(this.timeText())
+            .fontSize(30)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(this.dark ? '#F1ECE4' : '#56371F')
+        }
       }
     }
     .width('100%')

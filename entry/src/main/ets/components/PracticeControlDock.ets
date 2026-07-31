@@ -1,6 +1,7 @@
 import { AppSettings } from '../models/AppModels';
 import { PracticeStatus, ToolType } from '../models/Enums';
 import { DesignTokens } from '../constants/DesignTokens';
+import { PracticeLayout } from '../utils/PracticeLayout';
 
 @Component
 export struct PracticeControlDock {
@@ -8,6 +9,7 @@ export struct PracticeControlDock {
   @Prop status: PracticeStatus = PracticeStatus.IDLE;
   @Prop selectedTool: ToolType = ToolType.WOODEN_FISH;
   @Prop dark: boolean = false;
+  @Prop compact: boolean = false;
   onStartAuto: (intervalMs: number) => void = (_intervalMs: number): void => {};
   onPause: () => void = (): void => {};
   onResume: () => void = (): void => {};
@@ -21,6 +23,7 @@ export struct PracticeControlDock {
   onResumeIncense: () => void = (): void => {};
   onStopIncense: () => void = (): void => {};
   @Prop incenseTargetSeconds: number = 0;
+  @Prop message: string = '';
   @State selectedIncenseSeconds: number = 900;
 
   private primaryText(): string {
@@ -103,7 +106,7 @@ export struct PracticeControlDock {
   }
 
   build() {
-    Column({ space: 14 }) {
+    Column({ space: this.compact ? 4 : 14 }) {
       if (this.selectedTool !== ToolType.INCENSE) {
         Row({ space: 4 }) {
           this.ModeButton(false, '手动')
@@ -111,7 +114,7 @@ export struct PracticeControlDock {
             (this.status === PracticeStatus.RUNNING ? '暂停' : '自动'))
         }
         .width('100%')
-        .padding(4)
+        .padding(this.compact ? 0 : 4)
         .backgroundColor(this.dark ? '#2E2925' : '#F7F1E9')
         .borderRadius(28)
 
@@ -121,7 +124,7 @@ export struct PracticeControlDock {
           this.IntervalButton(2000, '2.0秒')
         }
         .width('100%')
-        .padding(4)
+        .padding(this.compact ? 0 : 4)
         .backgroundColor(this.dark ? '#2E2925' : '#FAF6F0')
         .borderRadius(28)
       } else {
@@ -133,7 +136,7 @@ export struct PracticeControlDock {
           this.IncensePreset(1800, '30分')
         }
         .width('100%')
-        .padding(4)
+        .padding(this.compact ? 0 : 4)
         .backgroundColor(this.dark ? '#2E2925' : '#F7F1E9')
         .borderRadius(28)
         Row({ space: 10 }) {
@@ -167,16 +170,27 @@ export struct PracticeControlDock {
         .width('100%')
       }
 
-      Row({ space: 12 }) {
+      if (PracticeLayout.resolve(this.compact ? 440 : 600).messageInControlDock) {
+        Text(this.message)
+          .width('100%')
+          .height(44)
+          .fontSize(14)
+          .fontColor(this.primaryText())
+          .textAlign(TextAlign.Center)
+          .backgroundColor(this.dark ? '#2B2723' : '#FCF5EA')
+          .borderRadius(DesignTokens.radiusControl)
+      }
+
+      Row({ space: this.compact ? 4 : 12 }) {
         Column({ space: 2 }) {
           Text(this.settings.selectedSoundId === 'deep' ? '低沉木音' :
             (this.settings.selectedSoundId === 'crisp' ? '清脆木音' : '柔和木音'))
-            .fontSize(14).fontWeight(FontWeight.Medium).fontColor(this.primaryText())
+            .fontSize(this.compact ? 13 : 14).fontWeight(FontWeight.Medium).fontColor(this.primaryText())
           Text(this.settings.tapSoundEnabled ? '敲击音已开启' : '敲击音已关闭')
-            .fontSize(11).fontColor(this.secondaryText())
+            .fontSize(this.compact ? 10 : 11).fontColor(this.secondaryText())
         }
         .alignItems(HorizontalAlign.Start)
-        .constraintSize({ minWidth: 88 })
+        .constraintSize({ minWidth: this.compact ? 62 : 88 })
         Button(this.status === PracticeStatus.RUNNING ? 'Ⅱ' : '▶')
           .width(48).height(48).type(ButtonType.Circle)
           .fontSize(17).fontColor('#FFFFFF').backgroundColor('#A66C39')
@@ -199,19 +213,27 @@ export struct PracticeControlDock {
           .accessibilityText(this.settings.tapSoundEnabled ? '关闭敲击音' : '开启敲击音')
         Slider({ value: this.settings.tapVolume * 100, min: 0, max: 100, step: 5 })
           .layoutWeight(1)
+          .constraintSize({ minWidth: PracticeLayout.resolve(this.compact ? 440 : 600).consoleSliderMinWidth })
           .selectedColor('#A66C39')
           .blockColor('#A66C39')
           .trackColor(this.dark ? '#4A433D' : '#E4DDD5')
           .onChange((value: number): void => this.onVolumeChange(value / 100))
         Text('振动').fontSize(12).fontColor(this.secondaryText())
-        Toggle({ type: ToggleType.Switch, isOn: this.settings.vibrationEnabled })
-          .width(48)
-          .selectedColor('#A66C39')
-          .onChange((enabled: boolean): void => this.onVibrationToggle(enabled))
+        Stack({ alignContent: Alignment.Center }) {
+          Toggle({ type: ToggleType.Switch, isOn: this.settings.vibrationEnabled })
+            .width(48)
+            .selectedColor('#A66C39')
+            .hitTestBehavior(HitTestMode.None)
+        }
+        .width(48)
+        .height(PracticeLayout.resolve(this.compact ? 440 : 600).minimumTouchTarget)
+        .onClick((): void => this.onVibrationToggle(!this.settings.vibrationEnabled))
+        .accessibilityText(this.settings.vibrationEnabled ? '关闭振动' : '开启振动')
       }
       .width('100%')
-      .constraintSize({ minHeight: 72 })
-      .padding({ left: 14, right: 14, top: 10, bottom: 10 })
+      .constraintSize({ minHeight: this.compact ? 64 : 72 })
+      .padding({ left: this.compact ? 8 : 14, right: this.compact ? 8 : 14,
+        top: this.compact ? 8 : 10, bottom: this.compact ? 8 : 10 })
       .backgroundColor(this.dark ? DesignTokens.darkCard : '#FFFEFC')
       .borderRadius(DesignTokens.radiusCard)
       .border({ width: 1, color: this.dark ? DesignTokens.darkDivider : '#EFE5D9' })

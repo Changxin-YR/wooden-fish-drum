@@ -5,6 +5,7 @@ import { DesignTokens } from '../constants/DesignTokens';
 export struct TodaySummaryCard {
   @Prop summary: StatsSummary;
   @Prop dark: boolean = false;
+  @Prop compact: boolean = false;
 
   private primaryText(): string {
     return this.dark ? DesignTokens.darkText : '#56371F';
@@ -18,25 +19,25 @@ export struct TodaySummaryCard {
   Metric(symbol: string, label: string, value: string, unit: string) {
     Row({ space: 10 }) {
       Text(symbol)
-        .width(42)
-        .height(42)
-        .fontSize(20)
+        .width(this.compact ? 34 : 42)
+        .height(this.compact ? 34 : 42)
+        .fontSize(this.compact ? 17 : 20)
         .fontWeight(FontWeight.Bold)
         .fontColor('#A86B37')
         .textAlign(TextAlign.Center)
         .backgroundColor(this.dark ? '#3A3028' : '#F8F1E8')
-        .borderRadius(21)
+        .borderRadius(this.compact ? 17 : 21)
       Column({ space: 2 }) {
-        Text(label).fontSize(12).fontColor(this.secondaryText())
+        Text(label).fontSize(this.compact ? 11 : 12).fontColor(this.secondaryText())
         Row({ space: 4 }) {
-          Text(value).fontSize(20).fontWeight(FontWeight.Bold).fontColor(this.primaryText())
-          Text(unit).fontSize(12).fontColor(this.secondaryText())
+          Text(value).fontSize(this.compact ? 18 : 20).fontWeight(FontWeight.Bold).fontColor(this.primaryText())
+          Text(unit).fontSize(this.compact ? 11 : 12).fontColor(this.secondaryText())
         }
       }
       .alignItems(HorizontalAlign.Start)
     }
     .layoutWeight(1)
-    .constraintSize({ minHeight: 64 })
+    .constraintSize({ minHeight: this.compact ? 52 : 64 })
   }
 
   build() {
@@ -48,7 +49,8 @@ export struct TodaySummaryCard {
       this.Metric('续', '连续天数', `${this.summary.streakDays}`, '天')
     }
     .width('100%')
-    .padding({ left: 14, right: 14, top: 12, bottom: 12 })
+    .padding({ left: this.compact ? 10 : 14, right: this.compact ? 10 : 14,
+      top: this.compact ? 4 : 12, bottom: this.compact ? 4 : 12 })
     .backgroundColor(this.dark ? DesignTokens.darkCard : '#FFFEFC')
     .borderRadius(DesignTokens.radiusCard)
     .border({ width: 1, color: this.dark ? DesignTokens.darkDivider : '#EFE5D9' })

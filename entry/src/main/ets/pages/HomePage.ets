@@ -8,6 +8,7 @@ import { DesignTokens } from '../constants/DesignTokens';
 import { AppSettings, StatsSummary } from '../models/AppModels';
 import { PracticeState } from '../models/PracticeModels';
 import { PracticeStatus, ToolType } from '../models/Enums';
+import { PracticeLayout } from '../utils/PracticeLayout';
 
 @Component
 export struct HomePage {
@@ -70,9 +71,22 @@ export struct HomePage {
       .toString().padStart(2, '0')}`;
   }
 
+  private practiceMessage(): string {
+    if (this.practice.lastMilestone > 0) {
+      return `已到 ${this.practice.lastMilestone} 颗 · 继续安住当下`;
+    }
+    if (this.practice.status === PracticeStatus.RUNNING) {
+      return '练习进行中';
+    }
+    if (this.practice.status === PracticeStatus.PAUSED) {
+      return '已暂停';
+    }
+    return '愿你此刻安定专注';
+  }
+
   @Builder
-  Header() {
-    Column({ space: 10 }) {
+  Header(compact: boolean) {
+    Column({ space: compact ? 6 : 10 }) {
       Text('静心木鱼')
         .width('100%')
         .fontSize(30)
@@ -82,7 +96,7 @@ export struct HomePage {
         Text('叶').fontSize(14).fontWeight(FontWeight.Bold).fontColor('#8B6846')
         Text('单机版 · 离线使用').fontSize(13).fontColor(this.secondaryText())
       }
-      .constraintSize({ minHeight: 48 })
+      .height(compact ? 40 : 48)
       .padding({ left: 14, right: 14 })
       .backgroundColor(this.dark ? '#2A2622' : '#FFF9F1')
       .border({ width: 1, color: this.dark ? DesignTokens.darkDivider : '#E7D6C2' })
@@ -93,7 +107,7 @@ export struct HomePage {
   }
 
   @Builder
-  PracticeCanvas() {
+  PracticeCanvas(compact: boolean) {
     Column({ space: 2 }) {
       if (this.practice.selectedTool === ToolType.WOODEN_FISH) {
         WoodenFishView({
@@ -102,6 +116,8 @@ export struct HomePage {
           label: this.settings.feedbackText,
           floatingEnabled: this.settings.feedbackTextEnabled,
           reducedMotion: this.settings.reducedMotion,
+          compact: compact,
+          canvasHeight: PracticeLayout.resolve(this.viewportWidth).canvasHeight,
           onHit: (): void => this.onHit()
         })
       } else if (this.practice.selectedTool === ToolType.BEADS) {
@@ -109,6 +125,8 @@ export struct HomePage {
           count: this.countValue(),
           dark: this.dark,
           reducedMotion: this.settings.reducedMotion,
+          compact: compact,
+          canvasHeight: PracticeLayout.resolve(this.viewportWidth).canvasHeight,
           onGesture: (gestureId: number): void => this.onBeadsGesture(gestureId)
         })
       } else {
@@ -117,7 +135,9 @@ export struct HomePage {
           remainingSeconds: this.practice.incenseRemainingSeconds,
           status: this.practice.status,
           dark: this.dark,
-          reducedMotion: this.settings.reducedMotion
+          reducedMotion: this.settings.reducedMotion,
+          compact: compact,
+          canvasHeight: PracticeLayout.resolve(this.viewportWidth).canvasHeight
         })
       }
 
@@ -125,30 +145,31 @@ export struct HomePage {
         .fontSize(14)
         .fontColor(this.secondaryText())
       Text(this.practice.selectedTool === ToolType.INCENSE ? this.incenseTimeText() : `${this.countValue()}`)
-        .fontSize(this.practice.selectedTool === ToolType.INCENSE ? 24 : 54)
+        .fontSize(this.practice.selectedTool === ToolType.INCENSE ? 24 : (compact ? 42 : 54))
         .fontWeight(FontWeight.Bold)
         .fontColor(this.primaryText())
-      Text(this.practice.lastMilestone > 0 ? `已到 ${this.practice.lastMilestone} 颗 · 继续安住当下` :
-        (this.practice.status === PracticeStatus.RUNNING ? '练习进行中' :
-          (this.practice.status === PracticeStatus.PAUSED ? '已暂停' : '愿你此刻安定专注')))
-        .width('100%')
-        .height(48)
-        .fontSize(14)
-        .fontColor(this.primaryText())
-        .textAlign(TextAlign.Center)
-        .backgroundColor(this.dark ? '#2B2723' : '#FCF5EA')
-        .borderRadius(DesignTokens.radiusControl)
+      if (!compact) {
+        Text(this.practiceMessage())
+          .width('100%')
+          .height(48)
+          .fontSize(14)
+          .fontColor(this.primaryText())
+          .textAlign(TextAlign.Center)
+          .backgroundColor(this.dark ? '#2B2723' : '#FCF5EA')
+          .borderRadius(DesignTokens.radiusControl)
+      }
     }
     .width('100%')
   }
 
   @Builder
-  Controls() {
+  Controls(compact: boolean) {
     PracticeControlDock({
       settings: this.settings,
       status: this.practice.status,
       selectedTool: this.practice.selectedTool,
       dark: this.dark,
+      compact: compact,
       onStartAuto: (intervalMs: number): void => this.onStartAuto(intervalMs),
       onPause: (): void => this.onPause(),
       onResume: (): void => this.onResume(),
@@ -158,6 +179,7 @@ export struct HomePage {
       onVolumeChange: (volume: number): void => this.onVolumeChange(volume),
       onVibrationToggle: (enabled: boolean): void => this.onVibrationToggle(enabled),
       incenseTargetSeconds: this.practice.incenseTargetSeconds,
+      message: this.practiceMessage(),
       onStartIncense: (durationSeconds: number): void => this.onStartIncense(durationSeconds),
       onPauseIncense: (): void => this.onPauseIncense(),
       onResumeIncense: (): void => this.onResumeIncense(),
@@ -167,16 +189,17 @@ export struct HomePage {
 
   @Builder
   PhoneContent() {
-    Column({ space: 16 }) {
-      this.Header()
-      TodaySummaryCard({ summary: this.summary, dark: this.dark })
+    Column({ space: PracticeLayout.resolve(this.viewportWidth).pageSpacing }) {
+      this.Header(true)
+      TodaySummaryCard({ summary: this.summary, dark: this.dark, compact: true })
       ToolSegmentedControl({
         selected: this.practice.selectedTool,
         dark: this.dark,
+        compact: true,
         onChange: (toolType: ToolType): void => this.onToolChange(toolType)
       })
-      this.PracticeCanvas()
-      this.Controls()
+      this.PracticeCanvas(true)
+      this.Controls(true)
     }
     .width('100%')
   }
@@ -184,7 +207,7 @@ export struct HomePage {
   @Builder
   WideContent() {
     Column({ space: 18 }) {
-      this.Header()
+      this.Header(false)
       TodaySummaryCard({ summary: this.summary, dark: this.dark })
       ToolSegmentedControl({
         selected: this.practice.selectedTool,
@@ -192,8 +215,8 @@ export struct HomePage {
         onChange: (toolType: ToolType): void => this.onToolChange(toolType)
       })
       Row({ space: 24 }) {
-        Column() { this.PracticeCanvas() }.layoutWeight(3)
-        Column() { this.Controls() }.layoutWeight(2)
+        Column() { this.PracticeCanvas(false) }.layoutWeight(3)
+        Column() { this.Controls(false) }.layoutWeight(2)
       }
       .width('100%')
       .alignItems(VerticalAlign.Top)
@@ -211,7 +234,8 @@ export struct HomePage {
     }
     .width('100%')
     .height('100%')
-    .padding({ left: 20, right: 20, top: 22, bottom: 24 })
+    .padding({ left: 20, right: 20, top: this.viewportWidth < 600 ? 14 : 22,
+      bottom: this.viewportWidth < 600 ? 12 : 24 })
     .scrollBar(BarState.Off)
     .backgroundColor(this.pageBackground())
     .onAreaChange((_oldValue: Area, newValue: Area): void => {

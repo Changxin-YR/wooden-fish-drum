@@ -335,10 +335,11 @@ git commit -m "feat: 接入 V2.1 三工具视觉资源"
 
 点击光圈、回弹和浮字由 ArkUI 独立绘制；减少动画时取消位移但保留计数和状态反馈。木鱼可视范围外扩为点击热区。
 
-- [ ] **Step 4: debug 构建和 phone 截图对照后提交**
+- [x] **Step 4: debug 构建和 phone 截图对照后提交**
 
-debug 与 ohosTest HAP 已构建通过；本机无 HDC 目标，且 DevEco `PreviewBuild` 以工具链错误
-`00308018` 失败，因此真实 phone 截图对照保留到设备或 Previewer 恢复后执行。
+debug 与 ohosTest HAP 已构建通过；API 24 phone 模拟器 `127.0.0.1:5555` 已完成木鱼、念珠和
+一炷香单屏截图对照。phone 画布使用独立紧凑预算，三工具控制区和最小 64vp 音量滑杆均位于
+底部导航上方，触控按钮继续保持至少 48vp。
 
 ```powershell
 git add entry/src/main/ets/pages/HomePage.ets entry/src/main/ets/pages/Index.ets entry/src/main/ets/components

@@ -7,6 +7,8 @@ export struct WoodenFishView {
   @Prop label: string;
   @Prop floatingEnabled: boolean = true;
   @Prop reducedMotion: boolean = false;
+  @Prop compact: boolean = false;
+  @Prop canvasHeight: number = 330;
   onHit: () => void = (): void => {};
   @State fishScale: number = 1;
   @State waveScale: number = 0.72;
@@ -51,10 +53,10 @@ export struct WoodenFishView {
   build() {
     Stack({ alignContent: Alignment.Center }) {
       Row()
-        .width(286)
-        .height(286)
+        .width(this.compact ? 130 : 286)
+        .height(this.compact ? 130 : 286)
         .border({ width: 2, color: this.dark ? '#6BC29961' : '#69D8B27F' })
-        .borderRadius(143)
+        .borderRadius(this.compact ? 65 : 143)
         .opacity(this.waveOpacity)
         .scale({ x: this.waveScale, y: this.waveScale })
 
@@ -79,8 +81,8 @@ export struct WoodenFishView {
       .margin({ top: 18 })
     }
     .width('100%')
-    .height(330)
-    .padding(12)
+    .height(this.canvasHeight)
+    .padding(this.compact ? 4 : 12)
     .onClick((): void => this.onHit())
     .accessibilityText('木鱼练习区，点击计数')
     .accessibilityDescription('整个区域均可点击')
