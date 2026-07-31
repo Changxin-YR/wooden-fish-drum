@@ -8,6 +8,18 @@ export class PracticeState {
   hitSequence: number = 0;
 }
 
+export class PracticeEvent {
+  toolType: ToolType;
+  automatic: boolean;
+  hitSequence: number;
+
+  constructor(toolType: ToolType, automatic: boolean, hitSequence: number) {
+    this.toolType = toolType;
+    this.automatic = automatic;
+    this.hitSequence = hitSequence;
+  }
+}
+
 export class DailyStats {
   date: string;
   woodenFishManualCount: number;

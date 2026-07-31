@@ -2,13 +2,14 @@ import { common } from '@kit.AbilityKit';
 import { BottomNavBar } from '../components/BottomNavBar';
 import { DesignTokens } from '../constants/DesignTokens';
 import { JsonCodec } from '../data/JsonCodec';
-import { AppSettings, DailyRecord, SessionState, StatsSummary } from '../models/AppModels';
-import { AppTab, SceneMode, SessionMode, SoundType, ThemeMode, ToolType } from '../models/Enums';
+import { AppSettings, DailyRecord, StatsSummary } from '../models/AppModels';
+import { AppTab, PracticeStatus, SceneMode, SoundType, ThemeMode, ToolType } from '../models/Enums';
+import { PracticeEvent, PracticeState } from '../models/PracticeModels';
 import { HomePage } from './HomePage';
 import { SettingsPage } from './SettingsPage';
 import { StatsPage } from './StatsPage';
 import { ModeSelectPage } from './ModeSelectPage';
-import { appStore, preferencesStore, sessionService } from '../stores/AppRuntime';
+import { appStore, practiceController, preferencesStore } from '../stores/AppRuntime';
 import { audioService } from '../services/AudioService';
 import { vibrationService } from '../services/VibrationService';
 import { ThemeResolver } from '../utils/ThemeResolver';
@@ -23,7 +24,7 @@ struct Index {
   @State summary: StatsSummary = new StatsSummary();
   @State recentRecords: DailyRecord[] = [];
   @State allRecords: DailyRecord[] = [];
-  @State session: SessionState = new SessionState();
+  @State practice: PracticeState = new PracticeState();
   @State viewportWidth: number = 390;
 
   private contentMaxWidth(): number {
@@ -48,17 +49,15 @@ struct Index {
     }
     await audioService.initialize(hostContext);
     await appStore.initialize();
-    sessionService.setCallbacks((automatic: boolean): void => {
-      this.handleRecordedHit(automatic);
-    }, (): void => {
-      this.refreshSessionState();
+    practiceController.setEventCallback((event: PracticeEvent): void => {
+      this.handlePracticeEvent(event);
     });
     this.syncFromStore();
     this.ready = true;
   }
 
   aboutToDisappear(): void {
-    sessionService.onBackground();
+    practiceController.onBackground();
     audioService.release();
   }
 
@@ -67,44 +66,75 @@ struct Index {
     this.summary = appStore.summary;
     this.recentRecords = appStore.recentRecords;
     this.allRecords = appStore.allRecords;
-    this.refreshSessionState();
+    practiceController.selectTool(this.settings.selectedTool);
+    this.refreshPracticeState();
   }
 
-  private refreshSessionState(): void {
-    const source: SessionState = sessionService.state;
-    const next: SessionState = new SessionState();
-    next.mode = source.mode;
+  private refreshPracticeState(): void {
+    const source: PracticeState = practiceController.state;
+    const next: PracticeState = new PracticeState();
+    next.selectedTool = source.selectedTool;
+    next.status = source.status;
+    next.manualCount = source.manualCount;
+    next.automaticCount = source.automaticCount;
     next.hitSequence = source.hitSequence;
-    next.running = source.running;
-    next.paused = source.paused;
-    next.targetCompleted = source.targetCompleted;
-    next.currentCount = source.currentCount;
-    next.targetCount = source.targetCount;
-    next.startedAt = source.startedAt;
-    this.session = next;
+    this.practice = next;
   }
 
-  private async handleRecordedHit(automatic: boolean): Promise<void> {
-    this.refreshSessionState();
-    if (this.settings.soundEnabled) {
-      audioService.play(this.settings.soundType, this.settings.volume);
+  private async handlePracticeEvent(event: PracticeEvent): Promise<void> {
+    this.refreshPracticeState();
+    if (this.settings.tapSoundEnabled) {
+      audioService.play(this.settings.selectedSoundId, this.settings.tapVolume);
     }
     if (this.settings.vibrationEnabled) {
       vibrationService.impact();
     }
-    await appStore.recordHit(automatic);
+    await appStore.recordHit(event.automatic);
     this.syncFromStore();
   }
 
   private handleManualHit(): void {
-    if (sessionService.recordManualHit()) {
-      this.refreshSessionState();
-    }
+    practiceController.recordManual();
+    this.refreshPracticeState();
   }
 
-  private handleSessionChange(mode: SessionMode): void {
-    sessionService.selectMode(mode, 108, this.settings.autoInterval);
-    this.refreshSessionState();
+  private handleToolChange(toolType: ToolType): void {
+    practiceController.selectTool(toolType);
+    appStore.settings.selectedTool = toolType;
+    appStore.persistSettings().then((): void => this.syncFromStore());
+    this.refreshPracticeState();
+  }
+
+  private handleStartAuto(intervalMs: number): void {
+    practiceController.startAuto(intervalMs, this.settings.autoDurationSeconds);
+    this.refreshPracticeState();
+  }
+
+  private handlePause(): void {
+    practiceController.pause();
+    this.refreshPracticeState();
+  }
+
+  private handleResume(): void {
+    practiceController.resume();
+    this.refreshPracticeState();
+  }
+
+  private handleStop(): void {
+    practiceController.stop();
+    this.refreshPracticeState();
+  }
+
+  private updateInterval(intervalMs: number): void {
+    appStore.settings.autoIntervalMs = intervalMs;
+    appStore.settings.autoInterval = intervalMs;
+    appStore.persistSettings().then((): void => this.syncFromStore());
+  }
+
+  private updateVolume(volume: number): void {
+    appStore.settings.tapVolume = volume;
+    appStore.settings.volume = volume;
+    appStore.persistSettings().then((): void => this.syncFromStore());
   }
 
   private isDark(): boolean {
@@ -118,17 +148,12 @@ struct Index {
   private async updateSetting(action: string, value: boolean): Promise<void> {
     if (action === 'sound') {
       appStore.settings.soundEnabled = value;
+      appStore.settings.tapSoundEnabled = value;
     } else if (action === 'vibration') {
       appStore.settings.vibrationEnabled = value;
-    } else if (!this.settings.initialized) {
-      ModeSelectPage({
-        dark: this.isDark(),
-        onComplete: (sceneMode: SceneMode, toolType: ToolType): void => {
-          this.completeOnboarding(sceneMode, toolType);
-        }
-      })
     } else {
       appStore.settings.floatingTextEnabled = value;
+      appStore.settings.feedbackTextEnabled = value;
     }
     await appStore.persistSettings();
     this.syncFromStore();
@@ -136,14 +161,33 @@ struct Index {
 
   @Builder
   CurrentPage() {
-    if (this.selectedTab === AppTab.HOME) {
+    if (!this.settings.initialized) {
+      ModeSelectPage({
+        dark: this.isDark(),
+        onComplete: (sceneMode: SceneMode, toolType: ToolType): void => {
+          this.completeOnboarding(sceneMode, toolType);
+        }
+      })
+    } else if (this.selectedTab === AppTab.HOME) {
       HomePage({
         settings: this.settings,
         summary: this.summary,
-        session: this.session,
+        practice: this.practice,
         dark: this.isDark(),
         onHit: (): void => this.handleManualHit(),
-        onSessionChange: (mode: SessionMode): void => this.handleSessionChange(mode)
+        onToolChange: (toolType: ToolType): void => this.handleToolChange(toolType),
+        onStartAuto: (intervalMs: number): void => this.handleStartAuto(intervalMs),
+        onPause: (): void => this.handlePause(),
+        onResume: (): void => this.handleResume(),
+        onStop: (): void => this.handleStop(),
+        onIntervalChange: (intervalMs: number): void => this.updateInterval(intervalMs),
+        onSoundToggle: (enabled: boolean): void => {
+          this.updateSetting('sound', enabled);
+        },
+        onVolumeChange: (volume: number): void => this.updateVolume(volume),
+        onVibrationToggle: (enabled: boolean): void => {
+          this.updateSetting('vibration', enabled);
+        }
       })
     } else if (this.selectedTab === AppTab.STATS) {
       StatsPage({ summary: this.summary, records: this.allRecords, dark: this.isDark() })
@@ -156,11 +200,13 @@ struct Index {
         },
         onSoundTypeChange: (type: SoundType): void => {
           appStore.settings.soundType = type;
+          appStore.settings.selectedSoundId = type;
           audioService.play(type, appStore.settings.volume);
           appStore.persistSettings().then((): void => this.syncFromStore());
         },
         onVolumeChange: (value: number): void => {
           appStore.settings.volume = value;
+          appStore.settings.tapVolume = value;
           appStore.persistSettings().then((): void => this.syncFromStore());
         },
         onVibrationToggle: (enabled: boolean): void => {
@@ -209,6 +255,11 @@ struct Index {
             selected: this.selectedTab,
             dark: this.isDark(),
             onChange: (tab: AppTab): void => {
+              if (this.selectedTab === AppTab.HOME && tab !== AppTab.HOME &&
+                this.practice.status === PracticeStatus.RUNNING) {
+                practiceController.pause();
+                this.refreshPracticeState();
+              }
               this.selectedTab = tab;
               if (tab === AppTab.STATS) {
                 appStore.refreshStats().then((): void => this.syncFromStore());

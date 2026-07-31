@@ -323,19 +323,22 @@ git commit -m "feat: 接入 V2.1 三工具视觉资源"
 - Modify: `entry/src/main/ets/components/WoodenFishView.ets`
 - Modify: `entry/src/main/ets/pages/Index.ets`
 
-- [ ] **Step 1: 写木鱼快速计数和事件序列测试**
+- [x] **Step 1: 写木鱼快速计数和事件序列测试**
 
 连续 100 次手动输入必须得到 100；音效失败不能回滚计数；手动和自动共享递增反馈序列。
 
-- [ ] **Step 2: 实现 V2 练习页层级**
+- [x] **Step 2: 实现 V2 练习页层级**
 
 按“标题/离线标识、今日概览、工具选择、练习画布、计数、控制区、音频控制台、一级导航”顺序组合。页面只消费 Store 展示模型和强类型回调。
 
-- [ ] **Step 3: 完成木鱼静止和点击状态**
+- [x] **Step 3: 完成木鱼静止和点击状态**
 
 点击光圈、回弹和浮字由 ArkUI 独立绘制；减少动画时取消位移但保留计数和状态反馈。木鱼可视范围外扩为点击热区。
 
 - [ ] **Step 4: debug 构建和 phone 截图对照后提交**
+
+debug 与 ohosTest HAP 已构建通过；本机无 HDC 目标，且 DevEco `PreviewBuild` 以工具链错误
+`00308018` 失败，因此真实 phone 截图对照保留到设备或 Previewer 恢复后执行。
 
 ```powershell
 git add entry/src/main/ets/pages/HomePage.ets entry/src/main/ets/pages/Index.ets entry/src/main/ets/components

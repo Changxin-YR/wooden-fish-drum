@@ -30,6 +30,11 @@ $requiredFiles = @(
   'entry\src\main\ets\pages\HomePage.ets',
   'entry\src\main\ets\pages\StatsPage.ets',
   'entry\src\main\ets\pages\SettingsPage.ets',
+  'entry\src\main\ets\components\TodaySummaryCard.ets',
+  'entry\src\main\ets\components\ToolSegmentedControl.ets',
+  'entry\src\main\ets\components\PracticeControlDock.ets',
+  'entry\src\main\ets\components\WoodenFishView.ets',
+  'entry\src\main\ets\services\PracticeController.ets',
   'entry\src\main\ets\services\SessionService.ets',
   'entry\src\main\ets\services\AudioService.ets',
   'entry\src\main\ets\services\VibrationService.ets',
@@ -37,12 +42,16 @@ $requiredFiles = @(
   'entry\src\main\resources\base\media\muyu_brand.png',
   'entry\src\main\resources\base\media\muyu_body_dark.png',
   'entry\src\main\resources\base\media\muyu_body_light.png',
+  'entry\src\main\resources\base\media\practice_wooden_fish.png',
+  'entry\src\main\resources\base\media\practice_beads.png',
+  'entry\src\main\resources\base\media\practice_incense.png',
   'entry\src\main\resources\rawfile\sounds\deep.wav',
   'entry\src\main\resources\rawfile\sounds\crisp.wav',
   'entry\src\main\resources\rawfile\sounds\soft.wav',
   'entry\src\main\resources\base\profile\main_pages.json',
   'entry\src\ohosTest\module.json5',
   'entry\src\ohosTest\ets\test\List.test.ets',
+  'entry\src\ohosTest\ets\test\PracticeController.test.ets',
   'vendor\hypium\oh-package.json5'
 )
 

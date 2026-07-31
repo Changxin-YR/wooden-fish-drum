@@ -1,147 +1,192 @@
+import { PracticeControlDock } from '../components/PracticeControlDock';
+import { TodaySummaryCard } from '../components/TodaySummaryCard';
+import { ToolSegmentedControl } from '../components/ToolSegmentedControl';
 import { WoodenFishView } from '../components/WoodenFishView';
-import { AppSettings, SessionState, StatsSummary } from '../models/AppModels';
-import { SessionMode } from '../models/Enums';
 import { DesignTokens } from '../constants/DesignTokens';
+import { AppSettings, StatsSummary } from '../models/AppModels';
+import { PracticeState } from '../models/PracticeModels';
+import { PracticeStatus, ToolType } from '../models/Enums';
 
 @Component
 export struct HomePage {
   @Prop settings: AppSettings;
   @Prop summary: StatsSummary;
-  @Prop session: SessionState;
+  @Prop practice: PracticeState;
   @Prop dark: boolean;
   onHit: () => void = (): void => {};
-  onSessionChange: (mode: SessionMode) => void = (): void => {};
-  private isDark(): boolean {
-    return this.dark;
-  }
+  onToolChange: (toolType: ToolType) => void = (_toolType: ToolType): void => {};
+  onStartAuto: (intervalMs: number) => void = (_intervalMs: number): void => {};
+  onPause: () => void = (): void => {};
+  onResume: () => void = (): void => {};
+  onStop: () => void = (): void => {};
+  onIntervalChange: (intervalMs: number) => void = (_intervalMs: number): void => {};
+  onSoundToggle: (enabled: boolean) => void = (_enabled: boolean): void => {};
+  onVolumeChange: (volume: number) => void = (_volume: number): void => {};
+  onVibrationToggle: (enabled: boolean) => void = (_enabled: boolean): void => {};
+  @State viewportWidth: number = 390;
 
   private pageBackground(): string {
-    return this.isDark() ? DesignTokens.darkBackground : DesignTokens.lightBackground;
-  }
-
-  private card(): string {
-    return this.isDark() ? DesignTokens.darkCard : DesignTokens.lightCard;
+    return this.dark ? DesignTokens.darkBackground : '#FBF8F3';
   }
 
   private primaryText(): string {
-    return this.isDark() ? DesignTokens.darkText : DesignTokens.lightText;
+    return this.dark ? DesignTokens.darkText : '#4E301C';
   }
 
   private secondaryText(): string {
-    return this.isDark() ? DesignTokens.darkSecondary : DesignTokens.lightSecondary;
+    return this.dark ? DesignTokens.darkSecondary : '#8B7C6E';
+  }
+
+  private countValue(): number {
+    return this.practice.manualCount + this.practice.automaticCount;
+  }
+
+  private toolLabel(): string {
+    if (this.practice.selectedTool === ToolType.BEADS) {
+      return '念珠次数';
+    }
+    if (this.practice.selectedTool === ToolType.INCENSE) {
+      return '静心计时';
+    }
+    return '功课次数';
   }
 
   @Builder
-  Metric(value: () => string, label: string) {
-    Column({ space: 4 }) {
-      Text(value())
-        .fontSize(19)
+  Header() {
+    Column({ space: 10 }) {
+      Text('静心木鱼')
+        .width('100%')
+        .fontSize(30)
         .fontWeight(FontWeight.Bold)
         .fontColor(this.primaryText())
-      Text(label)
-        .fontSize(12)
-        .fontColor(this.secondaryText())
+      Row({ space: 8 }) {
+        Text('叶').fontSize(14).fontWeight(FontWeight.Bold).fontColor('#8B6846')
+        Text('单机版 · 离线使用').fontSize(13).fontColor(this.secondaryText())
+      }
+      .constraintSize({ minHeight: 48 })
+      .padding({ left: 14, right: 14 })
+      .backgroundColor(this.dark ? '#2A2622' : '#FFF9F1')
+      .border({ width: 1, color: this.dark ? DesignTokens.darkDivider : '#E7D6C2' })
+      .borderRadius(24)
+      .alignSelf(ItemAlign.Start)
     }
-    .layoutWeight(1)
+    .width('100%')
   }
 
   @Builder
-  SessionTab(mode: SessionMode, label: string) {
-    Text(label)
-      .layoutWeight(1)
-      .height(48)
-      .textAlign(TextAlign.Center)
-      .fontSize(15)
-      .fontColor(this.session.mode === mode ? '#FFFFFF' : this.secondaryText())
-      .backgroundColor(this.session.mode === mode ? '#9A612C' : Color.Transparent)
-      .borderRadius(24)
-      .onClick((): void => {
-        this.onSessionChange(mode);
+  PracticeCanvas() {
+    Column({ space: 2 }) {
+      if (this.practice.selectedTool === ToolType.WOODEN_FISH) {
+        WoodenFishView({
+          dark: this.dark,
+          hitSequence: this.practice.hitSequence,
+          label: this.settings.feedbackText,
+          floatingEnabled: this.settings.feedbackTextEnabled,
+          reducedMotion: this.settings.reducedMotion,
+          onHit: (): void => this.onHit()
+        })
+      } else if (this.practice.selectedTool === ToolType.BEADS) {
+        Image($r('app.media.practice_beads'))
+          .width('100%').height(330).objectFit(ImageFit.Contain)
+          .padding(12)
+          .onClick((): void => this.onHit())
+          .accessibilityText('念珠练习区，点击计数')
+      } else {
+        Image($r('app.media.practice_incense'))
+          .width('100%').height(330).objectFit(ImageFit.Contain)
+          .padding(12)
+          .accessibilityText('一炷香静心计时区')
+      }
+
+      Text(this.toolLabel())
+        .fontSize(14)
+        .fontColor(this.secondaryText())
+      Text(this.practice.selectedTool === ToolType.INCENSE ? '尚未开始' : `${this.countValue()}`)
+        .fontSize(this.practice.selectedTool === ToolType.INCENSE ? 24 : 54)
+        .fontWeight(FontWeight.Bold)
+        .fontColor(this.primaryText())
+      Text(this.practice.status === PracticeStatus.RUNNING ? '练习进行中' :
+        (this.practice.status === PracticeStatus.PAUSED ? '已暂停' : '愿你此刻安定专注'))
+        .width('100%')
+        .height(48)
+        .fontSize(14)
+        .fontColor(this.primaryText())
+        .textAlign(TextAlign.Center)
+        .backgroundColor(this.dark ? '#2B2723' : '#FCF5EA')
+        .borderRadius(DesignTokens.radiusControl)
+    }
+    .width('100%')
+  }
+
+  @Builder
+  Controls() {
+    PracticeControlDock({
+      settings: this.settings,
+      status: this.practice.status,
+      selectedTool: this.practice.selectedTool,
+      dark: this.dark,
+      onStartAuto: (intervalMs: number): void => this.onStartAuto(intervalMs),
+      onPause: (): void => this.onPause(),
+      onResume: (): void => this.onResume(),
+      onStop: (): void => this.onStop(),
+      onIntervalChange: (intervalMs: number): void => this.onIntervalChange(intervalMs),
+      onSoundToggle: (enabled: boolean): void => this.onSoundToggle(enabled),
+      onVolumeChange: (volume: number): void => this.onVolumeChange(volume),
+      onVibrationToggle: (enabled: boolean): void => this.onVibrationToggle(enabled)
+    })
+  }
+
+  @Builder
+  PhoneContent() {
+    Column({ space: 16 }) {
+      this.Header()
+      TodaySummaryCard({ summary: this.summary, dark: this.dark })
+      ToolSegmentedControl({
+        selected: this.practice.selectedTool,
+        dark: this.dark,
+        onChange: (toolType: ToolType): void => this.onToolChange(toolType)
       })
-      .accessibilityText(`${label}敲击模式`)
+      this.PracticeCanvas()
+      this.Controls()
+    }
+    .width('100%')
+  }
+
+  @Builder
+  WideContent() {
+    Column({ space: 18 }) {
+      this.Header()
+      TodaySummaryCard({ summary: this.summary, dark: this.dark })
+      ToolSegmentedControl({
+        selected: this.practice.selectedTool,
+        dark: this.dark,
+        onChange: (toolType: ToolType): void => this.onToolChange(toolType)
+      })
+      Row({ space: 24 }) {
+        Column() { this.PracticeCanvas() }.layoutWeight(3)
+        Column() { this.Controls() }.layoutWeight(2)
+      }
+      .width('100%')
+      .alignItems(VerticalAlign.Top)
+    }
+    .width('100%')
   }
 
   build() {
     Scroll() {
-      Column({ space: 18 }) {
-        Text(`今日功德  ${this.summary.todayCount.toLocaleString()}`)
-          .width('100%')
-          .fontSize(17)
-          .fontWeight(FontWeight.Medium)
-          .fontColor(this.primaryText())
-          .textAlign(TextAlign.End)
-        .width('100%')
-
-        WoodenFishView({
-          dark: this.isDark(),
-          hitSequence: this.session.hitSequence,
-          label: this.settings.currentText,
-          floatingEnabled: this.settings.floatingTextEnabled,
-          onHit: (): void => this.onHit()
-        })
-
-        Row() {
-          this.Metric((): string => this.summary.totalCount.toLocaleString(), '累计功德')
-          Divider().vertical(true).height(38).color(this.secondaryText())
-          this.Metric((): string => `${this.summary.streakDays}`, '连续天数')
-          Divider().vertical(true).height(38).color(this.secondaryText())
-          this.Metric((): string => `${this.summary.maxDailyCount}`, '最大单日')
-        }
-        .width('100%')
-        .padding({ top: 16, bottom: 16 })
-        .backgroundColor(this.card())
-        .borderRadius(18)
-
-        Row({ space: 4 }) {
-          this.SessionTab(SessionMode.FREE, '自由')
-          this.SessionTab(SessionMode.TARGET, '目标')
-          this.SessionTab(SessionMode.AUTO, '自动')
-        }
-        .width('100%')
-        .padding(4)
-        .backgroundColor(this.card())
-        .borderRadius(28)
-
-        if (this.session.mode === SessionMode.TARGET) {
-          Column({ space: 8 }) {
-            Row() {
-              Text(this.session.targetCompleted ? '目标达成 · 功德圆满' : '目标进度')
-                .fontSize(14)
-                .fontWeight(FontWeight.Medium)
-                .fontColor(this.session.targetCompleted ? '#A9824B' : this.secondaryText())
-              Blank()
-              Text(`${this.session.currentCount} / ${this.session.targetCount}`)
-                .fontSize(14)
-                .fontColor(this.primaryText())
-            }
-            Progress({
-              value: this.session.currentCount,
-              total: Math.max(1, this.session.targetCount),
-              type: ProgressType.Linear
-            })
-              .height(8)
-              .color('#A9824B')
-              .backgroundColor(this.isDark() ? '#3B3530' : '#E8E2D8')
-          }
-          .width('100%')
-          .padding(16)
-          .backgroundColor(this.card())
-          .borderRadius(18)
-          .margin({ bottom: 18 })
-        } else {
-          Text(this.session.mode === SessionMode.FREE ? '自由模式 · 无拘无束，随心而敲' :
-            (this.session.running ? '自动敲击运行中 · 再次点击自动可关闭' : '自动模式 · 每秒自动敲击'))
-            .fontSize(13)
-            .fontColor(this.secondaryText())
-            .margin({ bottom: 18 })
-        }
+      if (this.viewportWidth >= 600) {
+        this.WideContent()
+      } else {
+        this.PhoneContent()
       }
-      .width('100%')
-      .padding({ left: 20, right: 20, top: 24 })
     }
     .width('100%')
     .height('100%')
+    .padding({ left: 20, right: 20, top: 22, bottom: 24 })
     .scrollBar(BarState.Off)
     .backgroundColor(this.pageBackground())
+    .onAreaChange((_oldValue: Area, newValue: Area): void => {
+      this.viewportWidth = Number(newValue.width);
+    })
   }
 }

@@ -1,10 +1,17 @@
 import { PracticeStatus, ToolType } from '../models/Enums';
-import { PracticeState } from '../models/PracticeModels';
+import { PracticeEvent, PracticeState } from '../models/PracticeModels';
 import { AutoRhythmController } from './AutoRhythmController';
+
+export type PracticeEventCallback = (event: PracticeEvent) => void;
 
 export class PracticeController {
   state: PracticeState = new PracticeState();
   private readonly rhythm: AutoRhythmController = new AutoRhythmController();
+  private onEvent: PracticeEventCallback = (_event: PracticeEvent): void => {};
+
+  setEventCallback(callback: PracticeEventCallback): void {
+    this.onEvent = callback;
+  }
 
   selectTool(toolType: ToolType): void {
     if (this.state.selectedTool === toolType) {
@@ -22,6 +29,7 @@ export class PracticeController {
     }
     this.state.manualCount++;
     this.state.hitSequence++;
+    this.emitHit(false);
     if (this.state.status === PracticeStatus.IDLE) {
       this.state.status = PracticeStatus.RUNNING;
     }
@@ -35,6 +43,7 @@ export class PracticeController {
     const started: boolean = this.rhythm.start(intervalMs, durationSeconds, (): void => {
       this.state.automaticCount++;
       this.state.hitSequence++;
+      this.emitHit(true);
     });
     if (started) {
       this.state.status = PracticeStatus.RUNNING;
@@ -73,5 +82,9 @@ export class PracticeController {
 
   private isCountableTool(): boolean {
     return this.state.selectedTool === ToolType.WOODEN_FISH || this.state.selectedTool === ToolType.BEADS;
+  }
+
+  private emitHit(automatic: boolean): void {
+    this.onEvent(new PracticeEvent(this.state.selectedTool, automatic, this.state.hitSequence));
   }
 }

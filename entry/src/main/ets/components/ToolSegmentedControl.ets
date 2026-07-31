@@ -12,6 +12,9 @@ export struct ToolSegmentedControl {
       Row({ space: 8 }) {
         Text(symbol).fontSize(18).fontWeight(FontWeight.Medium)
         Text(label).fontSize(15).fontWeight(FontWeight.Medium)
+        if (this.selected === toolType) {
+          Text('✓').fontSize(13).fontWeight(FontWeight.Bold)
+        }
       }
       .justifyContent(FlexAlign.Center)
       .width('100%')
@@ -27,6 +30,7 @@ export struct ToolSegmentedControl {
       color: this.selected === toolType ? '#C99763' : Color.Transparent
     })
     .onClick((): void => this.onChange(toolType))
+    .accessibilityText(`${label}${this.selected === toolType ? '，已选择' : ''}`)
   }
 
   build() {
