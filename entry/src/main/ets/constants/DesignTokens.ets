@@ -31,4 +31,12 @@ export class DesignTokens {
   static readonly contentExpandedMax: number = 1180;
   static readonly compactMax: number = 599;
   static readonly mediumMax: number = 1023;
+
+  static pageInset(width: number): number {
+    return width < 600 ? 20 : 24;
+  }
+
+  static titleSize(width: number): number {
+    return width < 1024 ? 32 : 34;
+  }
 }

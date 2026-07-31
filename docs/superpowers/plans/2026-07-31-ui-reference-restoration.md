@@ -19,7 +19,7 @@
 - Create: `entry/src/main/resources/base/media/theme_mountain_dark.png`
 - Modify: `entry/src/ohosTest/ets/test/CoreModels.test.ets`
 
-- [ ] **Step 1: 写入失败测试**
+- [x] **Step 1: 写入失败测试**
 
 在 `CoreModels.test.ets` 增加：
 
@@ -39,7 +39,7 @@ it('usesDiscreteReferenceLayoutMetrics', 0, (): void => {
 });
 ```
 
-- [ ] **Step 2: 验证 RED**
+- [x] **Step 2: 验证 RED**
 
 运行：
 
@@ -49,7 +49,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\build-harmony.ps1 
 
 预期：编译失败，提示 `ThemePalette`、`pageInset` 或 `titleSize` 不存在。
 
-- [ ] **Step 3: 实现最小主题 API**
+- [x] **Step 3: 实现最小主题 API**
 
 `ThemePalette.ets` 提供显式字段：
 
@@ -85,7 +85,7 @@ export class ThemePalette {
 
 从用户高分辨率设置稿固定裁切不含正文的右侧远山区域：浅色源图裁切 `(570,185,320,120)`，深色源图裁切 `(440,175,460,135)`，分别保存为 `theme_mountain_light.png` 和 `theme_mountain_dark.png`。页面只把它们作为低透明度、右对齐纹理。
 
-- [ ] **Step 4: 验证 GREEN 并提交**
+- [x] **Step 4: 验证 GREEN 并提交**
 
 运行 ohosTest 构建和项目标准检查，预期均通过。提交：
 

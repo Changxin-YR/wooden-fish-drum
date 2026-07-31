@@ -5,6 +5,8 @@ import { TextValidator } from '../../../main/ets/utils/TextValidator';
 import { SceneMode, ThemeMode, ToolType } from '../../../main/ets/models/Enums';
 import { ThemeResolver } from '../../../main/ets/utils/ThemeResolver';
 import { PracticeLayout } from '../../../main/ets/utils/PracticeLayout';
+import { DesignTokens } from '../../../main/ets/constants/DesignTokens';
+import { ThemePalette } from '../../../main/ets/constants/ThemePalette';
 
 export default function coreModelsTest(): void {
   describe('CoreModels', (): void => {
@@ -48,6 +50,20 @@ export default function coreModelsTest(): void {
       expect(ThemeResolver.isDark(ThemeMode.LIGHT, true)).assertFalse();
       expect(ThemeResolver.isDark(ThemeMode.SYSTEM, true)).assertTrue();
       expect(ThemeResolver.isDark(ThemeMode.SYSTEM, false)).assertFalse();
+    });
+
+    it('resolvesApprovedIvoryAndBlackGoldPalettes', 0, (): void => {
+      expect(ThemePalette.resolve(false).page).assertEqual('#F8F5EF');
+      expect(ThemePalette.resolve(false).primary).assertEqual('#44352B');
+      expect(ThemePalette.resolve(true).page).assertEqual('#0D0E0D');
+      expect(ThemePalette.resolve(true).accent).assertEqual('#CE914A');
+    });
+
+    it('usesDiscreteReferenceLayoutMetrics', 0, (): void => {
+      expect(DesignTokens.pageInset(390)).assertEqual(20);
+      expect(DesignTokens.pageInset(800)).assertEqual(24);
+      expect(DesignTokens.titleSize(390)).assertEqual(32);
+      expect(DesignTokens.titleSize(1100)).assertEqual(34);
     });
   });
 }
