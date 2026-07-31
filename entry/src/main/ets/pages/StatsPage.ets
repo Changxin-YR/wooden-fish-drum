@@ -1,5 +1,6 @@
 import { StatsBarChart } from '../components/StatsBarChart';
 import { DesignTokens } from '../constants/DesignTokens';
+import { ThemeColors, ThemePalette } from '../constants/ThemePalette';
 import { DailyRecord, StatsPeriodView, StatsSummary } from '../models/AppModels';
 import { StatsPeriod, ToolType } from '../models/Enums';
 import { PracticeSession } from '../models/PracticeModels';
@@ -15,25 +16,7 @@ export struct StatsPage {
   @State period: StatsPeriod = StatsPeriod.DAY;
   @State viewportWidth: number = 390;
 
-  private pageBackground(): string {
-    return this.dark ? DesignTokens.darkBackground : DesignTokens.lightBackground;
-  }
-
-  private card(): string {
-    return this.dark ? DesignTokens.darkCard : DesignTokens.lightCard;
-  }
-
-  private primaryText(): string {
-    return this.dark ? DesignTokens.darkText : DesignTokens.lightText;
-  }
-
-  private secondaryText(): string {
-    return this.dark ? DesignTokens.darkSecondary : DesignTokens.lightSecondary;
-  }
-
-  private divider(): string {
-    return this.dark ? DesignTokens.darkDivider : DesignTokens.lightDivider;
-  }
+  private colors(): ThemeColors { return ThemePalette.resolve(this.dark); }
 
   private currentView(): StatsPeriodView {
     return StatsPeriodService.build(this.records, this.sessions, DateUtil.todayKey(), this.period);
@@ -49,6 +32,49 @@ export struct StatsPage {
     const hours: number = Math.floor(seconds / 3600);
     const minutes: number = Math.round((seconds % 3600) / 60);
     return minutes === 0 ? `${hours} 小时` : `${hours} 小时 ${minutes} 分`;
+  }
+
+  private durationValue(seconds: number): string {
+    if (seconds < 60) {
+      return `${seconds}`;
+    }
+    if (seconds < 3600) {
+      return `${Math.round(seconds / 60)}`;
+    }
+    return `${Math.round(seconds / 3600)}`;
+  }
+
+  private durationUnit(seconds: number): string {
+    if (seconds < 60) {
+      return '秒';
+    }
+    if (seconds < 3600) {
+      return '分钟';
+    }
+    return '小时';
+  }
+
+  private toolImage(type: ToolType): Resource {
+    if (type === ToolType.BEADS) {
+      return $r('app.media.practice_beads');
+    }
+    if (type === ToolType.INCENSE) {
+      return $r('app.media.practice_incense');
+    }
+    return $r('app.media.practice_wooden_fish');
+  }
+
+  private trendTitle(): string {
+    if (this.period === StatsPeriod.DAY) {
+      return '最近 7 日趋势';
+    }
+    if (this.period === StatsPeriod.WEEK) {
+      return '最近 8 周趋势';
+    }
+    if (this.period === StatsPeriod.MONTH) {
+      return '最近 12 月趋势';
+    }
+    return '近 5 年趋势';
   }
 
   private formatTime(value: number): string {
@@ -77,22 +103,17 @@ export struct StatsPage {
 
   @Builder
   PeriodTab(period: StatsPeriod, label: string) {
-    Column({ space: 1 }) {
+    Column() {
       Text(label)
         .fontSize(14)
         .fontWeight(this.period === period ? FontWeight.Bold : FontWeight.Regular)
-        .fontColor(this.period === period ? (this.dark ? DesignTokens.accentLight : DesignTokens.wood) :
-          this.secondaryText())
-      Text(this.period === period ? '已选' : ' ')
-        .fontSize(9)
-        .fontColor(this.period === period ? (this.dark ? DesignTokens.accentLight : DesignTokens.wood) :
-          Color.Transparent)
+        .fontColor(this.period === period ? this.colors().accent : this.colors().secondary)
     }
     .layoutWeight(1)
     .height(48)
     .justifyContent(FlexAlign.Center)
-    .backgroundColor(this.period === period ? (this.dark ? '#3B3530' : '#F8F0E5') : Color.Transparent)
-    .border({ width: { bottom: this.period === period ? 2 : 0 }, color: DesignTokens.accent })
+    .backgroundColor(this.period === period ? this.colors().accentSoft : Color.Transparent)
+    .border({ width: { bottom: this.period === period ? 2 : 0 }, color: this.colors().accent })
     .borderRadius(DesignTokens.radiusControl)
     .onClick((): void => {
       this.period = period;
@@ -101,19 +122,36 @@ export struct StatsPage {
   }
 
   @Builder
-  Metric(label: string, value: string, unit: string, accent: string) {
+  LocalMetric(label: string, type: ToolType, value: string, unit: string, accent: string) {
+    Column({ space: 3 }) {
+      Row({ space: 5 }) {
+        Image(this.toolImage(type)).width(24).height(24).objectFit(ImageFit.Contain)
+        Text(label).fontSize(12).fontColor(this.colors().secondary)
+      }
+      Row({ space: 4 }) {
+        Text(value).fontSize(22).fontWeight(FontWeight.Bold).fontColor(accent)
+        Text(unit).fontSize(10).fontColor(this.colors().secondary).margin({ top: 8 })
+      }
+    }
+    .layoutWeight(1)
+    .constraintSize({ minWidth: 0, minHeight: 48 })
+    .justifyContent(FlexAlign.Center)
+  }
+
+  @Builder
+  Metric(label: string, value: string, unit: string, accent: string, minimumHeight: number) {
     Column({ space: 5 }) {
-      Text(label).fontSize(12).fontColor(this.secondaryText())
+      Text(label).fontSize(12).fontColor(this.colors().secondary)
       Text(value)
         .fontSize(this.viewportWidth < 360 ? 20 : 24)
         .fontWeight(FontWeight.Bold)
         .fontColor(accent)
         .maxLines(1)
         .textOverflow({ overflow: TextOverflow.Ellipsis })
-      Text(unit).fontSize(11).fontColor(this.secondaryText())
+      Text(unit).fontSize(11).fontColor(this.colors().secondary)
     }
     .layoutWeight(1)
-    .constraintSize({ minWidth: 0, minHeight: 72 })
+    .constraintSize({ minWidth: 0, minHeight: minimumHeight })
     .justifyContent(FlexAlign.Center)
   }
 
@@ -121,141 +159,145 @@ export struct StatsPage {
   SummarySection(view: StatsPeriodView) {
     Row() {
       this.Metric('计数', view.totalCount.toLocaleString(), '木鱼与念珠 / 次',
-        this.dark ? DesignTokens.accentLight : DesignTokens.wood)
-      Divider().vertical(true).height(54).color(this.divider())
-      this.Metric('练习时长', this.formatDuration(view.durationSeconds), '全部真实练习',
-        this.dark ? '#B9D0BE' : '#637F68')
-      Divider().vertical(true).height(54).color(this.divider())
-      this.Metric('一炷香', this.formatDuration(view.incenseSeconds), '独立时长',
-        this.dark ? '#E3C391' : '#996A35')
+        this.colors().accent, 72)
+      Divider().vertical(true).height(54).color(this.colors().divider)
+      this.Metric('练习时长', this.durationValue(view.durationSeconds), this.durationUnit(view.durationSeconds),
+        this.colors().success, 72)
+      Divider().vertical(true).height(54).color(this.colors().divider)
+      this.Metric('一炷香', this.durationValue(view.incenseSeconds), this.durationUnit(view.incenseSeconds),
+        this.colors().accent, 72)
     }
     .width('100%')
     .padding({ left: 12, right: 12, top: 14, bottom: 14 })
-    .backgroundColor(this.card())
-    .borderRadius(DesignTokens.radiusCard)
-    .border({ width: 1, color: this.divider() })
+    .backgroundColor(this.colors().card)
+    .borderRadius(8)
+    .border({ width: 1, color: this.colors().divider })
   }
 
   @Builder
   RecentSection(view: StatsPeriodView) {
-    Column({ space: 12 }) {
+    Column({ space: 6 }) {
       Row() {
-        Text('最近练习').fontSize(18).fontWeight(FontWeight.Medium).fontColor(this.primaryText())
+        Text('最近练习').fontSize(16).fontWeight(FontWeight.Medium).fontColor(this.colors().primary)
         Blank()
-        Text(`${view.recentSessions.length} 条`).fontSize(12).fontColor(this.secondaryText())
+        Text(`${view.recentSessions.length} 条`).fontSize(12).fontColor(this.colors().secondary)
       }
+      .width('100%')
       if (view.recentSessions.length === 0) {
         Column({ space: 7 }) {
           Text('还没有真实练习记录')
             .fontSize(15)
-            .fontColor(this.primaryText())
+            .fontColor(this.colors().primary)
           Text('完成木鱼、念珠或一炷香练习后，会按开始时间显示在这里')
             .fontSize(12)
-            .fontColor(this.secondaryText())
+            .fontColor(this.colors().secondary)
             .textAlign(TextAlign.Center)
         }
         .width('100%')
-        .constraintSize({ minHeight: 112 })
+        .constraintSize({ minHeight: 80 })
         .justifyContent(FlexAlign.Center)
       } else {
         ForEach(view.recentSessions, (session: PracticeSession, index: number) => {
           Row({ space: 12 }) {
-            Text(session.toolType === ToolType.INCENSE ? '香' : (session.toolType === ToolType.BEADS ? '珠' : '木'))
+            Image(this.toolImage(session.toolType))
               .width(40)
               .height(40)
-              .fontSize(16)
-              .fontWeight(FontWeight.Bold)
-              .fontColor(this.dark ? DesignTokens.accentLight : DesignTokens.wood)
-              .textAlign(TextAlign.Center)
-              .backgroundColor(this.dark ? '#3B3530' : '#F7EFE4')
+              .objectFit(ImageFit.Contain)
+              .backgroundColor(this.colors().accentSoft)
               .borderRadius(20)
             Column({ space: 3 }) {
-              Text(this.toolName(session.toolType)).fontSize(15).fontColor(this.primaryText())
-              Text(this.sessionDetail(session)).fontSize(11).fontColor(this.secondaryText())
+              Text(this.toolName(session.toolType)).fontSize(15).fontColor(this.colors().primary)
+              Text(this.sessionDetail(session)).fontSize(11).fontColor(this.colors().secondary)
             }
             .layoutWeight(1)
             .constraintSize({ minWidth: 0 })
             .alignItems(HorizontalAlign.Start)
-            Text(this.formatTime(session.startTime)).fontSize(13).fontColor(this.secondaryText())
+            Text(this.formatTime(session.startTime)).fontSize(13).fontColor(this.colors().secondary)
           }
           .width('100%')
-          .constraintSize({ minHeight: 52 })
+          .constraintSize({ minHeight: 44 })
           if (index < view.recentSessions.length - 1) {
-            Divider().color(this.divider())
+            Divider().color(this.colors().divider)
           }
         }, (session: PracticeSession): string => session.id)
       }
     }
     .width('100%')
-    .padding(18)
-    .backgroundColor(this.card())
-    .borderRadius(DesignTokens.radiusCard)
-    .border({ width: 1, color: this.divider() })
+    .padding(8)
+    .backgroundColor(this.colors().card)
+    .borderRadius(8)
+    .border({ width: 1, color: this.colors().divider })
   }
 
   @Builder
   LocalSection(view: StatsPeriodView) {
-    Column({ space: 14 }) {
-      Text('本地统计').width('100%').fontSize(18).fontWeight(FontWeight.Medium).fontColor(this.primaryText())
+    Column({ space: 5 }) {
+      Text('本地统计').width('100%').fontSize(16).fontWeight(FontWeight.Medium).fontColor(this.colors().primary)
       Row() {
-        this.Metric('木鱼', view.woodenFishCount.toLocaleString(), '次',
-          this.dark ? DesignTokens.accentLight : DesignTokens.wood)
-        Divider().vertical(true).height(50).color(this.divider())
-        this.Metric('念珠', view.beadsCount.toLocaleString(), '次',
-          this.dark ? '#B9D0BE' : '#637F68')
-        Divider().vertical(true).height(50).color(this.divider())
-        this.Metric('会话', `${view.sessionCount}`, '条真实记录',
-          this.dark ? '#E3C391' : '#996A35')
+        this.LocalMetric('木鱼', ToolType.WOODEN_FISH, view.woodenFishCount.toLocaleString(), '次',
+          this.colors().accent)
+        Divider().vertical(true).height(42).color(this.colors().divider)
+        this.LocalMetric('念珠', ToolType.BEADS, view.beadsCount.toLocaleString(), '次',
+          this.colors().success)
+        Divider().vertical(true).height(42).color(this.colors().divider)
+        this.LocalMetric('会话', ToolType.INCENSE, `${view.sessionCount}`, '条', this.colors().accent)
       }
     }
     .width('100%')
-    .padding(18)
-    .backgroundColor(this.card())
-    .borderRadius(DesignTokens.radiusCard)
-    .border({ width: 1, color: this.divider() })
+    .padding(8)
+    .backgroundColor(this.colors().card)
+    .borderRadius(8)
+    .border({ width: 1, color: this.colors().divider })
   }
 
   @Builder
   TrendSection(view: StatsPeriodView) {
-    Column({ space: 14 }) {
-      Text(view.title).width('100%').fontSize(18).fontWeight(FontWeight.Medium).fontColor(this.primaryText())
-      Column({ space: 4 }) {
+    Column({ space: 6 }) {
+      Text(this.trendTitle()).width('100%').fontSize(16).fontWeight(FontWeight.Medium)
+        .fontColor(this.colors().primary)
+      Column({ space: 2 }) {
         Row() {
-          Text('次数趋势').fontSize(14).fontColor(this.primaryText())
+          Text('次数趋势').fontSize(11).fontColor(this.colors().primary)
           Blank()
-          Text('独立纵轴 · 次').fontSize(11).fontColor(this.secondaryText())
+          Text('独立纵轴 · 次').fontSize(10).fontColor(this.colors().secondary)
         }
+        .width('100%')
         StatsBarChart({ buckets: view.buckets, dark: this.dark, duration: false })
       }
-      Column({ space: 4 }) {
+      Column({ space: 2 }) {
         Row() {
-          Text('时长趋势').fontSize(14).fontColor(this.primaryText())
+          Text('时长趋势').fontSize(11).fontColor(this.colors().primary)
           Blank()
-          Text('独立纵轴 · 分钟').fontSize(11).fontColor(this.secondaryText())
+          Text('独立纵轴 · 分钟').fontSize(10).fontColor(this.colors().secondary)
         }
+        .width('100%')
         StatsBarChart({ buckets: view.buckets, dark: this.dark, duration: true })
       }
     }
     .width('100%')
-    .padding(18)
-    .backgroundColor(this.card())
-    .borderRadius(DesignTokens.radiusCard)
-    .border({ width: 1, color: this.divider() })
+    .padding(6)
+    .backgroundColor(this.colors().card)
+    .borderRadius(8)
+    .border({ width: 1, color: this.colors().divider })
   }
 
   build() {
     Scroll() {
-      Column({ space: 16 }) {
+      Column({ space: 14 }) {
         Row() {
           Column({ space: 3 }) {
-            Text('练习记录').fontSize(28).fontWeight(FontWeight.Bold).fontColor(this.primaryText())
-            Text('所有数据仅保存在本机').fontSize(12).fontColor(this.secondaryText())
+            Text('练习记录').fontSize(DesignTokens.titleSize(this.viewportWidth)).fontWeight(FontWeight.Bold)
+              .fontColor(this.colors().primary)
+            Text('所有数据仅保存在本机').fontSize(12).fontColor(this.colors().secondary)
           }
           .alignItems(HorizontalAlign.Start)
           Blank()
-          Text(this.currentView().scopeLabel)
-            .fontSize(13)
-            .fontColor(this.dark ? DesignTokens.accentLight : DesignTokens.wood)
+          Image(this.dark ? $r('app.media.theme_mountain_dark') : $r('app.media.theme_mountain_light'))
+            .width(132)
+            .height(48)
+            .objectFit(ImageFit.Cover)
+            .opacity(this.dark ? 0.42 : 0.18)
+            .borderRadius(8)
         }
         .width('100%')
 
@@ -266,10 +308,11 @@ export struct StatsPage {
           this.PeriodTab(StatsPeriod.YEAR, '全部')
         }
         .width('100%')
-        .padding(3)
-        .backgroundColor(this.card())
-        .borderRadius(DesignTokens.radiusControl)
-        .border({ width: 1, color: this.divider() })
+        .height(52)
+        .padding(2)
+        .backgroundColor(this.colors().card)
+        .borderRadius(8)
+        .border({ width: 1, color: this.colors().divider })
 
         this.SummarySection(this.currentView())
 
@@ -292,12 +335,13 @@ export struct StatsPage {
         }
       }
       .width('100%')
-      .padding({ left: 20, right: 20, top: 20, bottom: 24 })
+      .padding({ left: DesignTokens.pageInset(this.viewportWidth), right: DesignTokens.pageInset(this.viewportWidth),
+        top: 14, bottom: 24 })
     }
     .width('100%')
     .height('100%')
     .scrollBar(BarState.Off)
-    .backgroundColor(this.pageBackground())
+    .backgroundColor(this.colors().page)
     .onAreaChange((_oldValue: Area, newValue: Area): void => {
       this.viewportWidth = Number(newValue.width);
     })

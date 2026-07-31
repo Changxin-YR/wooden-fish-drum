@@ -82,6 +82,19 @@ export default function statsPeriodTest(): void {
       expect(view.recentSessions.length).assertEqual(0);
     });
 
+    it('keepsReferenceSummaryUnitsAndRealRecentSessionsIndependent', 0, (): void => {
+      const records: DailyRecord[] = [record('2026-07-30', 19, 40, 38, 0)];
+      const session: PracticeSession = new PracticeSession('today-beads', ToolType.BEADS, SceneMode.DAILY,
+        1000, 39000, 40, 0, 38, true, '2026-07-30');
+      const today: StatsPeriodView = StatsPeriodService.build(records, [session],
+        '2026-07-30', StatsPeriod.DAY);
+
+      expect(today.totalCount).assertEqual(59);
+      expect(today.durationSeconds).assertEqual(38);
+      expect(today.incenseSeconds).assertEqual(0);
+      expect(today.recentSessions.length).assertEqual(1);
+    });
+
     it('sortsOnlyRealRecentSessionsByStartTimeDescending', 0, (): void => {
       const older: PracticeSession = new PracticeSession('older', ToolType.WOODEN_FISH, SceneMode.DAILY,
         1000, 2000, 2, 0, 1, true, '2026-07-30');

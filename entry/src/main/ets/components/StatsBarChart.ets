@@ -1,10 +1,17 @@
 import { StatsBucket } from '../models/AppModels';
+import { ThemeColors, ThemePalette } from '../constants/ThemePalette';
 
 @Component
 export struct StatsBarChart {
   @Prop buckets: StatsBucket[];
   @Prop dark: boolean;
   @Prop duration: boolean = false;
+
+  private colors(): ThemeColors { return ThemePalette.resolve(this.dark); }
+
+  private chartHeight(): number { return this.duration ? 28 : 48; }
+
+  private maximumBarHeight(): number { return this.duration ? 6 : 20; }
 
   private maxValue(): number {
     let value: number = 1;
@@ -33,7 +40,7 @@ export struct StatsBarChart {
     if (value === 0) {
       return 3;
     }
-    return Math.max(6, Math.round(value / this.maxValue() * 96));
+    return Math.max(4, Math.round(value / this.maxValue() * this.maximumBarHeight()));
   }
 
   build() {
@@ -41,46 +48,46 @@ export struct StatsBarChart {
       Column({ space: 6 }) {
         Text('暂无趋势数据')
           .fontSize(14)
-          .fontColor(this.dark ? '#AAA198' : '#817970')
+          .fontColor(this.colors().secondary)
         Text('完成一次练习后，这里会显示本地趋势')
           .fontSize(12)
-          .fontColor(this.dark ? '#7F7770' : '#A0968C')
+          .fontColor(this.colors().secondary)
       }
       .width('100%')
-      .height(146)
+      .height(this.chartHeight())
       .justifyContent(FlexAlign.Center)
     } else {
       Scroll() {
-        Row({ space: 8 }) {
+        Row({ space: 6 }) {
           ForEach(this.buckets, (bucket: StatsBucket, index: number) => {
             Column({ space: 5 }) {
               Text(this.valueLabel(bucket))
-                .fontSize(10)
-                .fontColor(this.dark ? '#AAA198' : '#817970')
+                .fontSize(8)
+                .fontColor(this.colors().secondary)
                 .maxLines(1)
               Blank()
               Row()
                 .width(22)
                 .height(this.barHeight(bucket))
-                .backgroundColor(this.duration ? '#8FA995' :
-                  (index === this.buckets.length - 1 ? '#8A5635' : '#D4AD7D'))
+                .backgroundColor(this.duration ? this.colors().success :
+                  (index === this.buckets.length - 1 ? this.colors().accent : this.colors().accentSoft))
                 .borderRadius({ topLeft: 4, topRight: 4 })
               Text(bucket.label)
-                .fontSize(9)
-                .fontColor(this.dark ? '#AAA198' : '#817970')
+                .fontSize(8)
+                .fontColor(this.colors().secondary)
                 .maxLines(1)
             }
-            .width(44)
-            .height(142)
+            .width(40)
+            .height(this.chartHeight() - 4)
             .justifyContent(FlexAlign.End)
           })
         }
-        .width(Math.max(300, this.buckets.length * 52))
-        .height(146)
+        .width(Math.max(300, this.buckets.length * 46))
+        .height(this.chartHeight())
         .alignItems(VerticalAlign.Bottom)
       }
       .width('100%')
-      .height(146)
+      .height(this.chartHeight())
       .scrollable(ScrollDirection.Horizontal)
       .scrollBar(BarState.Off)
     }

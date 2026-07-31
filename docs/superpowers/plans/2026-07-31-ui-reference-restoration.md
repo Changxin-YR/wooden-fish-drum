@@ -200,7 +200,7 @@ git commit -m "feat: 按参考稿重建三工具首页"
 - Modify: `entry/src/main/ets/components/StatsBarChart.ets`
 - Modify: `entry/src/ohosTest/ets/test/StatsPeriod.test.ets`
 
-- [ ] **Step 1: 写入真实数据回归 RED**
+- [x] **Step 1: 写入真实数据回归 RED**
 
 增加断言确保视觉重排不合并单位或伪造记录：
 
@@ -213,18 +213,18 @@ expect(today.recentSessions.length).assertEqual(1);
 
 用包含木鱼、念珠和香会话的固定测试数据构造 `StatsPeriodView`；先写期望并确认缺少或错误聚合时失败。
 
-- [ ] **Step 2: 重排记录页面**
+- [x] **Step 2: 重排记录页面**
 
 - 标题 32fp，副标题直接位于标题下。
 - 周期条为 72vp 内的四等分控件，选中项带字重、金色文字和底边/柔光。
 - 摘要卡、最近练习、本地统计和趋势卡按参考稿顺序排列。
 - 空记录保留“还没有真实练习记录”，不显示参考稿中的 18:50 示例。
 
-- [ ] **Step 3: 重塑趋势卡**
+- [x] **Step 3: 重塑趋势卡**
 
 `StatsBarChart` 保留次数与时长独立数据，统一使用主题色；最近 7 日在 phone 单卡内完整显示，更多桶继续横向滚动。
 
-- [ ] **Step 4: 验证并提交**
+- [x] **Step 4: 验证并提交**
 
 运行 StatsPeriod 测试、ohosTest 构建和 debug 构建。提交：
 
