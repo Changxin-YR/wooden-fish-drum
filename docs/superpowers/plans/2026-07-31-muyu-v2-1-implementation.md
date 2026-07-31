@@ -295,19 +295,19 @@ git commit -m "feat: 恢复场景和默认工具两步引导"
 - Modify: `docs/ui/asset-manifest.md`
 - Modify: `entry/src/main/ets/constants/DesignTokens.ets`
 
-- [ ] **Step 1: 验证源图尺寸、alpha 和授权字段**
+- [x] **Step 1: 验证源图尺寸、alpha 和授权字段**
 
 记录三张源图为 1024 x 1536 ARGB；清单必须包含来源、用户提供日期、授权状态、裁边和拆层方式。授权状态未知时标记“待用户提供证明”，不得写成已授权。
 
-- [ ] **Step 2: 生成裁边和分层资源**
+- [x] **Step 2: 生成裁边资源并记录分层阻塞**
 
 使用可复现图像命令裁掉透明留白；木鱼静止图不得保留烘焙点击圈。一炷香拆为基础层和烟雾层。若源图无法无损拆分，保留源图但将发布验收标为 `blocked`，不得粗糙涂抹。
 
-- [ ] **Step 3: 更新视觉 Token 并构建验证**
+- [x] **Step 3: 更新视觉 Token 并构建验证**
 
 集中定义背景、卡片、木色、强调色、间距、字号和 48vp 热区；不在页面散落重复色值。
 
-- [ ] **Step 4: 提交**
+- [x] **Step 4: 提交**
 
 ```powershell
 git add entry/src/main/resources/base/media entry/src/main/ets/constants/DesignTokens.ets docs/ui/asset-manifest.md

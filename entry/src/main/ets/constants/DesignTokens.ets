@@ -19,7 +19,16 @@ export class DesignTokens {
   static readonly success: string = '#A7C1A1';
   static readonly danger: string = '#E8A39A';
   static readonly radiusCard: number = 18;
+  static readonly radiusPanel: number = 8;
+  static readonly radiusControl: number = 8;
   static readonly touchSize: number = 48;
+  static readonly controlHeight: number = 52;
+  static readonly spaceSmall: number = 8;
+  static readonly spaceMedium: number = 16;
+  static readonly spaceLarge: number = 24;
+  static readonly contentPhoneMax: number = 560;
+  static readonly contentTabletMax: number = 920;
+  static readonly contentExpandedMax: number = 1180;
   static readonly compactMax: number = 599;
   static readonly mediumMax: number = 1023;
 }
