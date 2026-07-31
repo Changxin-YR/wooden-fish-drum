@@ -2,15 +2,16 @@ import { describe, expect, it } from '@ohos/hypium';
 import { JsonCodec } from '../../../main/ets/data/JsonCodec';
 import { LayoutSize, ResponsiveLayout } from '../../../main/ets/utils/ResponsiveLayout';
 import { TextValidator } from '../../../main/ets/utils/TextValidator';
-import { ThemeMode, UserMode } from '../../../main/ets/models/Enums';
+import { SceneMode, ThemeMode, ToolType } from '../../../main/ets/models/Enums';
 import { ThemeResolver } from '../../../main/ets/utils/ThemeResolver';
 
 export default function coreModelsTest(): void {
   describe('CoreModels', (): void => {
-    it('usesOneReadyGeneralUserDefault', 0, (): void => {
-      expect(JsonCodec.createDefaultSettings().initialized).assertTrue();
-      expect(JsonCodec.createDefaultSettings().userMode).assertEqual(UserMode.GENERAL);
-      expect(JsonCodec.createDefaultSettings().currentText).assertEqual('功德+1');
+    it('usesUninitializedDailySceneDefaults', 0, (): void => {
+      expect(JsonCodec.createDefaultSettings().initialized).assertFalse();
+      expect(JsonCodec.createDefaultSettings().selectedSceneMode).assertEqual(SceneMode.DAILY);
+      expect(JsonCodec.createDefaultSettings().selectedTool).assertEqual(ToolType.WOODEN_FISH);
+      expect(JsonCodec.createDefaultSettings().feedbackText).assertEqual('放松+1');
       expect(JsonCodec.createDefaultSettings().themeMode).assertEqual(ThemeMode.SYSTEM);
     });
 

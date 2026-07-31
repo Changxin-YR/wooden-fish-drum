@@ -1,58 +1,32 @@
 import { USER_MODE_CONFIGS } from '../constants/UserModeConfigs';
 import { AppSettings, DailyRecord } from '../models/AppModels';
-import { SoundType, ThemeMode, UserMode } from '../models/Enums';
+import { SceneMode, UserMode } from '../models/Enums';
+import { SettingsMigration } from '../utils/SettingsMigration';
 
 export class JsonCodec {
   static createDefaultSettings(): AppSettings {
-    return JsonCodec.createSettingsForMode(UserMode.GENERAL, true);
+    return SettingsMigration.createDefaults();
   }
 
   static createSettingsForMode(mode: UserMode, initialized: boolean = true): AppSettings {
     const settings: AppSettings = new AppSettings();
     settings.initialized = initialized;
     settings.userMode = mode;
+    settings.selectedSceneMode = JsonCodec.sceneModeForUserMode(mode);
     settings.themeMode = USER_MODE_CONFIGS[mode].defaultTheme;
-    settings.currentText = USER_MODE_CONFIGS[mode].defaultText;
-    settings.soundType = USER_MODE_CONFIGS[mode].defaultSound;
+    settings.feedbackText = USER_MODE_CONFIGS[mode].defaultText;
+    settings.selectedSoundId = USER_MODE_CONFIGS[mode].defaultSound;
+    SettingsMigration.syncCompatibilityAliases(settings);
     return settings;
   }
 
   static encodeSettings(settings: AppSettings): string {
+    SettingsMigration.syncV2FieldsFromCompatibilityAliases(settings);
     return JSON.stringify(settings);
   }
 
   static decodeSettings(snapshot: string): AppSettings {
-    const defaults: AppSettings = JsonCodec.createDefaultSettings();
-    if (snapshot.length === 0) {
-      return defaults;
-    }
-    try {
-      const parsed: AppSettings = JSON.parse(snapshot) as AppSettings;
-      if (parsed === null || typeof parsed !== 'object') {
-        return defaults;
-      }
-      const result: AppSettings = new AppSettings();
-      result.initialized = true;
-      result.userMode = UserMode.GENERAL;
-      result.themeMode = JsonCodec.isThemeMode(parsed.themeMode) ? parsed.themeMode : defaults.themeMode;
-      result.themeManuallyChanged = typeof parsed.themeManuallyChanged === 'boolean' ?
-        parsed.themeManuallyChanged : defaults.themeManuallyChanged;
-      result.currentText = typeof parsed.currentText === 'string' && parsed.currentText.length > 0 ?
-        parsed.currentText : defaults.currentText;
-      result.customTexts = Array.isArray(parsed.customTexts) ? parsed.customTexts : [];
-      result.soundEnabled = typeof parsed.soundEnabled === 'boolean' ? parsed.soundEnabled : defaults.soundEnabled;
-      result.soundType = JsonCodec.isSoundType(parsed.soundType) ? parsed.soundType : defaults.soundType;
-      result.volume = typeof parsed.volume === 'number' ? Math.max(0, Math.min(1, parsed.volume)) : defaults.volume;
-      result.vibrationEnabled = typeof parsed.vibrationEnabled === 'boolean' ?
-        parsed.vibrationEnabled : defaults.vibrationEnabled;
-      result.floatingTextEnabled = typeof parsed.floatingTextEnabled === 'boolean' ?
-        parsed.floatingTextEnabled : defaults.floatingTextEnabled;
-      result.autoInterval = typeof parsed.autoInterval === 'number' ?
-        Math.max(500, Math.min(2000, parsed.autoInterval)) : defaults.autoInterval;
-      return result;
-    } catch {
-      return defaults;
-    }
+    return SettingsMigration.decode(snapshot);
   }
 
   static encodeRecords(records: DailyRecord[]): string {
@@ -82,15 +56,13 @@ export class JsonCodec {
     }
   }
 
-  private static isUserMode(value: UserMode): boolean {
-    return value === UserMode.PROGRAMMER || value === UserMode.MONK || value === UserMode.GENERAL;
-  }
-
-  private static isThemeMode(value: ThemeMode): boolean {
-    return value === ThemeMode.SYSTEM || value === ThemeMode.LIGHT || value === ThemeMode.DARK;
-  }
-
-  private static isSoundType(value: SoundType): boolean {
-    return value === SoundType.DEEP || value === SoundType.CRISP || value === SoundType.SOFT;
+  private static sceneModeForUserMode(mode: UserMode): SceneMode {
+    if (mode === UserMode.PROGRAMMER) {
+      return SceneMode.PROGRAMMER;
+    }
+    if (mode === UserMode.MONK) {
+      return SceneMode.MINDFUL;
+    }
+    return SceneMode.DAILY;
   }
 }

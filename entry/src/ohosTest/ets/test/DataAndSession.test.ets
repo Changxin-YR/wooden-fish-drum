@@ -47,7 +47,7 @@ class ReorderedWriteStore implements LocalStoreAdapter {
 export default function dataAndSessionTest(): void {
   describe('DataAndSession', (): void => {
     it('loadsSafeDefaultsFromInvalidSettings', 0, (): void => {
-      expect(JsonCodec.decodeSettings('{broken').initialized).assertTrue();
+      expect(JsonCodec.decodeSettings('{broken').initialized).assertFalse();
       expect(JsonCodec.decodeSettings('{broken').userMode).assertEqual(UserMode.GENERAL);
     });
 
@@ -130,7 +130,7 @@ export default function dataAndSessionTest(): void {
         soundType: SoundType.DEEP,
         volume: 0.35
       });
-      expect(JsonCodec.decodeSettings(legacy).userMode).assertEqual(UserMode.GENERAL);
+      expect(JsonCodec.decodeSettings(legacy).userMode).assertEqual(UserMode.PROGRAMMER);
       expect(JsonCodec.decodeSettings(legacy).currentText).assertEqual('保持专注');
       expect(JsonCodec.decodeSettings(legacy).themeMode).assertEqual(ThemeMode.DARK);
       expect(JsonCodec.decodeSettings(legacy).soundType).assertEqual(SoundType.DEEP);

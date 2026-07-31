@@ -4,6 +4,25 @@ export enum UserMode {
   GENERAL = 'general'
 }
 
+export enum SceneMode {
+  PROGRAMMER = 'programmer',
+  MINDFUL = 'monk',
+  DAILY = 'general'
+}
+
+export enum ToolType {
+  WOODEN_FISH = 'wooden_fish',
+  BEADS = 'beads',
+  INCENSE = 'incense'
+}
+
+export enum PracticeStatus {
+  IDLE = 'idle',
+  RUNNING = 'running',
+  PAUSED = 'paused',
+  COMPLETED = 'completed'
+}
+
 export enum ThemeMode {
   SYSTEM = 'system',
   LIGHT = 'light',

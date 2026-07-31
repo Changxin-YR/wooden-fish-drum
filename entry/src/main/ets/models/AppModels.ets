@@ -1,11 +1,25 @@
-import { SessionMode, SoundType, ThemeMode, UserMode } from './Enums';
+import { SceneMode, SessionMode, SoundType, ThemeMode, ToolType, UserMode } from './Enums';
 
 export class AppSettings {
-  initialized: boolean = true;
+  schemaVersion: number = 2;
+  initialized: boolean = false;
+  selectedSceneMode: SceneMode = SceneMode.DAILY;
+  selectedTool: ToolType = ToolType.WOODEN_FISH;
+  feedbackText: string = '放松+1';
+  feedbackTextEnabled: boolean = true;
+  tapSoundEnabled: boolean = true;
+  tapVolume: number = 0.7;
+  selectedSoundId: SoundType = SoundType.SOFT;
+  autoIntervalMs: number = 1000;
+  autoDurationSeconds: number = 0;
+  reducedMotion: boolean = false;
+  privacyPolicyVersion: string = '';
+
+  // Compatibility aliases remain until all V1 pages consume the V2 fields.
   userMode: UserMode = UserMode.GENERAL;
   themeMode: ThemeMode = ThemeMode.SYSTEM;
   themeManuallyChanged: boolean = false;
-  currentText: string = '功德+1';
+  currentText: string = '放松+1';
   customTexts: string[] = [];
   soundEnabled: boolean = true;
   soundType: SoundType = SoundType.SOFT;

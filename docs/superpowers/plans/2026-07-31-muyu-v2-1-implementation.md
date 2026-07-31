@@ -122,7 +122,7 @@ git commit -m "fix: 恢复 V2.1 改造前构建基线"
 - Modify: `entry/src/main/ets/data/JsonCodec.ets`
 - Modify: `entry/src/ohosTest/ets/test/List.test.ets`
 
-- [ ] **Step 1: 写失败测试**
+- [x] **Step 1: 写失败测试**
 
 测试必须断言新用户进入引导、旧 general 用户免引导迁移为日常模式、旧设置被保留、重复迁移结果相同：
 
@@ -147,7 +147,7 @@ expect(JsonCodec.encodeSettings(JsonCodec.decodeSettings(JsonCodec.encodeSetting
   .assertEqual(JsonCodec.encodeSettings(migrated));
 ```
 
-- [ ] **Step 2: 运行 ohosTest 构建并确认失败**
+- [x] **Step 2: 运行 ohosTest 构建并确认失败**
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\build-harmony.ps1 -BuildMode debug -Target ohosTest
@@ -155,11 +155,11 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\build-harmony.ps1 
 
 预期：缺少 `SceneMode`、`ToolType`、`schemaVersion` 或迁移字段而失败。
 
-- [ ] **Step 3: 最小实现强类型模型**
+- [x] **Step 3: 最小实现强类型模型**
 
 在 `Enums.ets` 增加设计规格中的 `SceneMode`、`ToolType`、`PracticeStatus`。`AppSettings` 增加 schema、场景、工具、音频、节律和减少动画字段；保留旧字段仅供迁移读取。`SettingsMigration.migrate()` 必须是纯函数，不访问 Preferences。
 
-- [ ] **Step 4: 通过测试和 debug 构建后提交**
+- [x] **Step 4: 通过测试和 debug 构建后提交**
 
 ```powershell
 git add entry/src/main/ets/models entry/src/main/ets/data/JsonCodec.ets entry/src/main/ets/utils/SettingsMigration.ets entry/src/ohosTest/ets/test
@@ -506,5 +506,6 @@ git commit -m "feat: 完成静心木鱼 V2.1 多设备版本"
 - 每个 Task 开始前确认 `git status --short`，不覆盖用户或其他任务的未提交改动。
 - 每个业务 Task 必须先出现可解释的失败测试，再写实现。
 - 每次提交只包含当前 Task 文件；构建产物、IDE 配置、签名和凭据不提交。
+- 同一 worktree 的 default 与 ohosTest Hvigor 构建必须串行执行，避免输出目录清理竞争。
 - 若当前 Task 的测试或 debug 构建失败，不进入下一 Task。
 - 每完成一个 Task 更新本计划复选框、`tasks.md` 和 `changes.md`，使后续会话可从本地文件和 Git 日志恢复。
