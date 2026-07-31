@@ -103,3 +103,13 @@ export interface UserModeConfig {
   defaultSound: SoundType;
   featureOrder: SessionMode[];
 }
+
+export interface SceneModeConfig {
+  mode: SceneMode;
+  title: string;
+  description: string;
+  defaultText: string;
+  defaultTheme: ThemeMode;
+  defaultSound: SoundType;
+  recommendedTool: ToolType;
+}

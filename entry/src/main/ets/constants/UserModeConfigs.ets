@@ -1,5 +1,35 @@
-import { SessionMode, SoundType, ThemeMode, UserMode } from '../models/Enums';
-import { UserModeConfig } from '../models/AppModels';
+import { SceneMode, SessionMode, SoundType, ThemeMode, ToolType, UserMode } from '../models/Enums';
+import { SceneModeConfig, UserModeConfig } from '../models/AppModels';
+
+export const SCENE_MODE_CONFIGS: Record<SceneMode, SceneModeConfig> = {
+  [SceneMode.PROGRAMMER]: {
+    mode: SceneMode.PROGRAMMER,
+    title: '程序员模式',
+    description: '工作间隙，找回专注节奏',
+    defaultText: '专注+1',
+    defaultTheme: ThemeMode.DARK,
+    defaultSound: SoundType.CRISP,
+    recommendedTool: ToolType.WOODEN_FISH
+  },
+  [SceneMode.MINDFUL]: {
+    mode: SceneMode.MINDFUL,
+    title: '静心模式',
+    description: '安静计数，留一段清净时间',
+    defaultText: '静心+1',
+    defaultTheme: ThemeMode.LIGHT,
+    defaultSound: SoundType.DEEP,
+    recommendedTool: ToolType.INCENSE
+  },
+  [SceneMode.DAILY]: {
+    mode: SceneMode.DAILY,
+    title: '日常模式',
+    description: '轻松使用，整理日常节律',
+    defaultText: '放松+1',
+    defaultTheme: ThemeMode.SYSTEM,
+    defaultSound: SoundType.SOFT,
+    recommendedTool: ToolType.WOODEN_FISH
+  }
+};
 
 const PROGRAMMER_CONFIG: UserModeConfig = {
   mode: UserMode.PROGRAMMER,

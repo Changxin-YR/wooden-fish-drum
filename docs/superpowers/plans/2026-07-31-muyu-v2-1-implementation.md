@@ -266,19 +266,19 @@ git commit -m "feat: 实现三工具统一练习状态机"
 - Modify: `entry/src/main/ets/components/BottomNavBar.ets`
 - Modify: `scripts/check-standard.ps1`
 
-- [ ] **Step 1: 写场景默认值和初始化路由测试**
+- [x] **Step 1: 写场景默认值和初始化路由测试**
 
 断言三场景默认主题、音色、文字和推荐工具与规格表一致；新用户显示引导，升级用户直接进入主壳。
 
-- [ ] **Step 2: 实现两步引导**
+- [x] **Step 2: 实现两步引导**
 
 第一步只能选择场景，第二步只能选择工具；“开始使用”保存完整设置后进入主壳。选中态必须包含边框、勾选和文字；每个卡片热区至少 48vp。
 
-- [ ] **Step 3: 接入三一级导航和响应式壳**
+- [x] **Step 3: 接入三一级导航和响应式壳**
 
 Compact 使用底栏；Medium 使用受控宽度；Expanded 允许侧边一级导航。`main_pages.json` 仍只声明 `pages/Index`。
 
-- [ ] **Step 4: 将引导页加入标准清单并提交**
+- [x] **Step 4: 将引导页加入标准清单并提交**
 
 ```powershell
 git add entry/src/main/ets/pages/Index.ets entry/src/main/ets/pages/ModeSelectPage.ets entry/src/main/ets/components entry/src/main/ets/constants scripts/check-standard.ps1

@@ -3,10 +3,11 @@ import { BottomNavBar } from '../components/BottomNavBar';
 import { DesignTokens } from '../constants/DesignTokens';
 import { JsonCodec } from '../data/JsonCodec';
 import { AppSettings, DailyRecord, SessionState, StatsSummary } from '../models/AppModels';
-import { AppTab, SessionMode, SoundType, ThemeMode } from '../models/Enums';
+import { AppTab, SceneMode, SessionMode, SoundType, ThemeMode, ToolType } from '../models/Enums';
 import { HomePage } from './HomePage';
 import { SettingsPage } from './SettingsPage';
 import { StatsPage } from './StatsPage';
+import { ModeSelectPage } from './ModeSelectPage';
 import { appStore, preferencesStore, sessionService } from '../stores/AppRuntime';
 import { audioService } from '../services/AudioService';
 import { vibrationService } from '../services/VibrationService';
@@ -110,11 +111,22 @@ struct Index {
     return ThemeResolver.isDark(this.settings.themeMode, this.systemDark);
   }
 
+  private completeOnboarding(sceneMode: SceneMode, toolType: ToolType): void {
+    appStore.completeOnboarding(sceneMode, toolType).then((): void => this.syncFromStore());
+  }
+
   private async updateSetting(action: string, value: boolean): Promise<void> {
     if (action === 'sound') {
       appStore.settings.soundEnabled = value;
     } else if (action === 'vibration') {
       appStore.settings.vibrationEnabled = value;
+    } else if (!this.settings.initialized) {
+      ModeSelectPage({
+        dark: this.isDark(),
+        onComplete: (sceneMode: SceneMode, toolType: ToolType): void => {
+          this.completeOnboarding(sceneMode, toolType);
+        }
+      })
     } else {
       appStore.settings.floatingTextEnabled = value;
     }

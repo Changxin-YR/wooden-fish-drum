@@ -26,6 +26,7 @@ $requiredFiles = @(
   'entry\src\main\module.json5',
   'entry\src\main\ets\entryability\EntryAbility.ets',
   'entry\src\main\ets\pages\Index.ets',
+  'entry\src\main\ets\pages\ModeSelectPage.ets',
   'entry\src\main\ets\pages\HomePage.ets',
   'entry\src\main\ets\pages\StatsPage.ets',
   'entry\src\main\ets\pages\SettingsPage.ets',

@@ -1,7 +1,9 @@
 import { describe, expect, it } from '@ohos/hypium';
 import { JsonCodec } from '../../../main/ets/data/JsonCodec';
+import { SCENE_MODE_CONFIGS } from '../../../main/ets/constants/UserModeConfigs';
 import { AppSettings } from '../../../main/ets/models/AppModels';
 import { SceneMode, SoundType, ThemeMode, ToolType } from '../../../main/ets/models/Enums';
+import { SettingsMigration } from '../../../main/ets/utils/SettingsMigration';
 
 export default function migrationTest(): void {
   describe('Migration', (): void => {
@@ -75,6 +77,26 @@ export default function migrationTest(): void {
       expect(settings.schemaVersion).assertEqual(2);
       expect(settings.initialized).assertFalse();
       expect(settings.selectedSceneMode).assertEqual(SceneMode.DAILY);
+    });
+
+    it('usesApprovedSceneDefaults', 0, (): void => {
+      expect(SCENE_MODE_CONFIGS[SceneMode.PROGRAMMER].defaultTheme).assertEqual(ThemeMode.DARK);
+      expect(SCENE_MODE_CONFIGS[SceneMode.PROGRAMMER].defaultText).assertEqual('专注+1');
+      expect(SCENE_MODE_CONFIGS[SceneMode.MINDFUL].defaultSound).assertEqual(SoundType.DEEP);
+      expect(SCENE_MODE_CONFIGS[SceneMode.MINDFUL].recommendedTool).assertEqual(ToolType.INCENSE);
+      expect(SCENE_MODE_CONFIGS[SceneMode.DAILY].defaultTheme).assertEqual(ThemeMode.SYSTEM);
+      expect(SCENE_MODE_CONFIGS[SceneMode.DAILY].defaultText).assertEqual('放松+1');
+    });
+
+    it('appliesOnboardingSelectionAndMarksInitialization', 0, (): void => {
+      const settings: AppSettings = JsonCodec.createDefaultSettings();
+      SettingsMigration.applyOnboarding(settings, SceneMode.MINDFUL, ToolType.BEADS);
+      expect(settings.initialized).assertTrue();
+      expect(settings.selectedSceneMode).assertEqual(SceneMode.MINDFUL);
+      expect(settings.selectedTool).assertEqual(ToolType.BEADS);
+      expect(settings.themeMode).assertEqual(ThemeMode.LIGHT);
+      expect(settings.feedbackText).assertEqual('静心+1');
+      expect(settings.selectedSoundId).assertEqual(SoundType.DEEP);
     });
   });
 }

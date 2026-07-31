@@ -1,10 +1,12 @@
 import { JsonCodec } from '../data/JsonCodec';
 import { AppSettings, DailyRecord, StatsSummary } from '../models/AppModels';
 import { ThemeMode } from '../models/Enums';
+import { SceneMode, ToolType } from '../models/Enums';
 import { SettingsRepository } from '../repositories/SettingsRepository';
 import { StatsRepository } from '../repositories/StatsRepository';
 import { DateUtil } from '../utils/DateUtil';
 import { TextValidator } from '../utils/TextValidator';
+import { SettingsMigration } from '../utils/SettingsMigration';
 
 export class AppStore {
   settings: AppSettings = JsonCodec.createDefaultSettings();
@@ -31,6 +33,11 @@ export class AppStore {
   }
 
   async persistSettings(): Promise<boolean> {
+    return this.settingsRepository.save(this.settings);
+  }
+
+  async completeOnboarding(sceneMode: SceneMode, toolType: ToolType): Promise<boolean> {
+    SettingsMigration.applyOnboarding(this.settings, sceneMode, toolType);
     return this.settingsRepository.save(this.settings);
   }
 

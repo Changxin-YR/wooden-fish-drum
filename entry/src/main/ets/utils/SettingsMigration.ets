@@ -1,5 +1,6 @@
 import { AppSettings } from '../models/AppModels';
 import { SceneMode, SoundType, ThemeMode, ToolType, UserMode } from '../models/Enums';
+import { SCENE_MODE_CONFIGS } from '../constants/UserModeConfigs';
 
 export class SettingsMigration {
   static createDefaults(): AppSettings {
@@ -71,6 +72,17 @@ export class SettingsMigration {
     settings.selectedSoundId = settings.soundType;
     settings.tapVolume = SettingsMigration.clamp(settings.volume, 0, 1);
     settings.autoIntervalMs = SettingsMigration.clamp(settings.autoInterval, 500, 3000);
+  }
+
+  static applyOnboarding(settings: AppSettings, sceneMode: SceneMode, toolType: ToolType): void {
+    settings.initialized = true;
+    settings.selectedSceneMode = sceneMode;
+    settings.selectedTool = toolType;
+    settings.themeMode = SCENE_MODE_CONFIGS[sceneMode].defaultTheme;
+    settings.themeManuallyChanged = false;
+    settings.feedbackText = SCENE_MODE_CONFIGS[sceneMode].defaultText;
+    settings.selectedSoundId = SCENE_MODE_CONFIGS[sceneMode].defaultSound;
+    SettingsMigration.syncCompatibilityAliases(settings);
   }
 
   private static resolveSceneMode(parsed: AppSettings): SceneMode {
