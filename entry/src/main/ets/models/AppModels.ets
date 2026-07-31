@@ -1,4 +1,5 @@
 import { SceneMode, SessionMode, SoundType, ThemeMode, ToolType, UserMode } from './Enums';
+import { PracticeSession } from './PracticeModels';
 
 export class AppSettings {
   schemaVersion: number = 2;
@@ -34,6 +35,10 @@ export class DailyRecord {
   manualCount: number;
   autoCount: number;
   durationSeconds: number;
+  woodenFishCount: number;
+  beadsCount: number;
+  incenseSeconds: number;
+  sessionCount: number;
 
   constructor(date: string, manualCount: number = 0, autoCount: number = 0,
     durationSeconds: number = 0) {
@@ -41,6 +46,10 @@ export class DailyRecord {
     this.manualCount = manualCount;
     this.autoCount = autoCount;
     this.durationSeconds = durationSeconds;
+    this.woodenFishCount = manualCount + autoCount;
+    this.beadsCount = 0;
+    this.incenseSeconds = 0;
+    this.sessionCount = 0;
   }
 
   get totalCount(): number {
@@ -62,12 +71,17 @@ export class StatsBucket {
   totalCount: number;
   manualCount: number;
   autoCount: number;
+  durationSeconds: number;
+  incenseSeconds: number;
 
-  constructor(label: string, manualCount: number = 0, autoCount: number = 0) {
+  constructor(label: string, manualCount: number = 0, autoCount: number = 0,
+    durationSeconds: number = 0, incenseSeconds: number = 0) {
     this.label = label;
     this.manualCount = manualCount;
     this.autoCount = autoCount;
     this.totalCount = manualCount + autoCount;
+    this.durationSeconds = durationSeconds;
+    this.incenseSeconds = incenseSeconds;
   }
 }
 
@@ -77,7 +91,15 @@ export class StatsPeriodView {
   totalCount: number = 0;
   manualCount: number = 0;
   autoCount: number = 0;
+  durationSeconds: number = 0;
+  incenseSeconds: number = 0;
+  woodenFishCount: number = 0;
+  beadsCount: number = 0;
+  sessionCount: number = 0;
+  countMax: number = 1;
+  durationMaxSeconds: number = 1;
   buckets: StatsBucket[] = [];
+  recentSessions: PracticeSession[] = [];
 }
 
 export class SessionState {

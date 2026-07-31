@@ -1,6 +1,6 @@
 import { JsonCodec } from '../data/JsonCodec';
 import { AppSettings, DailyRecord, StatsSummary } from '../models/AppModels';
-import { IncenseSnapshot, PracticeSession, PracticeSessionDraft } from '../models/PracticeModels';
+import { DailyStats, IncenseSnapshot, PracticeSession, PracticeSessionDraft } from '../models/PracticeModels';
 import { ThemeMode } from '../models/Enums';
 import { SceneMode, ToolType } from '../models/Enums';
 import { SettingsRepository } from '../repositories/SettingsRepository';
@@ -30,7 +30,6 @@ export class AppStore {
   async initialize(): Promise<void> {
     this.settings = await this.settingsRepository.load();
     await this.refreshStats();
-    this.recentSessions = await this.sessionRepository.recent(20);
   }
 
   async setThemeMode(mode: ThemeMode): Promise<boolean> {
@@ -83,9 +82,10 @@ export class AppStore {
     const inserted: boolean = await this.sessionRepository.append(session);
     if (inserted && draft.toolType === ToolType.INCENSE) {
       await this.statsRepository.applySession(session);
+    }
+    if (inserted) {
       await this.refreshStats();
     }
-    this.recentSessions = await this.sessionRepository.recent(20);
   }
 
   async saveActiveIncense(snapshot: IncenseSnapshot): Promise<void> {
@@ -104,7 +104,34 @@ export class AppStore {
     const today: string = DateUtil.todayKey();
     this.summary = await this.statsRepository.summary(today);
     this.recentRecords = await this.statsRepository.recentDays(today, 7);
-    this.allRecords = await this.statsRepository.allRecords();
+    const stats: DailyStats[] = await this.statsRepository.allStats();
+    this.allRecords = stats.map((item: DailyStats): DailyRecord => {
+      const record: DailyRecord = new DailyRecord(item.date,
+        item.woodenFishManualCount + item.beadsManualCount,
+        item.woodenFishAutoCount + item.beadsAutoCount, item.practiceSeconds);
+      record.woodenFishCount = item.woodenFishCount;
+      record.beadsCount = item.beadsCount;
+      record.incenseSeconds = item.incenseSeconds;
+      record.sessionCount = item.sessionCount;
+      return record;
+    });
+    const sessions: PracticeSession[] = await this.sessionRepository.all();
+    this.recentSessions = sessions.slice().sort((left: PracticeSession, right: PracticeSession): number =>
+      right.startTime - left.startTime).slice(0, 20);
+    sessions.forEach((session: PracticeSession): void => {
+      if (session.toolType === ToolType.INCENSE) {
+        return;
+      }
+      const date: string = session.date.length > 0 ? session.date : DateUtil.toKey(new Date(session.startTime));
+      let record: DailyRecord | undefined =
+        this.allRecords.find((item: DailyRecord): boolean => item.date === date);
+      if (record === undefined) {
+        record = new DailyRecord(date);
+        this.allRecords.push(record);
+      }
+      record.durationSeconds += Math.max(0, session.durationSeconds);
+      record.sessionCount++;
+    });
   }
 
   async clearStats(): Promise<void> {

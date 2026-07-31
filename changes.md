@@ -58,6 +58,12 @@
   64vp，所有命令触控目标保持至少 48vp，最终截图归档在 `docs/qa/screenshots/muyu-v2-*-fit.jpeg`。
 - 新增 phone 布局回归后，设备 Hypium 为 41/41，Failure 0、Error 0；debug 与 ohosTest HAP
   重新构建通过。正式发布仍受素材授权、无光圈木鱼、香体/烟雾分层和签名身份阻塞。
+- 记录页已改为今日、本周、本月、全部四个真实周期；次数仅包含木鱼和念珠，练习时长与
+  一炷香时长分别汇总和绘图，不跨单位计算同一比例。
+- 旧每日汇总只进入统计和趋势，不生成虚假会话；最近练习只读取本地 `PracticeSession`，
+  按 `startTime` 倒序，空状态不包含设计稿中的示例时间。
+- Task 10 设备 Hypium 为 45/45，Failure 0、Error 0；主 debug 与 ohosTest HAP 构建通过。
+  API 24 phone 模拟器已验证今日/全部切换、48vp 周期触控区和空会话首屏。
 
 ## 2026-07-30｜用户反馈改版
 

@@ -410,19 +410,19 @@ git commit -m "feat: 增加一炷香静心计时"
 - Modify: `entry/src/main/ets/stores/AppStore.ets`
 - Modify: `entry/src/ohosTest/ets/test/StatsPeriod.test.ets`
 
-- [ ] **Step 1: 写口径、单位和真实历史测试**
+- [x] **Step 1: 写口径、单位和真实历史测试**
 
 次数只包含木鱼和念珠；时长独立统计；旧汇总进入趋势但不生成历史；最近历史顺序按 `startTime` 倒序。
 
-- [ ] **Step 2: 实现今日/本周/本月/全部视图模型**
+- [x] **Step 2: 实现今日/本周/本月/全部视图模型**
 
 `StatsPeriodService` 保持纯逻辑，输出摘要、次数桶、时长桶和工具分类；不得用次数与分钟计算同一比例。
 
-- [ ] **Step 3: 按 V2 稿重建记录页并验证空状态**
+- [x] **Step 3: 按 V2 稿重建记录页并验证空状态**
 
 没有会话时显示明确空状态，不显示稿件中的 07:20、12:15、21:00 示例数据。
 
-- [ ] **Step 4: 提交**
+- [x] **Step 4: 提交**
 
 ```powershell
 git add entry/src/main/ets/pages/StatsPage.ets entry/src/main/ets/components/StatsBarChart.ets entry/src/main/ets/services/StatsPeriodService.ets entry/src/main/ets/stores/AppStore.ets entry/src/ohosTest/ets/test

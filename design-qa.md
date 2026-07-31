@@ -47,3 +47,12 @@
 - 设备 Hypium：Tests run 41，Pass 41，Failure 0，Error 0，`OHOS_REPORT_CODE: 0`。
 - 截图：`muyu-v2-practice-slider.jpeg`、`muyu-v2-beads-fit.jpeg`、`muyu-v2-incense-fit.jpeg`。
 - tablet 与 2in1 仍缺少对应模拟器或真机，运行态视觉验收保持 `blocked`，不能由 phone 结果替代。
+
+## 2026-07-31｜V2.1 phone 记录页验收
+
+- API 24 phone 模拟器已安装最新 debug HAP，记录页首屏完整显示标题、四周期、三项摘要、
+  最近练习空状态和本地分类统计；趋势区可继续滚动，固定底部导航未遮挡摘要与空状态。
+- “今日”和“全部”已分别执行点击前后截图；选中态同时包含“已选”文字、背景和底边，不只依赖颜色。
+- 当前无真实会话时显示“还没有真实练习记录”，未出现 `07:20`、`12:15`、`21:00` 示例数据。
+- 次数、练习时长和一炷香时长使用独立单位；次数图与时长图使用独立纵轴。
+- 截图：`muyu-v2-stats-runtime.jpeg`、`muyu-v2-stats-all.jpeg`；设备 Hypium 45/45 通过。
