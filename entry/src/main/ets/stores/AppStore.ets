@@ -138,4 +138,20 @@ export class AppStore {
     await this.statsRepository.clear();
     await this.refreshStats();
   }
+
+  async clearToday(): Promise<void> {
+    const today: string = DateUtil.todayKey();
+    await this.statsRepository.clearDate(today);
+    await this.sessionRepository.clearDate(today);
+    await this.sessionRepository.clearActiveIncense();
+    await this.refreshStats();
+  }
+
+  async clearAll(): Promise<void> {
+    await this.sessionRepository.clearAll();
+    await this.statsRepository.clear();
+    await this.settingsRepository.clear();
+    this.settings = JsonCodec.createDefaultSettings();
+    await this.refreshStats();
+  }
 }

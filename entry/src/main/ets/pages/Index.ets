@@ -3,12 +3,16 @@ import { BottomNavBar } from '../components/BottomNavBar';
 import { DesignTokens } from '../constants/DesignTokens';
 import { JsonCodec } from '../data/JsonCodec';
 import { AppSettings, DailyRecord, StatsSummary } from '../models/AppModels';
-import { AppTab, PracticeStatus, SceneMode, SoundType, ThemeMode, ToolType } from '../models/Enums';
-import { IncenseSnapshot, PracticeEvent, PracticeSessionDraft, PracticeState } from '../models/PracticeModels';
+import { AppTab, PracticeStatus, SceneMode, SettingsRoute, SoundType, ThemeMode, ToolType } from '../models/Enums';
+import { IncenseSnapshot, PracticeEvent, PracticeSession, PracticeSessionDraft, PracticeState } from '../models/PracticeModels';
 import { HomePage } from './HomePage';
 import { SettingsPage } from './SettingsPage';
 import { StatsPage } from './StatsPage';
 import { ModeSelectPage } from './ModeSelectPage';
+import { PrivacyPolicyPage } from './PrivacyPolicyPage';
+import { UserNoticePage } from './UserNoticePage';
+import { OpenSourceLicensePage } from './OpenSourceLicensePage';
+import { AboutPage } from './AboutPage';
 import { appStore, practiceController, preferencesStore } from '../stores/AppRuntime';
 import { audioService } from '../services/AudioService';
 import { vibrationService } from '../services/VibrationService';
@@ -24,8 +28,10 @@ struct Index {
   @State summary: StatsSummary = new StatsSummary();
   @State recentRecords: DailyRecord[] = [];
   @State allRecords: DailyRecord[] = [];
+  @State recentSessions: PracticeSession[] = [];
   @State practice: PracticeState = new PracticeState();
   @State viewportWidth: number = 390;
+  @State settingsRoute: SettingsRoute = SettingsRoute.NONE;
   private incenseRefreshTimerId: number = -1;
 
   private contentMaxWidth(): number {
@@ -82,6 +88,7 @@ struct Index {
     this.summary = appStore.summary;
     this.recentRecords = appStore.recentRecords;
     this.allRecords = appStore.allRecords;
+    this.recentSessions = appStore.recentSessions;
     practiceController.selectTool(this.settings.selectedTool);
     this.refreshPracticeState();
   }
@@ -246,9 +253,11 @@ struct Index {
       appStore.settings.tapSoundEnabled = value;
     } else if (action === 'vibration') {
       appStore.settings.vibrationEnabled = value;
-    } else {
+    } else if (action === 'floating' || action === 'feedback') {
       appStore.settings.floatingTextEnabled = value;
       appStore.settings.feedbackTextEnabled = value;
+    } else {
+      appStore.settings.reducedMotion = value;
     }
     await appStore.persistSettings();
     this.syncFromStore();
@@ -256,7 +265,15 @@ struct Index {
 
   @Builder
   CurrentPage() {
-    if (!this.settings.initialized) {
+    if (this.settingsRoute === SettingsRoute.PRIVACY) {
+      PrivacyPolicyPage({ dark: this.isDark(), onBack: (): void => { this.settingsRoute = SettingsRoute.NONE; } })
+    } else if (this.settingsRoute === SettingsRoute.NOTICE) {
+      UserNoticePage({ dark: this.isDark(), onBack: (): void => { this.settingsRoute = SettingsRoute.NONE; } })
+    } else if (this.settingsRoute === SettingsRoute.LICENSES) {
+      OpenSourceLicensePage({ dark: this.isDark(), onBack: (): void => { this.settingsRoute = SettingsRoute.NONE; } })
+    } else if (this.settingsRoute === SettingsRoute.ABOUT) {
+      AboutPage({ dark: this.isDark(), onBack: (): void => { this.settingsRoute = SettingsRoute.NONE; } })
+    } else if (!this.settings.initialized) {
       ModeSelectPage({
         dark: this.isDark(),
         onComplete: (sceneMode: SceneMode, toolType: ToolType): void => {
@@ -290,11 +307,13 @@ struct Index {
         onStopIncense: (): void => this.handleStopIncense()
       })
     } else if (this.selectedTab === AppTab.STATS) {
-      StatsPage({ summary: this.summary, records: this.allRecords, dark: this.isDark() })
+      StatsPage({ summary: this.summary, records: this.allRecords, sessions: this.recentSessions, dark: this.isDark() })
     } else {
       SettingsPage({
         settings: this.settings,
         dark: this.isDark(),
+        onToolChange: (toolType: ToolType): void => this.handleToolChange(toolType),
+        onIntervalChange: (intervalMs: number): void => this.updateInterval(intervalMs),
         onSoundToggle: (enabled: boolean): void => {
           this.updateSetting('sound', enabled);
         },
@@ -312,8 +331,11 @@ struct Index {
         onVibrationToggle: (enabled: boolean): void => {
           this.updateSetting('vibration', enabled);
         },
-        onFloatingToggle: (enabled: boolean): void => {
-          this.updateSetting('floating', enabled);
+        onFeedbackToggle: (enabled: boolean): void => {
+          this.updateSetting('feedback', enabled);
+        },
+        onReducedMotionToggle: (enabled: boolean): void => {
+          this.updateSetting('motion', enabled);
         },
         onThemeChange: (mode: ThemeMode): void => {
           appStore.setThemeMode(mode).then((): void => this.syncFromStore());
@@ -321,8 +343,20 @@ struct Index {
         onCustomText: (value: string): void => {
           appStore.saveCustomText(value).then((): void => this.syncFromStore());
         },
-        onClearStats: (): void => {
-          appStore.clearStats().then((): void => this.syncFromStore());
+        onClearToday: (): void => {
+          appStore.clearToday().then((): void => this.syncFromStore());
+        },
+        onClearAll: (): void => {
+          this.clearIncenseRefresh();
+          practiceController.stop();
+          appStore.clearAll().then((): void => {
+            this.selectedTab = AppTab.HOME;
+            this.settingsRoute = SettingsRoute.NONE;
+            this.syncFromStore();
+          });
+        },
+        onNavigate: (route: SettingsRoute): void => {
+          this.settingsRoute = route;
         }
       })
     }
@@ -351,21 +385,23 @@ struct Index {
           }
           .width('100%')
           .layoutWeight(1)
-          BottomNavBar({
-            selected: this.selectedTab,
-            dark: this.isDark(),
-            onChange: (tab: AppTab): void => {
-              if (this.selectedTab === AppTab.HOME && tab !== AppTab.HOME &&
-                this.practice.status === PracticeStatus.RUNNING) {
-                practiceController.pause();
-                this.refreshPracticeState();
+          if (this.settingsRoute === SettingsRoute.NONE && this.settings.initialized) {
+            BottomNavBar({
+              selected: this.selectedTab,
+              dark: this.isDark(),
+              onChange: (tab: AppTab): void => {
+                if (this.selectedTab === AppTab.HOME && tab !== AppTab.HOME &&
+                  this.practice.status === PracticeStatus.RUNNING) {
+                  practiceController.pause();
+                  this.refreshPracticeState();
+                }
+                this.selectedTab = tab;
+                if (tab === AppTab.STATS) {
+                  appStore.refreshStats().then((): void => this.syncFromStore());
+                }
               }
-              this.selectedTab = tab;
-              if (tab === AppTab.STATS) {
-                appStore.refreshStats().then((): void => this.syncFromStore());
-              }
-            }
-          })
+            })
+          }
         }
         .width('100%')
         .height('100%')

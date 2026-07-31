@@ -441,19 +441,19 @@ git commit -m "feat: 重建多工具本地记录页"
 - Modify: `entry/src/main/ets/stores/AppStore.ets`
 - Modify: `entry/src/main/resources/base/element/string.json`
 
-- [ ] **Step 1: 写清除今日和清除全部测试**
+- [x] **Step 1: 写清除今日和清除全部测试**
 
 清除今日只删除当天统计和当天 session；清除全部删除设置、统计和历史，重新启动显示首次引导。
 
-- [ ] **Step 2: 按六组设置重建页面**
+- [x] **Step 2: 按六组设置重建页面**
 
 实现练习、音频、显示、文字触感、数据、关于合规六组；移除 V2.1 未承诺的数据导出和背景音乐入口。所有开关和纯图标按钮提供可朗读说明。
 
-- [ ] **Step 3: 实现四个真实二级页面**
+- [x] **Step 3: 实现四个真实二级页面**
 
 隐私页只描述实际本地行为；用户须知明确非宗教和医疗功效；许可页列出打包的 Hypium 仅为测试依赖且不进入运行包；关于页从资源读取展示名和版本，不能硬编码虚假备案信息。
 
-- [ ] **Step 4: 验证返回、二次确认和持久化后提交**
+- [x] **Step 4: 验证返回、二次确认和持久化后提交**
 
 ```powershell
 git add entry/src/main/ets/pages entry/src/main/ets/stores/AppStore.ets entry/src/main/resources/base/element/string.json entry/src/ohosTest/ets/test
@@ -478,11 +478,11 @@ git commit -m "feat: 重建设置和本地合规页面"
 
 Compact `<600vp` 使用 phone 单栏；Medium `600-1023vp` 双栏；Expanded `>=1024vp` 主画布加固定信息/控制栏。系统字体放大、横屏和窗口缩放不得重叠。
 
-- [ ] **Step 2: phone 逐屏高保真 QA**
+- [x] **Step 2: phone 逐屏高保真 QA**
 
 对练习、记录、设置进行真实运行截图；记录颜色、间距、素材比例、字号、48vp 热区及因系统规范产生的差异。不得把参考稿状态栏绘制进应用。
 
-- [ ] **Step 3: 执行完整门禁**
+- [x] **Step 3: 执行完整门禁**
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-standard.ps1

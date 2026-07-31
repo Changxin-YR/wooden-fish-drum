@@ -64,6 +64,22 @@
   按 `startTime` 倒序，空状态不包含设计稿中的示例时间。
 - Task 10 设备 Hypium 为 45/45，Failure 0、Error 0；主 debug 与 ohosTest HAP 构建通过。
   API 24 phone 模拟器已验证今日/全部切换、48vp 周期触控区和空会话首屏。
+- 设置页已按练习、音频、显示、文字与触感、数据管理、关于与合规六组重建；未加入 V2.1
+  未承诺的背景音乐或数据导出入口。
+- 清除今日和清除全部已完成 RED/GREEN 回归；清除今日仅删除当天统计与会话，清除全部删除
+  设置、统计、历史和活动香快照并返回首次引导。两类操作均在 phone 模拟器验证二次确认并取消，
+  未改动验收数据。
+- 已新增隐私说明、用户须知、开源与许可、关于应用四个真实二级页面；phone 模拟器验证页面
+  内容、返回按钮、正文滚动和二级页面隐藏底部主导航。
+- 外部 HarmonyOS 标准检查器 22 项通过、0 项失败、1 项提示；提示为未设置 `common/` 目录，
+  本项目继续使用职责明确的 `models/`、`constants/`、`utils/`，不为目录形式搬迁可用代码。
+- Task 11 最终门禁：项目标准检查通过；Hypium 47/47，Failure 0、Error 0；debug、ohosTest、
+  release 构建通过。debug HAP 为 7,396,792 bytes，ohosTest HAP 为 8,185,899 bytes，release
+  HAP 为 6,938,600 bytes。
+- 上架代码侧审计确认 `module.json5` 声明 phone、tablet、2in1，主模块只申请
+  `ohos.permission.VIBRATE`，未发现网络权限、HTTP、WebView、广告、支付、登录或云同步能力。
+- release 仍为 unsigned HAP；真实发布签名、备案信息、AppGallery 隐私政策公网 URL、素材商业
+  授权以及 tablet/2in1 运行态证据保持发布阻塞，详见 `docs/qa/2026-07-31-release-readiness.md`。
 
 ## 2026-07-30｜用户反馈改版
 

@@ -43,4 +43,6 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\build-harmony.ps1 
 
 ## 当前状态
 
-用户反馈改版已完成。项目标准门禁、debug/release/ohosTest 构建和 Hypium 14/14 均通过；phone 模拟器完成首页、自动互斥、统计周期标题、主题与音色面板验证。应用仅申请振动权限，无网络权限、广告 SDK、广告位、登录、支付或云同步。当前缺少 tablet、2in1 目标，其实际设备视觉验收仍标记为 `blocked`。证据记录在 `docs/qa/`。
+静心木鱼 V2.1 的三工具练习、真实记录、设置和本地合规页面已完成。项目本地与外部标准门禁、debug/release/ohosTest 构建和设备 Hypium 47/47 均通过；phone 模拟器已完成练习、记录、设置、二级合规页面和清除确认交互验证。应用仅申请振动权限，无网络权限、广告 SDK、广告位、登录、支付或云同步。
+
+当前 release 产物仍为 unsigned HAP；正式上架还需发布主体提供真实签名身份、备案信息、AppGallery 隐私政策公网 URL 和素材授权证明。tablet、2in1 运行态视觉验收仍为 `blocked`，不能由 phone 结果替代。完整清单见 `docs/qa/2026-07-31-release-readiness.md`。

@@ -2,9 +2,14 @@ import { describe, expect, it } from '@ohos/hypium';
 import { JsonCodec } from '../../../main/ets/data/JsonCodec';
 import { LocalStoreAdapter } from '../../../main/ets/data/LocalStoreAdapter';
 import { DailyRecord } from '../../../main/ets/models/AppModels';
-import { SessionMode, SoundType, ThemeMode, UserMode } from '../../../main/ets/models/Enums';
+import { SceneMode, SessionMode, SoundType, ThemeMode, ToolType, UserMode } from '../../../main/ets/models/Enums';
+import { PracticeSession } from '../../../main/ets/models/PracticeModels';
+import { PracticeSessionRepository } from '../../../main/ets/repositories/PracticeSessionRepository';
+import { SettingsRepository } from '../../../main/ets/repositories/SettingsRepository';
 import { StatsRepository } from '../../../main/ets/repositories/StatsRepository';
 import { SessionService } from '../../../main/ets/services/SessionService';
+import { AppStore } from '../../../main/ets/stores/AppStore';
+import { DateUtil } from '../../../main/ets/utils/DateUtil';
 
 class MemoryStore implements LocalStoreAdapter {
   private values: Map<string, string> = new Map<string, string>();
@@ -135,6 +140,58 @@ export default function dataAndSessionTest(): void {
       expect(JsonCodec.decodeSettings(legacy).themeMode).assertEqual(ThemeMode.DARK);
       expect(JsonCodec.decodeSettings(legacy).soundType).assertEqual(SoundType.DEEP);
       expect(JsonCodec.decodeSettings(legacy).volume).assertEqual(0.35);
+    });
+
+    it('clearsOnlyTodayStatsAndSessionsWhileKeepingSettings', 0, async (): Promise<void> => {
+      const memory: MemoryStore = new MemoryStore();
+      const settingsRepository: SettingsRepository = new SettingsRepository(memory);
+      const statsRepository: StatsRepository = new StatsRepository(memory);
+      const sessionRepository: PracticeSessionRepository = new PracticeSessionRepository(memory);
+      const store: AppStore = new AppStore(settingsRepository, statsRepository, sessionRepository);
+      const today: string = DateUtil.todayKey();
+      const yesterday: string = DateUtil.addDays(today, -1);
+      store.settings.initialized = true;
+      await settingsRepository.save(store.settings);
+      await statsRepository.increment(today, false);
+      await statsRepository.increment(yesterday, false);
+      await sessionRepository.append(new PracticeSession('today', ToolType.WOODEN_FISH, SceneMode.DAILY,
+        Date.now(), Date.now(), 1, 0, 0, true, today));
+      await sessionRepository.append(new PracticeSession('yesterday', ToolType.BEADS, SceneMode.DAILY,
+        Date.now() - 86400000, Date.now() - 86400000, 1, 0, 0, true, yesterday));
+      await store.initialize();
+
+      await store.clearToday();
+
+      expect(store.settings.initialized).assertTrue();
+      expect(store.summary.todayCount).assertEqual(0);
+      expect(store.allRecords.length).assertEqual(1);
+      expect(store.allRecords[0].date).assertEqual(yesterday);
+      expect(store.recentSessions.length).assertEqual(1);
+      expect(store.recentSessions[0].id).assertEqual('yesterday');
+    });
+
+    it('clearsAllLocalDataAndRestoresFirstLaunchDefaults', 0, async (): Promise<void> => {
+      const memory: MemoryStore = new MemoryStore();
+      const settingsRepository: SettingsRepository = new SettingsRepository(memory);
+      const statsRepository: StatsRepository = new StatsRepository(memory);
+      const sessionRepository: PracticeSessionRepository = new PracticeSessionRepository(memory);
+      const store: AppStore = new AppStore(settingsRepository, statsRepository, sessionRepository);
+      store.settings.initialized = true;
+      await settingsRepository.save(store.settings);
+      await statsRepository.increment(DateUtil.todayKey(), false);
+      await sessionRepository.append(new PracticeSession('session', ToolType.WOODEN_FISH, SceneMode.DAILY,
+        Date.now(), Date.now(), 1, 0, 0, true, DateUtil.todayKey()));
+      await store.initialize();
+
+      await store.clearAll();
+
+      const restored: AppStore = new AppStore(new SettingsRepository(memory), new StatsRepository(memory),
+        new PracticeSessionRepository(memory));
+      await restored.initialize();
+      expect(restored.settings.initialized).assertFalse();
+      expect(restored.summary.totalCount).assertEqual(0);
+      expect(restored.allRecords.length).assertEqual(0);
+      expect(restored.recentSessions.length).assertEqual(0);
     });
   });
 }

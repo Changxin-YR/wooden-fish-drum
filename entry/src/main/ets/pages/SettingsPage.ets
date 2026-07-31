@@ -1,362 +1,313 @@
-import { AppSettings } from '../models/AppModels';
-import { SoundType, ThemeMode } from '../models/Enums';
-import { GENERAL_AVAILABLE_TEXTS } from '../constants/UserModeConfigs';
 import { DesignTokens } from '../constants/DesignTokens';
+import { GENERAL_AVAILABLE_TEXTS } from '../constants/UserModeConfigs';
+import { AppSettings } from '../models/AppModels';
+import { SettingsRoute, SoundType, ThemeMode, ToolType } from '../models/Enums';
+
+enum ClearScope {
+  NONE = 'none',
+  TODAY = 'today',
+  ALL = 'all'
+}
 
 @Component
 export struct SettingsPage {
   @Prop settings: AppSettings;
-  @Prop dark: boolean;
+  @Prop dark: boolean = false;
+  onToolChange: (toolType: ToolType) => void = (): void => {};
+  onIntervalChange: (intervalMs: number) => void = (): void => {};
   onSoundToggle: (enabled: boolean) => void = (): void => {};
   onSoundTypeChange: (type: SoundType) => void = (): void => {};
   onVolumeChange: (value: number) => void = (): void => {};
   onVibrationToggle: (enabled: boolean) => void = (): void => {};
-  onFloatingToggle: (enabled: boolean) => void = (): void => {};
+  onFeedbackToggle: (enabled: boolean) => void = (): void => {};
+  onReducedMotionToggle: (enabled: boolean) => void = (): void => {};
   onThemeChange: (mode: ThemeMode) => void = (): void => {};
   onCustomText: (value: string) => void = (): void => {};
-  onClearStats: () => void = (): void => {};
+  onClearToday: () => void = (): void => {};
+  onClearAll: () => void = (): void => {};
+  onNavigate: (route: SettingsRoute) => void = (): void => {};
   @State showTextEditor: boolean = false;
-  @State showClearConfirm: boolean = false;
-  @State showSoundPicker: boolean = false;
   @State customText: string = '';
+  @State clearScope: ClearScope = ClearScope.NONE;
 
-  private pageBackground(): string {
-    return this.dark ? DesignTokens.darkBackground : DesignTokens.lightBackground;
-  }
+  private pageBackground(): string { return this.dark ? DesignTokens.darkBackground : DesignTokens.lightBackground; }
+  private card(): string { return this.dark ? DesignTokens.darkCard : DesignTokens.lightCard; }
+  private primary(): string { return this.dark ? DesignTokens.darkText : DesignTokens.lightText; }
+  private secondary(): string { return this.dark ? DesignTokens.darkSecondary : DesignTokens.lightSecondary; }
+  private divider(): string { return this.dark ? DesignTokens.darkDivider : DesignTokens.lightDivider; }
+  private selectedBackground(): string { return this.dark ? '#493B30' : '#F5E8D8'; }
 
-  private card(): string {
-    return this.dark ? DesignTokens.darkCard : DesignTokens.lightCard;
-  }
-
-  private field(): string {
-    return this.dark ? DesignTokens.darkField : DesignTokens.lightCard;
-  }
-
-  private primaryText(): string {
-    return this.dark ? DesignTokens.darkText : DesignTokens.lightText;
-  }
-
-  private secondaryText(): string {
-    return this.dark ? DesignTokens.darkSecondary : DesignTokens.lightSecondary;
-  }
-
-  private divider(): string {
-    return this.dark ? DesignTokens.darkDivider : DesignTokens.lightDivider;
-  }
-
-  private soundLabel(): string {
-    if (this.settings.soundType === SoundType.DEEP) {
-      return '木鱼 · 低沉';
+  @Builder
+  GroupTitle(symbol: string, title: string) {
+    Row({ space: 9 }) {
+      Text(symbol).fontSize(18).fontColor(this.dark ? DesignTokens.accentLight : DesignTokens.wood)
+      Text(title).fontSize(17).fontWeight(FontWeight.Medium).fontColor(this.primary())
     }
-    if (this.settings.soundType === SoundType.CRISP) {
-      return '木鱼 · 清脆';
-    }
-    return '木鱼 · 柔和';
+    .width('100%').constraintSize({ minHeight: 42 })
   }
 
   @Builder
-  SettingRow(icon: string, title: string, detail: string) {
-    Row({ space: 12 }) {
-      Text(icon)
-        .width(38)
-        .height(38)
-        .textAlign(TextAlign.Center)
-        .fontSize(20)
-        .fontColor('#8A5635')
-        .backgroundColor(this.dark ? '#3B3530' : '#F7EFE4')
-        .borderRadius(19)
-      Column({ space: 3 }) {
-        Text(title).fontSize(16).fontColor(this.primaryText())
-        if (detail.length > 0) {
-          Text(detail).fontSize(11).fontColor(this.secondaryText())
-        }
+  Label(title: string, detail: string) {
+    Column({ space: 3 }) {
+      Text(title).fontSize(15).fontColor(this.primary()).maxLines(1)
+      if (detail.length > 0) {
+        Text(detail).fontSize(11).fontColor(this.secondary()).maxLines(2)
       }
-      .layoutWeight(1)
-      .constraintSize({ minWidth: 0 })
-      .alignItems(HorizontalAlign.Start)
     }
-    .width('100%')
-    .constraintSize({ minHeight: 58 })
+    .layoutWeight(1).constraintSize({ minWidth: 0 }).alignItems(HorizontalAlign.Start)
   }
 
   @Builder
-  ThemeButton(mode: ThemeMode, icon: string, label: string) {
-    Row({ space: 7 }) {
-      Text(icon)
-        .fontSize(18)
-        .fontColor(this.settings.themeMode === mode ? (this.dark ? '#D8B28C' : '#8A5635') :
-          this.secondaryText())
-      Text(label)
-        .fontSize(14)
-        .fontColor(this.settings.themeMode === mode ? (this.dark ? '#D8B28C' : '#8A5635') :
-          this.secondaryText())
-    }
-    .layoutWeight(1)
-    .height(50)
-    .justifyContent(FlexAlign.Center)
-    .backgroundColor(this.settings.themeMode === mode ? (this.dark ? '#3B3530' : '#FBF4EA') :
-      Color.Transparent)
-    .border({
-      width: this.settings.themeMode === mode ? 1 : 0,
-      color: '#A9824B'
-    })
-    .borderRadius(16)
-    .onClick((): void => this.onThemeChange(mode))
-  }
-
-  @Builder
-  SoundOption(type: SoundType, title: string, detail: string) {
+  SwitchRow(symbol: string, title: string, detail: string, enabled: boolean, action: string) {
     Row({ space: 12 }) {
-      Text(type === SoundType.DEEP ? '●' : (type === SoundType.CRISP ? '◆' : '◌'))
-        .width(40)
-        .height(40)
-        .textAlign(TextAlign.Center)
-        .fontSize(20)
-        .fontColor('#A9824B')
-        .backgroundColor(this.dark ? '#3B3530' : '#F7EFE4')
-        .borderRadius(20)
-      Column({ space: 3 }) {
-        Text(title).fontSize(16).fontColor(this.primaryText())
-        Text(detail).fontSize(12).fontColor(this.secondaryText())
+      Text(symbol).width(36).fontSize(18).textAlign(TextAlign.Center)
+        .fontColor(this.dark ? DesignTokens.accentLight : DesignTokens.wood)
+      this.Label(title, detail)
+      Stack({ alignContent: Alignment.Center }) {
+        Toggle({ type: ToggleType.Switch, isOn: enabled }).width(48)
+          .selectedColor(DesignTokens.accent).hitTestBehavior(HitTestMode.None)
       }
-      .layoutWeight(1)
-      .alignItems(HorizontalAlign.Start)
-      Text(this.settings.soundType === type ? '✓' : '')
-        .fontSize(20)
-        .fontColor('#A9824B')
+      .width(48).height(48)
+      .onClick((): void => {
+        if (action === 'sound') this.onSoundToggle(!enabled);
+        else if (action === 'vibration') this.onVibrationToggle(!enabled);
+        else if (action === 'feedback') this.onFeedbackToggle(!enabled);
+        else this.onReducedMotionToggle(!enabled);
+      })
+      .accessibilityText(`${title}，${enabled ? '已开启' : '已关闭'}`)
     }
-    .width('100%')
-    .padding(12)
-    .backgroundColor(this.settings.soundType === type ? (this.dark ? '#3B3530' : '#FBF4EA') :
-      Color.Transparent)
-    .borderRadius(16)
-    .onClick((): void => {
-      this.showSoundPicker = false;
-      this.onSoundTypeChange(type);
-    })
+    .width('100%').constraintSize({ minHeight: 58 })
+  }
+
+  @Builder
+  ChoiceButton(label: string, selected: boolean, action: string) {
+    Text(selected ? `✓ ${label}` : label)
+      .layoutWeight(1).height(48).fontSize(13).fontWeight(selected ? FontWeight.Bold : FontWeight.Regular)
+      .fontColor(selected ? (this.dark ? DesignTokens.accentLight : DesignTokens.wood) : this.secondary())
+      .textAlign(TextAlign.Center).backgroundColor(selected ? this.selectedBackground() : Color.Transparent)
+      .border({ width: selected ? 1 : 0, color: DesignTokens.accent }).borderRadius(DesignTokens.radiusControl)
+      .onClick((): void => {
+        if (action === 'wooden_fish') this.onToolChange(ToolType.WOODEN_FISH);
+        else if (action === 'beads') this.onToolChange(ToolType.BEADS);
+        else if (action === 'incense') this.onToolChange(ToolType.INCENSE);
+        else if (action === '1000') this.onIntervalChange(1000);
+        else if (action === '1500') this.onIntervalChange(1500);
+        else if (action === '2000') this.onIntervalChange(2000);
+        else if (action === 'deep') this.onSoundTypeChange(SoundType.DEEP);
+        else if (action === 'crisp') this.onSoundTypeChange(SoundType.CRISP);
+        else if (action === 'soft') this.onSoundTypeChange(SoundType.SOFT);
+        else if (action === 'system') this.onThemeChange(ThemeMode.SYSTEM);
+        else if (action === 'light') this.onThemeChange(ThemeMode.LIGHT);
+        else this.onThemeChange(ThemeMode.DARK);
+      })
+      .accessibilityText(`${label}${selected ? '，已选' : ''}`)
+  }
+
+  @Builder
+  NavigationRow(symbol: string, title: string, detail: string, route: SettingsRoute) {
+    Row({ space: 12 }) {
+      Text(symbol).width(36).fontSize(18).textAlign(TextAlign.Center)
+        .fontColor(this.dark ? DesignTokens.accentLight : DesignTokens.wood)
+      this.Label(title, detail)
+      Text('›').fontSize(26).fontColor(this.secondary())
+    }
+    .width('100%').constraintSize({ minHeight: 56 }).onClick((): void => this.onNavigate(route))
+    .accessibilityText(`打开${title}`)
+  }
+
+  @Builder
+  PracticeGroup() {
+    Column() {
+      this.GroupTitle('坐', '练习设置')
+      Text('默认工具').width('100%').fontSize(12).fontColor(this.secondary()).margin({ bottom: 5 })
+      Row({ space: 3 }) {
+        this.ChoiceButton('木鱼', this.settings.selectedTool === ToolType.WOODEN_FISH, 'wooden_fish')
+        this.ChoiceButton('念珠', this.settings.selectedTool === ToolType.BEADS, 'beads')
+        this.ChoiceButton('一炷香', this.settings.selectedTool === ToolType.INCENSE, 'incense')
+      }.width('100%')
+      Divider().color(this.divider()).margin({ top: 8, bottom: 8 })
+      Text('自动间隔').width('100%').fontSize(12).fontColor(this.secondary()).margin({ bottom: 5 })
+      Row({ space: 3 }) {
+        this.ChoiceButton('1.0 秒', this.settings.autoIntervalMs === 1000, '1000')
+        this.ChoiceButton('1.5 秒', this.settings.autoIntervalMs === 1500, '1500')
+        this.ChoiceButton('2.0 秒', this.settings.autoIntervalMs === 2000, '2000')
+      }.width('100%')
+    }
+    .width('100%').padding(16).backgroundColor(this.card()).borderRadius(DesignTokens.radiusCard)
+  }
+
+  @Builder
+  AudioGroup() {
+    Column() {
+      this.GroupTitle('♪', '音频设置')
+      this.SwitchRow('音', '敲击音', '使用本地短音频，不访问网络', this.settings.tapSoundEnabled, 'sound')
+      Divider().color(this.divider())
+      Text('音色').width('100%').fontSize(12).fontColor(this.secondary()).margin({ top: 10, bottom: 5 })
+      Row({ space: 3 }) {
+        this.ChoiceButton('低沉', this.settings.selectedSoundId === SoundType.DEEP, 'deep')
+        this.ChoiceButton('清脆', this.settings.selectedSoundId === SoundType.CRISP, 'crisp')
+        this.ChoiceButton('柔和', this.settings.selectedSoundId === SoundType.SOFT, 'soft')
+      }.width('100%')
+      Row({ space: 10 }) {
+        Text('敲击音量').fontSize(14).fontColor(this.primary())
+        Slider({ value: this.settings.tapVolume * 100, min: 0, max: 100, step: 5 }).layoutWeight(1)
+          .constraintSize({ minWidth: 80 }).selectedColor(DesignTokens.accent)
+          .onChange((value: number): void => this.onVolumeChange(value / 100))
+        Text(`${Math.round(this.settings.tapVolume * 100)}%`).width(42).fontSize(12).fontColor(this.secondary())
+      }.width('100%').constraintSize({ minHeight: 56 })
+    }
+    .width('100%').padding(16).backgroundColor(this.card()).borderRadius(DesignTokens.radiusCard)
+  }
+
+  @Builder
+  DisplayGroup() {
+    Column() {
+      this.GroupTitle('目', '显示设置')
+      Row({ space: 3 }) {
+        this.ChoiceButton('跟随系统', this.settings.themeMode === ThemeMode.SYSTEM, 'system')
+        this.ChoiceButton('浅色', this.settings.themeMode === ThemeMode.LIGHT, 'light')
+        this.ChoiceButton('深色', this.settings.themeMode === ThemeMode.DARK, 'dark')
+      }.width('100%')
+      Divider().color(this.divider()).margin({ top: 8 })
+      Row({ space: 12 }) {
+        Text('Aa').width(36).fontSize(17).textAlign(TextAlign.Center)
+          .fontColor(this.dark ? DesignTokens.accentLight : DesignTokens.wood)
+        this.Label('系统字体缩放', '跟随 HarmonyOS 字体大小设置')
+        Text('已启用').fontSize(12).fontColor(this.secondary())
+      }.width('100%').constraintSize({ minHeight: 56 })
+      Divider().color(this.divider())
+      this.SwitchRow('静', '减少动画', '保留计数与状态反馈，减少位移动效', this.settings.reducedMotion, 'motion')
+    }
+    .width('100%').padding(16).backgroundColor(this.card()).borderRadius(DesignTokens.radiusCard)
+  }
+
+  @Builder
+  FeedbackGroup() {
+    Column() {
+      this.GroupTitle('触', '文字与触感')
+      this.SwitchRow('T', '反馈文字', '敲击后显示当前反馈文字', this.settings.feedbackTextEnabled, 'feedback')
+      Divider().color(this.divider())
+      Row({ space: 12 }) {
+        Text('文').width(36).fontSize(18).textAlign(TextAlign.Center)
+          .fontColor(this.dark ? DesignTokens.accentLight : DesignTokens.wood)
+        this.Label('反馈内容', this.settings.feedbackText)
+        Text('›').fontSize(26).fontColor(this.secondary())
+      }
+      .width('100%').constraintSize({ minHeight: 56 }).onClick((): void => {
+        this.customText = this.settings.feedbackText;
+        this.showTextEditor = true;
+      }).accessibilityText('编辑反馈文字')
+      Divider().color(this.divider())
+      this.SwitchRow('振', '振动反馈', '仅在开启时调用系统振动能力', this.settings.vibrationEnabled, 'vibration')
+    }
+    .width('100%').padding(16).backgroundColor(this.card()).borderRadius(DesignTokens.radiusCard)
+  }
+
+  @Builder
+  DataGroup() {
+    Column() {
+      this.GroupTitle('数', '数据管理')
+      Row({ space: 12 }) {
+        Text('今').width(36).fontSize(18).textAlign(TextAlign.Center).fontColor('#B2773F')
+        this.Label('清除今日数据', '删除今日统计与今日练习记录')
+        Text('›').fontSize(26).fontColor(this.secondary())
+      }.width('100%').constraintSize({ minHeight: 56 }).onClick((): void => { this.clearScope = ClearScope.TODAY; })
+      Divider().color(this.divider())
+      Row({ space: 12 }) {
+        Text('删').width(36).fontSize(18).textAlign(TextAlign.Center).fontColor('#B85C3A')
+        this.Label('清除全部本地数据', '删除设置、统计和练习历史并返回首次引导')
+        Text('›').fontSize(26).fontColor(this.secondary())
+      }.width('100%').constraintSize({ minHeight: 56 }).onClick((): void => { this.clearScope = ClearScope.ALL; })
+    }
+    .width('100%').padding(16).backgroundColor(this.card()).borderRadius(DesignTokens.radiusCard)
+  }
+
+  @Builder
+  ComplianceGroup() {
+    Column() {
+      this.GroupTitle('盾', '关于与合规')
+      this.NavigationRow('隐', '隐私说明', '无账号、无上传、无广告或统计 SDK', SettingsRoute.PRIVACY)
+      Divider().color(this.divider())
+      this.NavigationRow('须', '用户须知', '不作宗教、医疗或心理健康功效承诺', SettingsRoute.NOTICE)
+      Divider().color(this.divider())
+      this.NavigationRow('开', '开源与许可', '查看运行包和测试依赖说明', SettingsRoute.LICENSES)
+      Divider().color(this.divider())
+      this.NavigationRow('i', '版本信息', '应用信息与发布资料说明', SettingsRoute.ABOUT)
+    }
+    .width('100%').padding(16).backgroundColor(this.card()).borderRadius(DesignTokens.radiusCard)
   }
 
   build() {
     Stack({ alignContent: Alignment.Center }) {
       Scroll() {
-        Column({ space: 16 }) {
-          Text('设置')
-            .width('100%')
-            .fontSize(30)
-            .fontWeight(FontWeight.Bold)
-            .fontColor(this.primaryText())
-
-          Column() {
-            Text('敲击反馈')
-              .width('100%')
-              .fontSize(16)
-              .fontWeight(FontWeight.Medium)
-              .fontColor(this.primaryText())
-              .margin({ bottom: 8 })
-            Row() {
-              this.SettingRow('♪', '音效开关', '')
-              Toggle({ type: ToggleType.Switch, isOn: this.settings.soundEnabled })
-                .selectedColor('#9A612C')
-                .onChange((value: boolean): void => this.onSoundToggle(value))
-                .accessibilityText('音效开关')
-            }
-            Divider().color(this.divider())
-            Row() {
-              this.SettingRow('♬', '音色选择', this.soundLabel())
-              Text('›').fontSize(28).fontColor('#8A5635')
-            }
-            .onClick((): void => {
-              this.showSoundPicker = true;
-            })
-            .accessibilityText(`当前音色：${this.soundLabel()}，点击选择音色`)
-            Divider().color(this.divider())
-            Column({ space: 4 }) {
-              Row() {
-                this.SettingRow('◖', '音量', `${Math.round(this.settings.volume * 100)}%`)
-              }
-              Slider({
-                value: this.settings.volume,
-                min: 0,
-                max: 1,
-                step: 0.05,
-                style: SliderStyle.OutSet
-              })
-                .selectedColor('#9A612C')
-                .trackColor('#E8E2D8')
-                .onChange((value: number): void => {
-                  this.onVolumeChange(value);
-                })
-            }
-            Divider().color(this.divider())
-            Row() {
-              this.SettingRow('≋', '振动反馈', '')
-              Toggle({ type: ToggleType.Switch, isOn: this.settings.vibrationEnabled })
-                .selectedColor('#9A612C')
-                .onChange((value: boolean): void => this.onVibrationToggle(value))
-                .accessibilityText('振动反馈开关')
-            }
-            Divider().color(this.divider())
-            Row() {
-              this.SettingRow('T', '浮动文字', '显示敲击功德浮动文字')
-              Toggle({ type: ToggleType.Switch, isOn: this.settings.floatingTextEnabled })
-                .selectedColor('#9A612C')
-                .onChange((value: boolean): void => this.onFloatingToggle(value))
-                .accessibilityText('浮动文字开关')
-            }
-            Divider().color(this.divider())
-            Row() {
-              this.SettingRow('✎', '自定义文字', this.settings.currentText)
-              Text('›').fontSize(28).fontColor('#8A5635')
-            }
-            .onClick((): void => {
-              this.customText = this.settings.currentText;
-              this.showTextEditor = true;
-            })
+        Column({ space: 14 }) {
+          Text('设置').width('100%').fontSize(30).fontWeight(FontWeight.Bold).fontColor(this.primary())
+          Row({ space: 12 }) {
+            Text('叶').width(42).height(42).fontSize(16).fontWeight(FontWeight.Bold).textAlign(TextAlign.Center)
+              .fontColor(this.dark ? DesignTokens.accentLight : DesignTokens.wood)
+              .backgroundColor(this.dark ? '#3B3530' : '#F7EFE4').borderRadius(21)
+            this.Label('无需登录，数据仅保存在本机', '离线使用 · 无广告 · 仅保留必要权限')
           }
-          .padding(16)
-          .backgroundColor(this.card())
-          .borderRadius(20)
-
-          Column({ space: 10 }) {
-            Text('外观')
-              .width('100%')
-              .fontSize(16)
-              .fontWeight(FontWeight.Medium)
-              .fontColor(this.primaryText())
-            Row({ space: 3 }) {
-              this.ThemeButton(ThemeMode.SYSTEM, '◐', '跟随系统')
-              this.ThemeButton(ThemeMode.LIGHT, '☼', '浅色')
-              this.ThemeButton(ThemeMode.DARK, '☾', '深色')
-            }
-            .padding(3)
-            .backgroundColor(this.field())
-            .borderRadius(18)
-          }
-          .padding(16)
-          .backgroundColor(this.card())
-          .borderRadius(20)
-
-          Column() {
-            Text('数据')
-              .width('100%')
-              .fontSize(16)
-              .fontWeight(FontWeight.Medium)
-              .fontColor(this.primaryText())
-              .margin({ bottom: 8 })
-            Row() {
-              this.SettingRow('⌫', '清除所有数据', '将清除所有敲击记录与统计数据')
-              Text('›').fontSize(28).fontColor('#C06D48')
-            }
-            .onClick((): void => {
-              this.showClearConfirm = true;
-            })
-            Divider().color(this.divider())
-            this.SettingRow('ⓘ', '隐私说明', '数据仅保存在本机，不申请网络权限')
-            Divider().color(this.divider())
-            this.SettingRow('i', '关于应用', '功德木鱼 1.0.0')
-          }
-          .padding(16)
-          .backgroundColor(this.card())
-          .borderRadius(20)
-          .margin({ bottom: 20 })
+          .width('100%').padding(14).backgroundColor(this.card()).borderRadius(DesignTokens.radiusCard)
+          this.PracticeGroup()
+          this.AudioGroup()
+          this.DisplayGroup()
+          this.FeedbackGroup()
+          this.DataGroup()
+          this.ComplianceGroup()
+          Text('仅申请振动权限 · 不申请网络权限').width('100%').fontSize(12)
+            .fontColor(this.secondary()).textAlign(TextAlign.Center).margin({ bottom: 20 })
         }
-        .width('100%')
-        .padding({ left: 20, right: 20, top: 24 })
+        .width('100%').padding({ left: 20, right: 20, top: 20 })
       }
-      .width('100%')
-      .height('100%')
-      .scrollBar(BarState.Off)
-      .backgroundColor(this.pageBackground())
-
-      if (this.showSoundPicker) {
-        Column({ space: 10 }) {
-          Row() {
-            Text('选择音色').fontSize(20).fontWeight(FontWeight.Bold).fontColor(this.primaryText())
-            Blank()
-            Text('×').fontSize(28).fontColor(this.secondaryText()).onClick((): void => {
-              this.showSoundPicker = false;
-            })
-          }
-          Text('选择后立即试听，所有音色均为本地资源。')
-            .width('100%')
-            .fontSize(12)
-            .fontColor(this.secondaryText())
-          this.SoundOption(SoundType.DEEP, '低沉木鱼', '厚实、沉稳，适合静心')
-          this.SoundOption(SoundType.CRISP, '清脆木鱼', '明亮、清晰，反馈明确')
-          this.SoundOption(SoundType.SOFT, '柔和木鱼', '轻柔、耐听，适合长时间使用')
-        }
-        .width('88%')
-        .padding(20)
-        .backgroundColor(this.field())
-        .borderRadius(22)
-        .shadow({ radius: 18, color: '#4017130F', offsetY: 6 })
-      }
+      .width('100%').height('100%').scrollBar(BarState.Off).backgroundColor(this.pageBackground())
 
       if (this.showTextEditor) {
         Column({ space: 14 }) {
-          Text('自定义敲击文字').fontSize(20).fontWeight(FontWeight.Bold).fontColor(this.primaryText())
-          Text('选择预设或输入自定义文字（1-12个字符）')
-            .fontSize(12)
-            .fontColor(this.secondaryText())
-          Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Start }) {
-            ForEach(GENERAL_AVAILABLE_TEXTS, (text: string) => {
-              Text(text)
-                .fontSize(14)
-                .fontColor(this.customText === text ? '#FFFFFF' : this.primaryText())
-                .padding({ left: 14, right: 14, top: 8, bottom: 8 })
-                .backgroundColor(this.customText === text ? '#9A612C' :
-                  (this.dark ? '#3B3530' : '#F7EFE4'))
-                .borderRadius(20)
-                .margin({ right: 8, bottom: 8 })
-                .onClick((): void => {
-                  this.customText = text;
-                })
+          Text('反馈文字').fontSize(20).fontWeight(FontWeight.Bold).fontColor(this.primary())
+          Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap }) {
+            ForEach(GENERAL_AVAILABLE_TEXTS, (value: string) => {
+              Text(value).fontSize(14).fontColor(this.customText === value ? '#FFFFFF' : this.primary())
+                .padding({ left: 14, right: 14, top: 9, bottom: 9 })
+                .backgroundColor(this.customText === value ? DesignTokens.accent : this.selectedBackground())
+                .borderRadius(18).margin({ right: 8, bottom: 8 }).onClick((): void => { this.customText = value; })
             })
-          }
-          .width('100%')
-          TextInput({ text: this.customText, placeholder: '请输入 1-12 个字符' })
-            .height(50)
-            .onChange((value: string): void => {
-              this.customText = value;
-            })
+          }.width('100%')
+          TextInput({ text: this.customText, placeholder: '请输入 1-12 个字符' }).height(50)
+            .onChange((value: string): void => { this.customText = value; })
           Row({ space: 10 }) {
-            Button('取消').layoutWeight(1).onClick((): void => {
-              this.showTextEditor = false;
-            })
-            Button('保存').layoutWeight(1).backgroundColor('#9A612C').onClick((): void => {
+            Button('取消').layoutWeight(1).height(48).onClick((): void => { this.showTextEditor = false; })
+            Button('保存').layoutWeight(1).height(48).backgroundColor(DesignTokens.accent).onClick((): void => {
               this.showTextEditor = false;
               this.onCustomText(this.customText);
             })
           }
         }
-        .width('86%')
-        .padding(20)
-        .backgroundColor(this.field())
-        .borderRadius(22)
+        .width('88%').padding(20).backgroundColor(this.card()).borderRadius(DesignTokens.radiusCard)
+        .shadow({ radius: 18, color: '#4017130F', offsetY: 6 })
       }
 
-      if (this.showClearConfirm) {
+      if (this.clearScope !== ClearScope.NONE) {
         Column({ space: 14 }) {
-          Text('清除统计数据？').fontSize(20).fontWeight(FontWeight.Bold).fontColor(this.primaryText())
-          Text('此操作不可撤销，但会保留当前设置。')
-            .fontSize(14).fontColor(this.secondaryText())
+          Text(this.clearScope === ClearScope.TODAY ? '清除今日数据？' : '清除全部本地数据？')
+            .fontSize(20).fontWeight(FontWeight.Bold).fontColor(this.primary())
+          Text(this.clearScope === ClearScope.TODAY ? '将删除今日统计和今日练习记录。此操作不可恢复。' :
+            '将删除设置、统计和全部练习历史，并返回首次引导。此操作不可恢复。')
+            .fontSize(14).lineHeight(22).fontColor(this.secondary())
           Row({ space: 10 }) {
-            Button('取消').layoutWeight(1).onClick((): void => {
-              this.showClearConfirm = false;
-            })
-            Button('确认清除').layoutWeight(1).backgroundColor('#B85C3A').onClick((): void => {
-              this.showClearConfirm = false;
-              this.onClearStats();
+            Button('取消').layoutWeight(1).height(48).onClick((): void => { this.clearScope = ClearScope.NONE; })
+            Button('确认清除').layoutWeight(1).height(48).backgroundColor('#B85C3A').onClick((): void => {
+              const scope: ClearScope = this.clearScope;
+              this.clearScope = ClearScope.NONE;
+              if (scope === ClearScope.TODAY) this.onClearToday();
+              else this.onClearAll();
             })
           }
         }
-        .width('86%')
-        .padding(20)
-        .backgroundColor(this.field())
-        .borderRadius(22)
+        .width('88%').padding(20).backgroundColor(this.card()).borderRadius(DesignTokens.radiusCard)
+        .shadow({ radius: 18, color: '#4017130F', offsetY: 6 })
       }
     }
-    .width('100%')
-    .height('100%')
+    .width('100%').height('100%')
   }
 }

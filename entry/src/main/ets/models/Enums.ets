@@ -53,3 +53,11 @@ export enum StatsPeriod {
   MONTH = 'month',
   YEAR = 'year'
 }
+
+export enum SettingsRoute {
+  NONE = 'none',
+  PRIVACY = 'privacy',
+  NOTICE = 'notice',
+  LICENSES = 'licenses',
+  ABOUT = 'about'
+}

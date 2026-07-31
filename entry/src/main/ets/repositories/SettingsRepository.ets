@@ -23,4 +23,8 @@ export class SettingsRepository {
       return false;
     }
   }
+
+  async clear(): Promise<void> {
+    await this.store.remove(SETTINGS_KEY);
+  }
 }

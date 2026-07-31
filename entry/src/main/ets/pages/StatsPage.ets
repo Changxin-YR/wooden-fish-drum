@@ -4,7 +4,6 @@ import { DailyRecord, StatsPeriodView, StatsSummary } from '../models/AppModels'
 import { StatsPeriod, ToolType } from '../models/Enums';
 import { PracticeSession } from '../models/PracticeModels';
 import { StatsPeriodService } from '../services/StatsPeriodService';
-import { appStore } from '../stores/AppRuntime';
 import { DateUtil } from '../utils/DateUtil';
 
 @Component
@@ -12,7 +11,7 @@ export struct StatsPage {
   @Prop summary: StatsSummary;
   @Prop records: DailyRecord[];
   @Prop dark: boolean;
-  @Prop sessions: PracticeSession[] = appStore.recentSessions;
+  @Prop sessions: PracticeSession[] = [];
   @State period: StatsPeriod = StatsPeriod.DAY;
   @State viewportWidth: number = 390;
 
