@@ -37,7 +37,6 @@ $requiredFiles = @(
   'entry\src\main\ets\components\PracticeControlDock.ets',
   'entry\src\main\ets\components\WoodenFishView.ets',
   'entry\src\main\ets\services\PracticeController.ets',
-  'entry\src\main\ets\services\SessionService.ets',
   'entry\src\main\ets\services\AudioService.ets',
   'entry\src\main\ets\services\VibrationService.ets',
   'entry\src\main\resources\base\media\app_icon.png',

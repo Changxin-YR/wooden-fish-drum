@@ -1,4 +1,4 @@
-import { SceneMode, SessionMode, SoundType, ThemeMode, ToolType, UserMode } from '../models/Enums';
+import { SceneMode, SoundType, ThemeMode, ToolType, UserMode } from '../models/Enums';
 import { SceneModeConfig, UserModeConfig } from '../models/AppModels';
 
 export const SCENE_MODE_CONFIGS: Record<SceneMode, SceneModeConfig> = {
@@ -38,10 +38,8 @@ const PROGRAMMER_CONFIG: UserModeConfig = {
   detail: '专注计数 · 代码无量 · 效率统计',
   defaultText: 'Bug-1',
   availableTexts: ['Bug-1', '需求-1', '报错-1'],
-  recommendedTargets: [10, 30, 60, 108],
   defaultTheme: ThemeMode.DARK,
-  defaultSound: SoundType.CRISP,
-  featureOrder: [SessionMode.FREE, SessionMode.TARGET, SessionMode.AUTO]
+  defaultSound: SoundType.CRISP
 };
 
 const MONK_CONFIG: UserModeConfig = {
@@ -51,10 +49,8 @@ const MONK_CONFIG: UserModeConfig = {
   detail: '修善功德 · 诵经计数 · 修行辅助',
   defaultText: '功德+1',
   availableTexts: ['功德+1', '善念+1', '烦恼-1'],
-  recommendedTargets: [18, 36, 54, 108],
   defaultTheme: ThemeMode.LIGHT,
-  defaultSound: SoundType.DEEP,
-  featureOrder: [SessionMode.FREE, SessionMode.AUTO, SessionMode.TARGET]
+  defaultSound: SoundType.DEEP
 };
 
 const GENERAL_CONFIG: UserModeConfig = {
@@ -64,10 +60,8 @@ const GENERAL_CONFIG: UserModeConfig = {
   detail: '减压净心 · 每日目标 · 轻松记录',
   defaultText: '功德+1',
   availableTexts: ['功德+1', '好运+1', '压力-1', '专注+1'],
-  recommendedTargets: [10, 30, 60, 100],
   defaultTheme: ThemeMode.SYSTEM,
-  defaultSound: SoundType.SOFT,
-  featureOrder: [SessionMode.FREE, SessionMode.TARGET, SessionMode.AUTO]
+  defaultSound: SoundType.SOFT
 };
 
 export const USER_MODE_CONFIGS: Record<UserMode, UserModeConfig> = {

@@ -1,4 +1,4 @@
-import { SceneMode, SessionMode, SoundType, ThemeMode, ToolType, UserMode } from './Enums';
+import { SceneMode, SoundType, ThemeMode, ToolType, UserMode } from './Enums';
 import { PracticeSession } from './PracticeModels';
 
 export class AppSettings {
@@ -102,17 +102,6 @@ export class StatsPeriodView {
   recentSessions: PracticeSession[] = [];
 }
 
-export class SessionState {
-  mode: SessionMode = SessionMode.FREE;
-  hitSequence: number = 0;
-  running: boolean = false;
-  paused: boolean = false;
-  targetCompleted: boolean = false;
-  currentCount: number = 0;
-  targetCount: number = 0;
-  startedAt: number = 0;
-}
-
 export interface UserModeConfig {
   mode: UserMode;
   title: string;
@@ -120,10 +109,8 @@ export interface UserModeConfig {
   detail: string;
   defaultText: string;
   availableTexts: string[];
-  recommendedTargets: number[];
   defaultTheme: ThemeMode;
   defaultSound: SoundType;
-  featureOrder: SessionMode[];
 }
 
 export interface SceneModeConfig {

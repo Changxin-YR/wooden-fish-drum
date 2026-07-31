@@ -2,6 +2,7 @@ import { DesignTokens } from '../constants/DesignTokens';
 import { GENERAL_AVAILABLE_TEXTS } from '../constants/UserModeConfigs';
 import { AppSettings } from '../models/AppModels';
 import { SettingsRoute, SoundType, ThemeMode, ToolType } from '../models/Enums';
+import { TextValidator } from '../utils/TextValidator';
 
 enum ClearScope {
   NONE = 'none',
@@ -26,8 +27,10 @@ export struct SettingsPage {
   onClearToday: () => void = (): void => {};
   onClearAll: () => void = (): void => {};
   onNavigate: (route: SettingsRoute) => void = (): void => {};
+  onModalStateChange: (visible: boolean) => void = (_visible: boolean): void => {};
   @State showTextEditor: boolean = false;
   @State customText: string = '';
+  @State textValidationError: string = '';
   @State clearScope: ClearScope = ClearScope.NONE;
 
   private pageBackground(): string { return this.dark ? DesignTokens.darkBackground : DesignTokens.lightBackground; }
@@ -152,6 +155,8 @@ export struct SettingsPage {
         Text('敲击音量').fontSize(14).fontColor(this.primary())
         Slider({ value: this.settings.tapVolume * 100, min: 0, max: 100, step: 5 }).layoutWeight(1)
           .constraintSize({ minWidth: 80 }).selectedColor(DesignTokens.accent)
+          .blockColor(DesignTokens.accent)
+          .trackColor(this.dark ? '#4A433D' : '#E8E2D8')
           .onChange((value: number): void => this.onVolumeChange(value / 100))
         Text(`${Math.round(this.settings.tapVolume * 100)}%`).width(42).fontSize(12).fontColor(this.secondary())
       }.width('100%').constraintSize({ minHeight: 56 })
@@ -195,7 +200,9 @@ export struct SettingsPage {
       }
       .width('100%').constraintSize({ minHeight: 56 }).onClick((): void => {
         this.customText = this.settings.feedbackText;
+        this.textValidationError = '';
         this.showTextEditor = true;
+        this.onModalStateChange(true);
       }).accessibilityText('编辑反馈文字')
       Divider().color(this.divider())
       this.SwitchRow('振', '振动反馈', '仅在开启时调用系统振动能力', this.settings.vibrationEnabled, 'vibration')
@@ -211,13 +218,19 @@ export struct SettingsPage {
         Text('今').width(36).fontSize(18).textAlign(TextAlign.Center).fontColor('#B2773F')
         this.Label('清除今日数据', '删除今日统计与今日练习记录')
         Text('›').fontSize(26).fontColor(this.secondary())
-      }.width('100%').constraintSize({ minHeight: 56 }).onClick((): void => { this.clearScope = ClearScope.TODAY; })
+      }.width('100%').constraintSize({ minHeight: 56 }).onClick((): void => {
+        this.clearScope = ClearScope.TODAY;
+        this.onModalStateChange(true);
+      })
       Divider().color(this.divider())
       Row({ space: 12 }) {
         Text('删').width(36).fontSize(18).textAlign(TextAlign.Center).fontColor('#B85C3A')
         this.Label('清除全部本地数据', '删除设置、统计和练习历史并返回首次引导')
         Text('›').fontSize(26).fontColor(this.secondary())
-      }.width('100%').constraintSize({ minHeight: 56 }).onClick((): void => { this.clearScope = ClearScope.ALL; })
+      }.width('100%').constraintSize({ minHeight: 56 }).onClick((): void => {
+        this.clearScope = ClearScope.ALL;
+        this.onModalStateChange(true);
+      })
     }
     .width('100%').padding(16).backgroundColor(this.card()).borderRadius(DesignTokens.radiusCard)
   }
@@ -262,6 +275,20 @@ export struct SettingsPage {
       }
       .width('100%').height('100%').scrollBar(BarState.Off).backgroundColor(this.pageBackground())
 
+      if (this.showTextEditor || this.clearScope !== ClearScope.NONE) {
+        Row()
+          .width('100%')
+          .height('100%')
+          .backgroundColor('#73000000')
+          .onClick((): void => {
+            this.showTextEditor = false;
+            this.textValidationError = '';
+            this.clearScope = ClearScope.NONE;
+            this.onModalStateChange(false);
+          })
+          .accessibilityText('关闭当前弹窗')
+      }
+
       if (this.showTextEditor) {
         Column({ space: 14 }) {
           Text('反馈文字').fontSize(20).fontWeight(FontWeight.Bold).fontColor(this.primary())
@@ -274,16 +301,38 @@ export struct SettingsPage {
             })
           }.width('100%')
           TextInput({ text: this.customText, placeholder: '请输入 1-12 个字符' }).height(50)
-            .onChange((value: string): void => { this.customText = value; })
+            .maxLength(TextValidator.maxLength)
+            .fontColor(this.primary())
+            .placeholderColor(this.secondary())
+            .backgroundColor(this.dark ? '#302B27' : '#FFFFFF')
+            .onChange((value: string): void => {
+              this.customText = value;
+              this.textValidationError = '';
+            })
+          if (this.textValidationError.length > 0) {
+            Text(this.textValidationError).width('100%').fontSize(12).fontColor('#B85C3A')
+              .accessibilityText(`输入错误，${this.textValidationError}`)
+          }
           Row({ space: 10 }) {
-            Button('取消').layoutWeight(1).height(48).onClick((): void => { this.showTextEditor = false; })
-            Button('保存').layoutWeight(1).height(48).backgroundColor(DesignTokens.accent).onClick((): void => {
+            Button('取消').layoutWeight(1).height(48).onClick((): void => {
               this.showTextEditor = false;
-              this.onCustomText(this.customText);
+              this.textValidationError = '';
+              this.onModalStateChange(false);
+            })
+            Button('保存').layoutWeight(1).height(48).backgroundColor(DesignTokens.accent).onClick((): void => {
+              const validationError: string = TextValidator.validationMessage(this.customText);
+              if (validationError.length > 0) {
+                this.textValidationError = validationError;
+                return;
+              }
+              this.onCustomText(TextValidator.normalize(this.customText));
+              this.showTextEditor = false;
+              this.onModalStateChange(false);
             })
           }
         }
         .width('88%').padding(20).backgroundColor(this.card()).borderRadius(DesignTokens.radiusCard)
+        .translate({ y: -60 })
         .shadow({ radius: 18, color: '#4017130F', offsetY: 6 })
       }
 
@@ -295,10 +344,14 @@ export struct SettingsPage {
             '将删除设置、统计和全部练习历史，并返回首次引导。此操作不可恢复。')
             .fontSize(14).lineHeight(22).fontColor(this.secondary())
           Row({ space: 10 }) {
-            Button('取消').layoutWeight(1).height(48).onClick((): void => { this.clearScope = ClearScope.NONE; })
+            Button('取消').layoutWeight(1).height(48).onClick((): void => {
+              this.clearScope = ClearScope.NONE;
+              this.onModalStateChange(false);
+            })
             Button('确认清除').layoutWeight(1).height(48).backgroundColor('#B85C3A').onClick((): void => {
               const scope: ClearScope = this.clearScope;
               this.clearScope = ClearScope.NONE;
+              this.onModalStateChange(false);
               if (scope === ClearScope.TODAY) this.onClearToday();
               else this.onClearAll();
             })

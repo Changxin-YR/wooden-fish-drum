@@ -9,7 +9,7 @@
 - 主模块只申请 `ohos.permission.VIBRATE`；未申请网络权限。
 - 未发现 HTTP/HTTPS、WebView、广告、支付、登录、云同步或用户画像 SDK 业务能力。
 - 本地标准检查通过；外部标准检查 22 项通过、0 项失败。
-- debug、release、ohosTest 构建退出码为 0；设备 Hypium 47/47，Failure 0、Error 0。
+- debug、release、ohosTest 构建退出码为 0；清理旧 V1 会话测试后的设备 Hypium 43/43，Failure 0、Error 0。
 - API 24 phone 模拟器已验证练习、记录、设置、四个合规页面、返回和清除二次确认。
 - 应用内隐私说明与实际行为一致；用户须知不承诺宗教、医疗或心理健康功效。
 
@@ -28,9 +28,9 @@
 
 ## 构建证据
 
-- debug unsigned HAP：7,396,792 bytes。
-- ohosTest unsigned HAP：8,185,899 bytes。
-- release unsigned HAP：6,938,600 bytes。
+- debug unsigned HAP：7,395,636 bytes。
+- ohosTest unsigned HAP：8,167,889 bytes。
+- release unsigned HAP：6,939,228 bytes。
 - release 构建的 `No signingConfig found for product default` 是真实发布阻塞，不视为已签名产物。
 - release 构建提示尚未启用混淆；当前不把混淆作为功能正确性门禁，正式发布策略需在签名配置完成后由发布主体确认并执行完整回归。
 

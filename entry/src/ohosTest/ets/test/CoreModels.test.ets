@@ -39,6 +39,8 @@ export default function coreModelsTest(): void {
       expect(TextValidator.normalize('  保持专注  ')).assertEqual('保持专注');
       expect(TextValidator.normalize('一二三四五六七八九十十一十二十三')).assertEqual('一二三四五六七八九十十一');
       expect(TextValidator.isValid('   ')).assertFalse();
+      expect(TextValidator.validationMessage('   ')).assertEqual('请输入至少 1 个有效字符');
+      expect(TextValidator.validationMessage('保持专注')).assertEqual('');
     });
 
     it('resolvesExplicitAndSystemThemeModes', 0, (): void => {

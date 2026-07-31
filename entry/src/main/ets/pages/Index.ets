@@ -24,6 +24,7 @@ struct Index {
   @StorageLink('systemDark') systemDark: boolean = false;
   @State ready: boolean = false;
   @State selectedTab: AppTab = AppTab.HOME;
+  @State settingsModalOpen: boolean = false;
   @State settings: AppSettings = JsonCodec.createDefaultSettings();
   @State summary: StatsSummary = new StatsSummary();
   @State recentRecords: DailyRecord[] = [];
@@ -357,6 +358,9 @@ struct Index {
         },
         onNavigate: (route: SettingsRoute): void => {
           this.settingsRoute = route;
+        },
+        onModalStateChange: (visible: boolean): void => {
+          this.settingsModalOpen = visible;
         }
       })
     }
@@ -389,6 +393,7 @@ struct Index {
             BottomNavBar({
               selected: this.selectedTab,
               dark: this.isDark(),
+              interactionEnabled: !this.settingsModalOpen,
               onChange: (tab: AppTab): void => {
                 if (this.selectedTab === AppTab.HOME && tab !== AppTab.HOME &&
                   this.practice.status === PracticeStatus.RUNNING) {

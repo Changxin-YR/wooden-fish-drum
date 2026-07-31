@@ -9,4 +9,8 @@ export class TextValidator {
     const normalized: string = TextValidator.normalize(value);
     return normalized.length > 0 && normalized.length <= TextValidator.maxLength;
   }
+
+  static validationMessage(value: string): string {
+    return TextValidator.isValid(value) ? '' : '请输入至少 1 个有效字符';
+  }
 }

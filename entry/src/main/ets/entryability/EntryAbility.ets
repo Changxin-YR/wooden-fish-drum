@@ -1,7 +1,7 @@
 import { Configuration, ConfigurationConstant, UIAbility } from '@kit.AbilityKit';
 import { window } from '@kit.ArkUI';
 import { audioService } from '../services/AudioService';
-import { sessionService } from '../stores/AppRuntime';
+import { practiceController } from '../stores/AppRuntime';
 
 export default class EntryAbility extends UIAbility {
   onCreate(): void {
@@ -20,7 +20,7 @@ export default class EntryAbility extends UIAbility {
   }
 
   onBackground(): void {
-    sessionService.onBackground();
+    practiceController.onBackground();
     audioService.release();
   }
 }

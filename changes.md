@@ -80,6 +80,15 @@
   `ohos.permission.VIBRATE`，未发现网络权限、HTTP、WebView、广告、支付、登录或云同步能力。
 - release 仍为 unsigned HAP；真实发布签名、备案信息、AppGallery 隐私政策公网 URL、素材商业
   授权以及 tablet/2in1 运行态证据保持发布阻塞，详见 `docs/qa/2026-07-31-release-readiness.md`。
+- 已复核外部审查的 14 项反馈：目标模式、用户身份模式等结论针对已淘汰的 V1 页面，不在 V2.1
+  重新引入；自动手动并行、暂停/恢复、固定木鱼尺寸、真实统计空状态和自动间隔已由现行实现覆盖。
+- 修复现行问题：设置弹层增加全屏遮罩并锁定底栏交互；空白反馈文字保持弹层并显示行内错误；
+  音量滑轨按深浅主题设色；底栏选中态增加勾选、字重、背景和边框，不再只依赖颜色。
+- 删除无生产调用的 `SessionService`、`SessionMode`、`SessionState`、目标推荐和旧功能排序；
+  后台生命周期统一调用 `PracticeController`。保留升级迁移仍需的 `UserMode` 和旧设置别名。
+- 审查修复最终门禁：标准检查与外部检查通过，禁止能力和旧会话引用扫描为 0；设备 Hypium
+  43/43，Failure 0、Error 0；ohosTest/debug/release HAP 分别为 8,167,889、7,395,636、
+  6,939,228 bytes。release 仍为 unsigned HAP。
 
 ## 2026-07-30｜用户反馈改版
 

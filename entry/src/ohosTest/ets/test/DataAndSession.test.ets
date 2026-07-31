@@ -2,12 +2,11 @@ import { describe, expect, it } from '@ohos/hypium';
 import { JsonCodec } from '../../../main/ets/data/JsonCodec';
 import { LocalStoreAdapter } from '../../../main/ets/data/LocalStoreAdapter';
 import { DailyRecord } from '../../../main/ets/models/AppModels';
-import { SceneMode, SessionMode, SoundType, ThemeMode, ToolType, UserMode } from '../../../main/ets/models/Enums';
+import { SceneMode, SoundType, ThemeMode, ToolType, UserMode } from '../../../main/ets/models/Enums';
 import { PracticeSession } from '../../../main/ets/models/PracticeModels';
 import { PracticeSessionRepository } from '../../../main/ets/repositories/PracticeSessionRepository';
 import { SettingsRepository } from '../../../main/ets/repositories/SettingsRepository';
 import { StatsRepository } from '../../../main/ets/repositories/StatsRepository';
-import { SessionService } from '../../../main/ets/services/SessionService';
 import { AppStore } from '../../../main/ets/stores/AppStore';
 import { DateUtil } from '../../../main/ets/utils/DateUtil';
 
@@ -78,52 +77,6 @@ export default function dataAndSessionTest(): void {
       ]);
       const restored: StatsRepository = new StatsRepository(memory);
       expect((await restored.summary('2026-07-30')).totalCount).assertEqual(3);
-    });
-
-    it('countsRapidHitsAndStopsExactlyAtTarget', 0, (): void => {
-      const session: SessionService = new SessionService();
-      for (let index: number = 0; index < 100; index++) {
-        session.recordManualHit();
-      }
-      expect(session.state.currentCount).assertEqual(100);
-      session.startTarget(3);
-      session.recordManualHit();
-      session.recordManualHit();
-      session.recordManualHit();
-      expect(session.state.running).assertFalse();
-      expect(session.state.targetCompleted).assertTrue();
-      expect(session.state.currentCount).assertEqual(3);
-      expect(session.recordManualHit()).assertFalse();
-      expect(session.state.currentCount).assertEqual(3);
-    });
-
-    it('stopsAutoImmediatelyWhenAnotherModeIsSelected', 0, (): void => {
-      const session: SessionService = new SessionService();
-      session.selectMode(SessionMode.AUTO, 108, 1000);
-      expect(session.hasTimer()).assertTrue();
-      session.selectMode(SessionMode.TARGET, 3, 1000);
-      expect(session.hasTimer()).assertFalse();
-      expect(session.state.mode).assertEqual(SessionMode.TARGET);
-      expect(session.state.targetCount).assertEqual(3);
-    });
-
-    it('togglesAutoOffIntoFreeMode', 0, (): void => {
-      const session: SessionService = new SessionService();
-      session.selectMode(SessionMode.AUTO, 108, 1000);
-      session.selectMode(SessionMode.AUTO, 108, 1000);
-      expect(session.hasTimer()).assertFalse();
-      expect(session.state.mode).assertEqual(SessionMode.FREE);
-    });
-
-    it('incrementsOneSharedHitSequenceForManualAndAutoFeedback', 0, (): void => {
-      const session: SessionService = new SessionService();
-      session.startFree();
-      session.recordManualHit();
-      expect(session.state.hitSequence).assertEqual(1);
-      session.selectMode(SessionMode.AUTO, 108, 2000);
-      session.recordAutoHit();
-      expect(session.state.hitSequence).assertEqual(2);
-      session.stop();
     });
 
     it('migratesLegacyModeAndPreservesPreferences', 0, (): void => {

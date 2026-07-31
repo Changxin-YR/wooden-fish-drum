@@ -35,12 +35,6 @@ export enum SoundType {
   SOFT = 'soft'
 }
 
-export enum SessionMode {
-  FREE = 'free',
-  TARGET = 'target',
-  AUTO = 'auto'
-}
-
 export enum AppTab {
   HOME = 'home',
   STATS = 'stats',

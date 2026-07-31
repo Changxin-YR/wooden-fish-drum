@@ -5,6 +5,7 @@ import { DesignTokens } from '../constants/DesignTokens';
 export struct BottomNavBar {
   @Prop selected: AppTab;
   @Prop dark: boolean;
+  @Prop interactionEnabled: boolean = true;
   onChange: (tab: AppTab) => void = (): void => {};
 
   @Builder
@@ -15,16 +16,27 @@ export struct BottomNavBar {
         .height(34)
         .objectFit(ImageFit.Cover)
         .borderRadius(9)
-      Text(label)
+        .opacity(this.selected === tab ? 1 : 0.72)
+      Text(this.selected === tab ? `✓ ${label}` : label)
         .fontSize(12)
+        .fontWeight(this.selected === tab ? FontWeight.Bold : FontWeight.Regular)
         .fontColor(this.selected === tab ? (this.dark ? DesignTokens.accentLight : DesignTokens.wood) :
           (this.dark ? DesignTokens.darkSecondary : DesignTokens.lightSecondary))
     }
     .layoutWeight(1)
     .height(64)
     .justifyContent(FlexAlign.Center)
-    .onClick((): void => this.onChange(tab))
-    .accessibilityText(label)
+    .backgroundColor(this.selected === tab ? (this.dark ? '#352F2A' : '#F7EFE4') : Color.Transparent)
+    .border({ width: this.selected === tab ? 1 : 0,
+      color: this.selected === tab ? DesignTokens.accent : Color.Transparent })
+    .borderRadius(8)
+    .enabled(this.interactionEnabled)
+    .onClick((): void => {
+      if (this.interactionEnabled) {
+        this.onChange(tab);
+      }
+    })
+    .accessibilityText(`${label}${this.selected === tab ? '，已选' : ''}`)
   }
 
   build() {
