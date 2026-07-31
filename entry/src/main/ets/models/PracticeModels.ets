@@ -6,17 +6,38 @@ export class PracticeState {
   manualCount: number = 0;
   automaticCount: number = 0;
   hitSequence: number = 0;
+  lastMilestone: number = 0;
+  startedAt: number = 0;
+}
+
+export class PracticeSessionDraft {
+  toolType: ToolType;
+  startTime: number;
+  endTime: number;
+  manualCount: number;
+  automaticCount: number;
+
+  constructor(toolType: ToolType, startTime: number, endTime: number,
+    manualCount: number, automaticCount: number) {
+    this.toolType = toolType;
+    this.startTime = startTime;
+    this.endTime = endTime;
+    this.manualCount = manualCount;
+    this.automaticCount = automaticCount;
+  }
 }
 
 export class PracticeEvent {
   toolType: ToolType;
   automatic: boolean;
   hitSequence: number;
+  milestone: number;
 
-  constructor(toolType: ToolType, automatic: boolean, hitSequence: number) {
+  constructor(toolType: ToolType, automatic: boolean, hitSequence: number, milestone: number = 0) {
     this.toolType = toolType;
     this.automatic = automatic;
     this.hitSequence = hitSequence;
+    this.milestone = milestone;
   }
 }
 

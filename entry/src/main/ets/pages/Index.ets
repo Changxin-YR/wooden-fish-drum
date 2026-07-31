@@ -4,7 +4,7 @@ import { DesignTokens } from '../constants/DesignTokens';
 import { JsonCodec } from '../data/JsonCodec';
 import { AppSettings, DailyRecord, StatsSummary } from '../models/AppModels';
 import { AppTab, PracticeStatus, SceneMode, SoundType, ThemeMode, ToolType } from '../models/Enums';
-import { PracticeEvent, PracticeState } from '../models/PracticeModels';
+import { PracticeEvent, PracticeSessionDraft, PracticeState } from '../models/PracticeModels';
 import { HomePage } from './HomePage';
 import { SettingsPage } from './SettingsPage';
 import { StatsPage } from './StatsPage';
@@ -52,6 +52,9 @@ struct Index {
     practiceController.setEventCallback((event: PracticeEvent): void => {
       this.handlePracticeEvent(event);
     });
+    practiceController.setSessionCallback((draft: PracticeSessionDraft): void => {
+      appStore.savePracticeSession(draft);
+    });
     this.syncFromStore();
     this.ready = true;
   }
@@ -78,6 +81,7 @@ struct Index {
     next.manualCount = source.manualCount;
     next.automaticCount = source.automaticCount;
     next.hitSequence = source.hitSequence;
+    next.lastMilestone = source.lastMilestone;
     this.practice = next;
   }
 
@@ -87,14 +91,19 @@ struct Index {
       audioService.play(this.settings.selectedSoundId, this.settings.tapVolume);
     }
     if (this.settings.vibrationEnabled) {
-      vibrationService.impact();
+      vibrationService.impact(event.milestone > 0 ? 70 : 35);
     }
-    await appStore.recordHit(event.automatic);
+    await appStore.recordHit(event.toolType, event.automatic);
     this.syncFromStore();
   }
 
   private handleManualHit(): void {
     practiceController.recordManual();
+    this.refreshPracticeState();
+  }
+
+  private handleBeadsGesture(gestureId: number): void {
+    practiceController.recordBeadsGesture(gestureId);
     this.refreshPracticeState();
   }
 
@@ -175,6 +184,7 @@ struct Index {
         practice: this.practice,
         dark: this.isDark(),
         onHit: (): void => this.handleManualHit(),
+        onBeadsGesture: (gestureId: number): void => this.handleBeadsGesture(gestureId),
         onToolChange: (toolType: ToolType): void => this.handleToolChange(toolType),
         onStartAuto: (intervalMs: number): void => this.handleStartAuto(intervalMs),
         onPause: (): void => this.handlePause(),

@@ -51,8 +51,8 @@ try {
     throw "HarmonyOS build failed with exit code $LASTEXITCODE"
   }
 
-  $buildRoot = Join-Path $projectRoot 'entry\build'
-  $artifact = Get-ChildItem -LiteralPath $buildRoot -Recurse -File -Filter '*.hap' |
+  $buildRoot = Join-Path $projectRoot "entry\build\default\outputs\$Target"
+  $artifact = Get-ChildItem -LiteralPath $buildRoot -File -Filter '*.hap' |
     Sort-Object LastWriteTimeUtc -Descending |
     Select-Object -First 1
   if ($null -eq $artifact -or $artifact.Length -eq 0) {

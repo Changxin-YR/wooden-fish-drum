@@ -353,19 +353,19 @@ git commit -m "feat: 重建 V2.1 练习页和木鱼体验"
 - Modify: `entry/src/main/ets/services/PracticeController.ets`
 - Modify: `entry/src/ohosTest/ets/test/PracticeController.test.ets`
 
-- [ ] **Step 1: 写点击、轻扫和节点失败测试**
+- [x] **Step 1: 写点击、轻扫和节点失败测试**
 
 一次手势只能计一次；27、54、108 节点各触发一次提示；109 次不触发 108 提示。
 
-- [ ] **Step 2: 实现热点和高亮层**
+- [x] **Step 2: 实现热点和高亮层**
 
 热点坐标以源图宽高为基准按容器等比映射；点击和轻扫归一化为一次 `recordManual()`。选中珠子同时使用亮度和外圈，不只依赖颜色。
 
-- [ ] **Step 3: 接入自动节律、音效和振动并验证**
+- [x] **Step 3: 接入自动节律、音效和振动并验证**
 
 切出念珠立即停止自动任务并提交会话；节点提示遵循用户振动和音效开关。
 
-- [ ] **Step 4: 提交**
+- [x] **Step 4: 提交**
 
 ```powershell
 git add entry/src/main/ets/components/BeadsView.ets entry/src/main/ets/pages/HomePage.ets entry/src/main/ets/services/PracticeController.ets entry/src/ohosTest/ets/test/PracticeController.test.ets

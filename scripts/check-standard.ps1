@@ -31,6 +31,7 @@ $requiredFiles = @(
   'entry\src\main\ets\pages\StatsPage.ets',
   'entry\src\main\ets\pages\SettingsPage.ets',
   'entry\src\main\ets\components\TodaySummaryCard.ets',
+  'entry\src\main\ets\components\BeadsView.ets',
   'entry\src\main\ets\components\ToolSegmentedControl.ets',
   'entry\src\main\ets\components\PracticeControlDock.ets',
   'entry\src\main\ets\components\WoodenFishView.ets',

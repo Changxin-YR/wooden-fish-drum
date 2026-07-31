@@ -1,4 +1,5 @@
 import { PracticeControlDock } from '../components/PracticeControlDock';
+import { BeadsView } from '../components/BeadsView';
 import { TodaySummaryCard } from '../components/TodaySummaryCard';
 import { ToolSegmentedControl } from '../components/ToolSegmentedControl';
 import { WoodenFishView } from '../components/WoodenFishView';
@@ -14,6 +15,7 @@ export struct HomePage {
   @Prop practice: PracticeState;
   @Prop dark: boolean;
   onHit: () => void = (): void => {};
+  onBeadsGesture: (gestureId: number) => void = (_gestureId: number): void => {};
   onToolChange: (toolType: ToolType) => void = (_toolType: ToolType): void => {};
   onStartAuto: (intervalMs: number) => void = (_intervalMs: number): void => {};
   onPause: () => void = (): void => {};
@@ -86,11 +88,12 @@ export struct HomePage {
           onHit: (): void => this.onHit()
         })
       } else if (this.practice.selectedTool === ToolType.BEADS) {
-        Image($r('app.media.practice_beads'))
-          .width('100%').height(330).objectFit(ImageFit.Contain)
-          .padding(12)
-          .onClick((): void => this.onHit())
-          .accessibilityText('念珠练习区，点击计数')
+        BeadsView({
+          count: this.countValue(),
+          dark: this.dark,
+          reducedMotion: this.settings.reducedMotion,
+          onGesture: (gestureId: number): void => this.onBeadsGesture(gestureId)
+        })
       } else {
         Image($r('app.media.practice_incense'))
           .width('100%').height(330).objectFit(ImageFit.Contain)
@@ -105,8 +108,9 @@ export struct HomePage {
         .fontSize(this.practice.selectedTool === ToolType.INCENSE ? 24 : 54)
         .fontWeight(FontWeight.Bold)
         .fontColor(this.primaryText())
-      Text(this.practice.status === PracticeStatus.RUNNING ? '练习进行中' :
-        (this.practice.status === PracticeStatus.PAUSED ? '已暂停' : '愿你此刻安定专注'))
+      Text(this.practice.lastMilestone > 0 ? `已到 ${this.practice.lastMilestone} 颗 · 继续安住当下` :
+        (this.practice.status === PracticeStatus.RUNNING ? '练习进行中' :
+          (this.practice.status === PracticeStatus.PAUSED ? '已暂停' : '愿你此刻安定专注')))
         .width('100%')
         .height(48)
         .fontSize(14)

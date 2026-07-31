@@ -33,11 +33,19 @@ export class StatsRepository {
   }
 
   async increment(date: string, automatic: boolean): Promise<DailyRecord> {
+    return this.incrementTool(date, ToolType.WOODEN_FISH, automatic);
+  }
+
+  async incrementTool(date: string, toolType: ToolType, automatic: boolean): Promise<DailyRecord> {
     let result: DailyRecord = new DailyRecord(date);
     const operation: Promise<void> = this.mutationQueue.then(async (): Promise<void> => {
       await this.loadStats();
       const record: DailyStats = this.findOrCreate(date);
-      if (automatic) {
+      if (toolType === ToolType.BEADS && automatic) {
+        record.beadsAutoCount++;
+      } else if (toolType === ToolType.BEADS) {
+        record.beadsManualCount++;
+      } else if (automatic) {
         record.woodenFishAutoCount++;
       } else {
         record.woodenFishManualCount++;

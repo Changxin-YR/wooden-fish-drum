@@ -1,9 +1,11 @@
 import { JsonCodec } from '../data/JsonCodec';
 import { AppSettings, DailyRecord, StatsSummary } from '../models/AppModels';
+import { PracticeSession, PracticeSessionDraft } from '../models/PracticeModels';
 import { ThemeMode } from '../models/Enums';
 import { SceneMode, ToolType } from '../models/Enums';
 import { SettingsRepository } from '../repositories/SettingsRepository';
 import { StatsRepository } from '../repositories/StatsRepository';
+import { PracticeSessionRepository } from '../repositories/PracticeSessionRepository';
 import { DateUtil } from '../utils/DateUtil';
 import { TextValidator } from '../utils/TextValidator';
 import { SettingsMigration } from '../utils/SettingsMigration';
@@ -13,17 +15,22 @@ export class AppStore {
   summary: StatsSummary = new StatsSummary();
   recentRecords: DailyRecord[] = [];
   allRecords: DailyRecord[] = [];
+  recentSessions: PracticeSession[] = [];
   private readonly settingsRepository: SettingsRepository;
   private readonly statsRepository: StatsRepository;
+  private readonly sessionRepository: PracticeSessionRepository;
 
-  constructor(settingsRepository: SettingsRepository, statsRepository: StatsRepository) {
+  constructor(settingsRepository: SettingsRepository, statsRepository: StatsRepository,
+    sessionRepository: PracticeSessionRepository) {
     this.settingsRepository = settingsRepository;
     this.statsRepository = statsRepository;
+    this.sessionRepository = sessionRepository;
   }
 
   async initialize(): Promise<void> {
     this.settings = await this.settingsRepository.load();
     await this.refreshStats();
+    this.recentSessions = await this.sessionRepository.recent(20);
   }
 
   async setThemeMode(mode: ThemeMode): Promise<boolean> {
@@ -53,9 +60,27 @@ export class AppStore {
     return this.settingsRepository.save(this.settings);
   }
 
-  async recordHit(automatic: boolean): Promise<void> {
-    await this.statsRepository.increment(DateUtil.todayKey(), automatic);
+  async recordHit(toolType: ToolType, automatic: boolean): Promise<void> {
+    await this.statsRepository.incrementTool(DateUtil.todayKey(), toolType, automatic);
     await this.refreshStats();
+  }
+
+  async savePracticeSession(draft: PracticeSessionDraft): Promise<void> {
+    const durationSeconds: number = Math.max(0, Math.floor((draft.endTime - draft.startTime) / 1000));
+    const session: PracticeSession = new PracticeSession(
+      `${draft.startTime}-${draft.endTime}-${draft.toolType}`,
+      draft.toolType,
+      this.settings.selectedSceneMode,
+      draft.startTime,
+      draft.endTime,
+      draft.manualCount,
+      draft.automaticCount,
+      durationSeconds,
+      true,
+      DateUtil.toKey(new Date(draft.startTime))
+    );
+    await this.sessionRepository.append(session);
+    this.recentSessions = await this.sessionRepository.recent(20);
   }
 
   async refreshStats(): Promise<void> {

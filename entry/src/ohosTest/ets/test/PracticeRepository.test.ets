@@ -76,5 +76,16 @@ export default function practiceRepositoryTest(): void {
       expect(stats[0].beadsAutoCount).assertEqual(2);
       expect(stats[0].sessionCount).assertEqual(1);
     });
+
+    it('incrementsLiveBeadsWithoutChangingWoodenFishTotals', 0, async (): Promise<void> => {
+      const repository: StatsRepository = new StatsRepository(new PracticeMemoryStore());
+      await repository.incrementTool('2026-07-31', ToolType.BEADS, false);
+      await repository.incrementTool('2026-07-31', ToolType.BEADS, true);
+
+      const stats: DailyStats[] = await repository.allStats();
+      expect(stats[0].woodenFishCount).assertEqual(0);
+      expect(stats[0].beadsManualCount).assertEqual(1);
+      expect(stats[0].beadsAutoCount).assertEqual(1);
+    });
   });
 }
