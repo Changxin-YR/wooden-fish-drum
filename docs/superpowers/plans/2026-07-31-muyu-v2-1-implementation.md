@@ -58,7 +58,7 @@
 - Modify: `tasks.md`
 - Modify: `changes.md`
 
-- [ ] **Step 1: 记录基线失败**
+- [x] **Step 1: 记录基线失败**
 
 运行：
 
@@ -69,7 +69,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\build-harmony.ps1 
 
 预期：标准检查报告旧 `ModeSelectPage.ets`、`muyu_dark.png` 缺失；debug 报告 `RowAttribute.flexWrap` 不存在。
 
-- [ ] **Step 2: 修复 API 24 布局类型错误**
+- [x] **Step 2: 修复 API 24 布局类型错误**
 
 把文字候选容器改为支持换行的 `Flex`：
 
@@ -92,7 +92,7 @@ Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, justifyContent: FlexAl
 .width('100%')
 ```
 
-- [ ] **Step 3: 修正标准检查清单**
+- [x] **Step 3: 修正标准检查清单**
 
 删除尚不存在的旧路径，改为当前真实资源：
 
@@ -103,7 +103,7 @@ Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, justifyContent: FlexAl
 
 Task 5 创建引导页时再将 `ModeSelectPage.ets` 加回必需文件。
 
-- [ ] **Step 4: 验证并提交**
+- [x] **Step 4: 验证并提交**
 
 运行上述标准检查和 debug 构建，预期退出码均为 0，且生成非空 HAP。
 

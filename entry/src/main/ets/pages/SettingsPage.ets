@@ -298,7 +298,7 @@ export struct SettingsPage {
           Text('选择预设或输入自定义文字（1-12个字符）')
             .fontSize(12)
             .fontColor(this.secondaryText())
-          Row({ space: 8 }) {
+          Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Start }) {
             ForEach(GENERAL_AVAILABLE_TEXTS, (text: string) => {
               Text(text)
                 .fontSize(14)
@@ -307,13 +307,13 @@ export struct SettingsPage {
                 .backgroundColor(this.customText === text ? '#9A612C' :
                   (this.dark ? '#3B3530' : '#F7EFE4'))
                 .borderRadius(20)
+                .margin({ right: 8, bottom: 8 })
                 .onClick((): void => {
                   this.customText = text;
                 })
             })
           }
           .width('100%')
-          .flexWrap(FlexWrap.Wrap)
           TextInput({ text: this.customText, placeholder: '请输入 1-12 个字符' })
             .height(50)
             .onChange((value: string): void => {
