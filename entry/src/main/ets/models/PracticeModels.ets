@@ -8,6 +8,8 @@ export class PracticeState {
   hitSequence: number = 0;
   lastMilestone: number = 0;
   startedAt: number = 0;
+  incenseTargetSeconds: number = 0;
+  incenseRemainingSeconds: number = 0;
 }
 
 export class PracticeSessionDraft {
@@ -16,14 +18,39 @@ export class PracticeSessionDraft {
   endTime: number;
   manualCount: number;
   automaticCount: number;
+  durationSeconds: number;
+  completed: boolean;
 
   constructor(toolType: ToolType, startTime: number, endTime: number,
-    manualCount: number, automaticCount: number) {
+    manualCount: number, automaticCount: number, durationSeconds: number = -1,
+    completed: boolean = true) {
     this.toolType = toolType;
     this.startTime = startTime;
     this.endTime = endTime;
     this.manualCount = manualCount;
     this.automaticCount = automaticCount;
+    this.durationSeconds = durationSeconds;
+    this.completed = completed;
+  }
+}
+
+export class IncenseSnapshot {
+  status: PracticeStatus;
+  startedAt: number;
+  targetSeconds: number;
+  pausedAt: number;
+  accumulatedPauseMs: number;
+  completionConsumed: boolean;
+
+  constructor(status: PracticeStatus = PracticeStatus.IDLE, startedAt: number = 0,
+    targetSeconds: number = 0, pausedAt: number = 0, accumulatedPauseMs: number = 0,
+    completionConsumed: boolean = false) {
+    this.status = status;
+    this.startedAt = startedAt;
+    this.targetSeconds = targetSeconds;
+    this.pausedAt = pausedAt;
+    this.accumulatedPauseMs = accumulatedPauseMs;
+    this.completionConsumed = completionConsumed;
   }
 }
 

@@ -381,19 +381,19 @@ git commit -m "feat: 增加念珠计数和节点反馈"
 - Modify: `entry/src/main/ets/services/PracticeController.ets`
 - Modify: `entry/src/ohosTest/ets/test/PracticeController.test.ets`
 
-- [ ] **Step 1: 写预设、暂停、后台恢复和完成一次测试**
+- [x] **Step 1: 写预设、暂停、后台恢复和完成一次测试**
 
 分别覆盖 5/10/15/20/30 分钟，暂停不扣减，墙钟跨越后剩余准确，同一完成状态重复刷新只写一个 session。
 
-- [ ] **Step 2: 实现燃烧进度和控制区**
+- [x] **Step 2: 实现燃烧进度和控制区**
 
 进度为 `1 - remaining / target` 并限制在 0..1；减少动画时使用静态烟雾。点击香体不增加次数。
 
-- [ ] **Step 3: 接入生命周期和持久化**
+- [x] **Step 3: 接入生命周期和持久化**
 
 后台保存开始时间、目标时长、累计暂停时长和状态；回前台按墙钟恢复，完成后写入真实时长。
 
-- [ ] **Step 4: 提交**
+- [x] **Step 4: 提交**
 
 ```powershell
 git add entry/src/main/ets/components/IncenseView.ets entry/src/main/ets/pages/HomePage.ets entry/src/main/ets/services entry/src/ohosTest/ets/test

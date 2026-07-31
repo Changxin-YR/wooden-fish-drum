@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@ohos/hypium';
 import { LocalStoreAdapter } from '../../../main/ets/data/LocalStoreAdapter';
-import { DailyStats, PracticeSession } from '../../../main/ets/models/PracticeModels';
-import { SceneMode, ToolType } from '../../../main/ets/models/Enums';
+import { DailyStats, IncenseSnapshot, PracticeSession } from '../../../main/ets/models/PracticeModels';
+import { PracticeStatus, SceneMode, ToolType } from '../../../main/ets/models/Enums';
 import { PracticeSessionRepository } from '../../../main/ets/repositories/PracticeSessionRepository';
 import { StatsRepository } from '../../../main/ets/repositories/StatsRepository';
 import { StatsMigration } from '../../../main/ets/utils/StatsMigration';
@@ -86,6 +86,21 @@ export default function practiceRepositoryTest(): void {
       expect(stats[0].woodenFishCount).assertEqual(0);
       expect(stats[0].beadsManualCount).assertEqual(1);
       expect(stats[0].beadsAutoCount).assertEqual(1);
+    });
+
+    it('persistsAndClearsActiveIncenseSnapshot', 0, async (): Promise<void> => {
+      const store: PracticeMemoryStore = new PracticeMemoryStore();
+      const writer: PracticeSessionRepository = new PracticeSessionRepository(store);
+      await writer.saveActiveIncense(new IncenseSnapshot(PracticeStatus.PAUSED,
+        1000, 900, 61000, 0, false));
+      const reader: PracticeSessionRepository = new PracticeSessionRepository(store);
+
+      const restored: IncenseSnapshot | null = await reader.loadActiveIncense();
+      expect(restored === null).assertFalse();
+      expect(restored?.targetSeconds).assertEqual(900);
+      expect(restored?.status).assertEqual(PracticeStatus.PAUSED);
+      await reader.clearActiveIncense();
+      expect(await reader.loadActiveIncense() === null).assertTrue();
     });
   });
 }

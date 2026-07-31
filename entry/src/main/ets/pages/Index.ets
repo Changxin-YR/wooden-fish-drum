@@ -4,7 +4,7 @@ import { DesignTokens } from '../constants/DesignTokens';
 import { JsonCodec } from '../data/JsonCodec';
 import { AppSettings, DailyRecord, StatsSummary } from '../models/AppModels';
 import { AppTab, PracticeStatus, SceneMode, SoundType, ThemeMode, ToolType } from '../models/Enums';
-import { PracticeEvent, PracticeSessionDraft, PracticeState } from '../models/PracticeModels';
+import { IncenseSnapshot, PracticeEvent, PracticeSessionDraft, PracticeState } from '../models/PracticeModels';
 import { HomePage } from './HomePage';
 import { SettingsPage } from './SettingsPage';
 import { StatsPage } from './StatsPage';
@@ -26,6 +26,7 @@ struct Index {
   @State allRecords: DailyRecord[] = [];
   @State practice: PracticeState = new PracticeState();
   @State viewportWidth: number = 390;
+  private incenseRefreshTimerId: number = -1;
 
   private contentMaxWidth(): number {
     if (this.viewportWidth >= 1024) {
@@ -53,14 +54,26 @@ struct Index {
       this.handlePracticeEvent(event);
     });
     practiceController.setSessionCallback((draft: PracticeSessionDraft): void => {
-      appStore.savePracticeSession(draft);
+      this.handlePracticeSession(draft);
     });
     this.syncFromStore();
+    const activeIncense: IncenseSnapshot | null = await appStore.loadActiveIncense();
+    if (activeIncense !== null) {
+      practiceController.restoreIncense(activeIncense);
+    }
+    practiceController.refreshIncense();
+    this.refreshPracticeState();
+    if (this.practice.selectedTool === ToolType.INCENSE &&
+      this.practice.status === PracticeStatus.RUNNING) {
+      this.startIncenseRefresh();
+    }
     this.ready = true;
   }
 
   aboutToDisappear(): void {
+    this.clearIncenseRefresh();
     practiceController.onBackground();
+    this.persistActiveIncense();
     audioService.release();
   }
 
@@ -82,6 +95,9 @@ struct Index {
     next.automaticCount = source.automaticCount;
     next.hitSequence = source.hitSequence;
     next.lastMilestone = source.lastMilestone;
+    next.startedAt = source.startedAt;
+    next.incenseTargetSeconds = source.incenseTargetSeconds;
+    next.incenseRemainingSeconds = source.incenseRemainingSeconds;
     this.practice = next;
   }
 
@@ -97,6 +113,13 @@ struct Index {
     this.syncFromStore();
   }
 
+  private handlePracticeSession(draft: PracticeSessionDraft): void {
+    appStore.savePracticeSession(draft);
+    if (draft.toolType === ToolType.INCENSE) {
+      appStore.clearActiveIncense();
+    }
+  }
+
   private handleManualHit(): void {
     practiceController.recordManual();
     this.refreshPracticeState();
@@ -108,10 +131,73 @@ struct Index {
   }
 
   private handleToolChange(toolType: ToolType): void {
+    if (this.practice.selectedTool === ToolType.INCENSE && toolType !== ToolType.INCENSE) {
+      this.clearIncenseRefresh();
+    }
     practiceController.selectTool(toolType);
     appStore.settings.selectedTool = toolType;
     appStore.persistSettings().then((): void => this.syncFromStore());
     this.refreshPracticeState();
+  }
+
+  private handleStartIncense(durationSeconds: number): void {
+    if (practiceController.startIncense(durationSeconds)) {
+      this.refreshPracticeState();
+      this.persistActiveIncense();
+      this.startIncenseRefresh();
+    }
+  }
+
+  private handlePauseIncense(): void {
+    if (practiceController.pauseIncense()) {
+      this.clearIncenseRefresh();
+      this.refreshPracticeState();
+      this.persistActiveIncense();
+    }
+  }
+
+  private handleResumeIncense(): void {
+    if (practiceController.resumeIncense()) {
+      this.refreshPracticeState();
+      this.persistActiveIncense();
+      this.startIncenseRefresh();
+    }
+  }
+
+  private handleStopIncense(): void {
+    this.clearIncenseRefresh();
+    practiceController.stopIncense();
+    appStore.clearActiveIncense();
+    this.refreshPracticeState();
+  }
+
+  private startIncenseRefresh(): void {
+    if (this.incenseRefreshTimerId !== -1) {
+      return;
+    }
+    this.incenseRefreshTimerId = setInterval((): void => {
+      practiceController.refreshIncense();
+      this.refreshPracticeState();
+      if (this.practice.status === PracticeStatus.COMPLETED) {
+        this.clearIncenseRefresh();
+      }
+    }, 1000);
+  }
+
+  private clearIncenseRefresh(): void {
+    if (this.incenseRefreshTimerId !== -1) {
+      clearInterval(this.incenseRefreshTimerId);
+      this.incenseRefreshTimerId = -1;
+    }
+  }
+
+  private persistActiveIncense(): void {
+    const snapshot: IncenseSnapshot | null = practiceController.incenseSnapshot();
+    if (snapshot === null) {
+      appStore.clearActiveIncense();
+    } else {
+      appStore.saveActiveIncense(snapshot);
+    }
   }
 
   private handleStartAuto(intervalMs: number): void {
@@ -197,7 +283,11 @@ struct Index {
         onVolumeChange: (volume: number): void => this.updateVolume(volume),
         onVibrationToggle: (enabled: boolean): void => {
           this.updateSetting('vibration', enabled);
-        }
+        },
+        onStartIncense: (durationSeconds: number): void => this.handleStartIncense(durationSeconds),
+        onPauseIncense: (): void => this.handlePauseIncense(),
+        onResumeIncense: (): void => this.handleResumeIncense(),
+        onStopIncense: (): void => this.handleStopIncense()
       })
     } else if (this.selectedTab === AppTab.STATS) {
       StatsPage({ summary: this.summary, records: this.allRecords, dark: this.isDark() })

@@ -1,6 +1,6 @@
 import { JsonCodec } from '../data/JsonCodec';
 import { AppSettings, DailyRecord, StatsSummary } from '../models/AppModels';
-import { PracticeSession, PracticeSessionDraft } from '../models/PracticeModels';
+import { IncenseSnapshot, PracticeSession, PracticeSessionDraft } from '../models/PracticeModels';
 import { ThemeMode } from '../models/Enums';
 import { SceneMode, ToolType } from '../models/Enums';
 import { SettingsRepository } from '../repositories/SettingsRepository';
@@ -66,7 +66,8 @@ export class AppStore {
   }
 
   async savePracticeSession(draft: PracticeSessionDraft): Promise<void> {
-    const durationSeconds: number = Math.max(0, Math.floor((draft.endTime - draft.startTime) / 1000));
+    const durationSeconds: number = draft.durationSeconds >= 0 ? draft.durationSeconds :
+      Math.max(0, Math.floor((draft.endTime - draft.startTime) / 1000));
     const session: PracticeSession = new PracticeSession(
       `${draft.startTime}-${draft.endTime}-${draft.toolType}`,
       draft.toolType,
@@ -76,11 +77,27 @@ export class AppStore {
       draft.manualCount,
       draft.automaticCount,
       durationSeconds,
-      true,
+      draft.completed,
       DateUtil.toKey(new Date(draft.startTime))
     );
-    await this.sessionRepository.append(session);
+    const inserted: boolean = await this.sessionRepository.append(session);
+    if (inserted && draft.toolType === ToolType.INCENSE) {
+      await this.statsRepository.applySession(session);
+      await this.refreshStats();
+    }
     this.recentSessions = await this.sessionRepository.recent(20);
+  }
+
+  async saveActiveIncense(snapshot: IncenseSnapshot): Promise<void> {
+    await this.sessionRepository.saveActiveIncense(snapshot);
+  }
+
+  async loadActiveIncense(): Promise<IncenseSnapshot | null> {
+    return this.sessionRepository.loadActiveIncense();
+  }
+
+  async clearActiveIncense(): Promise<void> {
+    await this.sessionRepository.clearActiveIncense();
   }
 
   async refreshStats(): Promise<void> {

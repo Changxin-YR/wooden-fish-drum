@@ -16,6 +16,12 @@ export struct PracticeControlDock {
   onSoundToggle: (enabled: boolean) => void = (_enabled: boolean): void => {};
   onVolumeChange: (volume: number) => void = (_volume: number): void => {};
   onVibrationToggle: (enabled: boolean) => void = (_enabled: boolean): void => {};
+  onStartIncense: (durationSeconds: number) => void = (_durationSeconds: number): void => {};
+  onPauseIncense: () => void = (): void => {};
+  onResumeIncense: () => void = (): void => {};
+  onStopIncense: () => void = (): void => {};
+  @Prop incenseTargetSeconds: number = 0;
+  @State selectedIncenseSeconds: number = 900;
 
   private primaryText(): string {
     return this.dark ? DesignTokens.darkText : '#56371F';
@@ -75,6 +81,27 @@ export struct PracticeControlDock {
       .onClick((): void => this.onIntervalChange(intervalMs))
   }
 
+  @Builder
+  IncensePreset(durationSeconds: number, label: string) {
+    Button(label)
+      .layoutWeight(1)
+      .height(48)
+      .type(ButtonType.Normal)
+      .fontSize(13)
+      .fontColor((this.status === PracticeStatus.RUNNING || this.status === PracticeStatus.PAUSED ?
+        this.incenseTargetSeconds : this.selectedIncenseSeconds) ===
+        durationSeconds ? '#FFFFFF' : this.secondaryText())
+      .backgroundColor((this.status === PracticeStatus.RUNNING || this.status === PracticeStatus.PAUSED ?
+        this.incenseTargetSeconds : this.selectedIncenseSeconds) ===
+        durationSeconds ? '#A66C39' : Color.Transparent)
+      .borderRadius(24)
+      .onClick((): void => {
+        if (this.status === PracticeStatus.IDLE || this.status === PracticeStatus.COMPLETED) {
+          this.selectedIncenseSeconds = durationSeconds;
+        }
+      })
+  }
+
   build() {
     Column({ space: 14 }) {
       if (this.selectedTool !== ToolType.INCENSE) {
@@ -98,12 +125,46 @@ export struct PracticeControlDock {
         .backgroundColor(this.dark ? '#2E2925' : '#FAF6F0')
         .borderRadius(28)
       } else {
-        Text('选择时长后即可开始一段静心计时')
-          .width('100%')
-          .height(48)
-          .fontSize(14)
-          .fontColor(this.secondaryText())
-          .textAlign(TextAlign.Center)
+        Row({ space: 2 }) {
+          this.IncensePreset(300, '5分')
+          this.IncensePreset(600, '10分')
+          this.IncensePreset(900, '15分')
+          this.IncensePreset(1200, '20分')
+          this.IncensePreset(1800, '30分')
+        }
+        .width('100%')
+        .padding(4)
+        .backgroundColor(this.dark ? '#2E2925' : '#F7F1E9')
+        .borderRadius(28)
+        Row({ space: 10 }) {
+          Button(this.status === PracticeStatus.RUNNING ? '暂停' :
+            (this.status === PracticeStatus.PAUSED ? '继续' : '选择时长开始'))
+            .layoutWeight(1)
+            .height(48)
+            .type(ButtonType.Normal)
+            .fontColor('#FFFFFF')
+            .backgroundColor('#A66C39')
+            .borderRadius(24)
+            .onClick((): void => {
+              if (this.status === PracticeStatus.RUNNING) {
+                this.onPauseIncense();
+              } else if (this.status === PracticeStatus.PAUSED) {
+                this.onResumeIncense();
+              } else {
+                this.onStartIncense(this.selectedIncenseSeconds);
+              }
+            })
+          Button('结束')
+            .width(80)
+            .height(48)
+            .type(ButtonType.Normal)
+            .fontColor(this.secondaryText())
+            .backgroundColor(this.dark ? '#3A3530' : '#EFE9E1')
+            .borderRadius(24)
+            .enabled(this.status === PracticeStatus.RUNNING || this.status === PracticeStatus.PAUSED)
+            .onClick((): void => this.onStopIncense())
+        }
+        .width('100%')
       }
 
       Row({ space: 12 }) {

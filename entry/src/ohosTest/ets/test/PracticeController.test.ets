@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@ohos/hypium';
 import { PracticeStatus, ToolType } from '../../../main/ets/models/Enums';
-import { PracticeEvent, PracticeSessionDraft } from '../../../main/ets/models/PracticeModels';
+import { IncenseSnapshot, PracticeEvent, PracticeSessionDraft } from '../../../main/ets/models/PracticeModels';
 import { IncenseTimer } from '../../../main/ets/services/IncenseTimer';
 import { PracticeController } from '../../../main/ets/services/PracticeController';
 
@@ -131,6 +131,49 @@ export default function practiceControllerTest(): void {
       expect(drafts[0].manualCount).assertEqual(1);
     });
 
+    it('startsEverySupportedIncensePreset', 0, (): void => {
+      const presets: number[] = [300, 600, 900, 1200, 1800];
+      presets.forEach((durationSeconds: number): void => {
+        const controller: PracticeController = new PracticeController();
+        controller.selectTool(ToolType.INCENSE);
+        expect(controller.startIncense(durationSeconds, 1000)).assertTrue();
+        expect(controller.state.incenseTargetSeconds).assertEqual(durationSeconds);
+        expect(controller.state.incenseRemainingSeconds).assertEqual(durationSeconds);
+      });
+    });
+
+    it('pausesAndResumesIncenseUsingWallClock', 0, (): void => {
+      const controller: PracticeController = new PracticeController();
+      controller.selectTool(ToolType.INCENSE);
+      controller.startIncense(300, 1000);
+      controller.refreshIncense(61000);
+      expect(controller.state.incenseRemainingSeconds).assertEqual(240);
+      controller.pauseIncense(61000);
+      controller.refreshIncense(121000);
+      expect(controller.state.incenseRemainingSeconds).assertEqual(240);
+      controller.resumeIncense(121000);
+      controller.refreshIncense(181000);
+      expect(controller.state.incenseRemainingSeconds).assertEqual(180);
+    });
+
+    it('submitsCompletedIncenseOnlyOnceAcrossRepeatedRefresh', 0, (): void => {
+      const controller: PracticeController = new PracticeController();
+      const drafts: PracticeSessionDraft[] = [];
+      controller.setSessionCallback((draft: PracticeSessionDraft): void => {
+        drafts.push(draft);
+      });
+      controller.selectTool(ToolType.INCENSE);
+      controller.startIncense(300, 1000);
+
+      controller.refreshIncense(301000);
+      controller.refreshIncense(302000);
+
+      expect(drafts.length).assertEqual(1);
+      expect(drafts[0].toolType).assertEqual(ToolType.INCENSE);
+      expect(drafts[0].durationSeconds).assertEqual(300);
+      expect(controller.state.status).assertEqual(PracticeStatus.COMPLETED);
+    });
+
     it('usesWallClockForIncensePauseAndSingleCompletion', 0, (): void => {
       const timer: IncenseTimer = new IncenseTimer();
       timer.start(1000, 300);
@@ -142,6 +185,19 @@ export default function practiceControllerTest(): void {
       expect(timer.consumeCompletion(361000)).assertTrue();
       expect(timer.consumeCompletion(361000)).assertFalse();
       expect(timer.status).assertEqual(PracticeStatus.COMPLETED);
+    });
+
+    it('restoresIncenseSnapshotWithAccurateWallClockState', 0, (): void => {
+      const source: IncenseTimer = new IncenseTimer();
+      source.start(1000, 300);
+      source.pause(61000);
+      const snapshot: IncenseSnapshot = source.snapshot();
+      const restored: IncenseTimer = new IncenseTimer();
+
+      expect(restored.restore(snapshot)).assertTrue();
+      expect(restored.remainingAt(121000)).assertEqual(240);
+      expect(restored.resume(121000)).assertTrue();
+      expect(restored.remainingAt(181000)).assertEqual(180);
     });
   });
 }

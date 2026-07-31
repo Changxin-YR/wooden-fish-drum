@@ -1,6 +1,7 @@
 import { PracticeStatus, ToolType } from '../models/Enums';
-import { PracticeEvent, PracticeSessionDraft, PracticeState } from '../models/PracticeModels';
+import { IncenseSnapshot, PracticeEvent, PracticeSessionDraft, PracticeState } from '../models/PracticeModels';
 import { AutoRhythmController } from './AutoRhythmController';
+import { IncenseTimer } from './IncenseTimer';
 
 export type PracticeEventCallback = (event: PracticeEvent) => void;
 export type PracticeSessionCallback = (draft: PracticeSessionDraft) => void;
@@ -8,6 +9,7 @@ export type PracticeSessionCallback = (draft: PracticeSessionDraft) => void;
 export class PracticeController {
   state: PracticeState = new PracticeState();
   private readonly rhythm: AutoRhythmController = new AutoRhythmController();
+  private readonly incense: IncenseTimer = new IncenseTimer();
   private onEvent: PracticeEventCallback = (_event: PracticeEvent): void => {};
   private onSession: PracticeSessionCallback = (_draft: PracticeSessionDraft): void => {};
   private lastBeadsGestureId: number = -1;
@@ -25,7 +27,11 @@ export class PracticeController {
       return;
     }
     this.rhythm.stop();
-    this.finishSession();
+    if (this.state.selectedTool === ToolType.INCENSE) {
+      this.finishIncense(Date.now(), false);
+    } else {
+      this.finishSession();
+    }
     const next: PracticeState = new PracticeState();
     next.selectedTool = toolType;
     this.state = next;
@@ -72,6 +78,79 @@ export class PracticeController {
     return started;
   }
 
+  startIncense(durationSeconds: number, now: number = Date.now()): boolean {
+    if (this.state.selectedTool !== ToolType.INCENSE ||
+      ![300, 600, 900, 1200, 1800].includes(durationSeconds)) {
+      return false;
+    }
+    if (!this.incense.start(now, durationSeconds)) {
+      return false;
+    }
+    this.state.status = PracticeStatus.RUNNING;
+    this.state.startedAt = now;
+    this.state.incenseTargetSeconds = durationSeconds;
+    this.state.incenseRemainingSeconds = durationSeconds;
+    return true;
+  }
+
+  pauseIncense(now: number = Date.now()): boolean {
+    const paused: boolean = this.incense.pause(now);
+    if (paused) {
+      this.state.status = PracticeStatus.PAUSED;
+      this.state.incenseRemainingSeconds = this.incense.remainingAt(now);
+    }
+    return paused;
+  }
+
+  resumeIncense(now: number = Date.now()): boolean {
+    const resumed: boolean = this.incense.resume(now);
+    if (resumed) {
+      this.state.status = PracticeStatus.RUNNING;
+      this.state.incenseRemainingSeconds = this.incense.remainingAt(now);
+    }
+    return resumed;
+  }
+
+  refreshIncense(now: number = Date.now()): void {
+    if (this.state.selectedTool !== ToolType.INCENSE || this.state.incenseTargetSeconds === 0 ||
+      this.incense.startTime === 0) {
+      return;
+    }
+    this.state.incenseRemainingSeconds = this.incense.remainingAt(now);
+    if (this.incense.consumeCompletion(now)) {
+      this.state.status = PracticeStatus.COMPLETED;
+      this.finishIncense(now, true);
+    }
+  }
+
+  stopIncense(now: number = Date.now()): void {
+    this.finishIncense(now, false);
+    this.incense.stop();
+    const next: PracticeState = new PracticeState();
+    next.selectedTool = ToolType.INCENSE;
+    this.state = next;
+  }
+
+  incenseSnapshot(): IncenseSnapshot | null {
+    return this.incense.startTime === 0 ? null : this.incense.snapshot();
+  }
+
+  restoreIncense(snapshot: IncenseSnapshot, now: number = Date.now()): boolean {
+    this.rhythm.stop();
+    if (!this.incense.restore(snapshot)) {
+      return false;
+    }
+    const next: PracticeState = new PracticeState();
+    next.selectedTool = ToolType.INCENSE;
+    next.status = snapshot.status;
+    next.startedAt = snapshot.startedAt;
+    next.incenseTargetSeconds = snapshot.targetSeconds;
+    next.incenseRemainingSeconds = this.incense.remainingAt(now);
+    this.state = next;
+    this.refreshIncense(now);
+    return true;
+  }
+
   pause(): boolean {
     const paused: boolean = this.rhythm.pause();
     if (paused) {
@@ -94,6 +173,10 @@ export class PracticeController {
   }
 
   onBackground(): void {
+    if (this.state.selectedTool === ToolType.INCENSE) {
+      this.refreshIncense(Date.now());
+      return;
+    }
     this.rhythm.stop();
     this.finishSession();
     const next: PracticeState = new PracticeState();
@@ -131,6 +214,17 @@ export class PracticeController {
     }
     this.onSession(new PracticeSessionDraft(this.state.selectedTool, this.state.startedAt, Date.now(),
       this.state.manualCount, this.state.automaticCount));
+  }
+
+  private finishIncense(now: number, completed: boolean): void {
+    if (this.incense.startTime === 0) {
+      return;
+    }
+    const durationSeconds: number = completed ? this.incense.durationSeconds :
+      this.incense.elapsedSecondsAt(now);
+    this.onSession(new PracticeSessionDraft(ToolType.INCENSE, this.incense.startTime, now,
+      0, 0, durationSeconds, completed));
+    this.incense.stop();
   }
 
   private emitHit(automatic: boolean, milestone: number): void {

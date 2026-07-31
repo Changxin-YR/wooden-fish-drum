@@ -1,8 +1,9 @@
 import { LocalStoreAdapter } from '../data/LocalStoreAdapter';
-import { PracticeSession } from '../models/PracticeModels';
-import { SceneMode, ToolType } from '../models/Enums';
+import { IncenseSnapshot, PracticeSession } from '../models/PracticeModels';
+import { PracticeStatus, SceneMode, ToolType } from '../models/Enums';
 
 const SESSION_KEY: string = 'practice_sessions_v2';
+const ACTIVE_INCENSE_KEY: string = 'active_incense_v2';
 
 export class PracticeSessionRepository {
   private readonly store: LocalStoreAdapter;
@@ -59,6 +60,42 @@ export class PracticeSessionRepository {
       this.sessions = [];
       this.loaded = true;
       await this.store.remove(SESSION_KEY);
+      await this.store.remove(ACTIVE_INCENSE_KEY);
+    });
+    this.mutationQueue = operation.catch((): void => {});
+    await operation;
+  }
+
+  async saveActiveIncense(snapshot: IncenseSnapshot): Promise<void> {
+    const operation: Promise<void> = this.mutationQueue.then(async (): Promise<void> => {
+      await this.store.putString(ACTIVE_INCENSE_KEY, JSON.stringify(snapshot));
+    });
+    this.mutationQueue = operation.catch((): void => {});
+    await operation;
+  }
+
+  async loadActiveIncense(): Promise<IncenseSnapshot | null> {
+    await this.mutationQueue;
+    const value: string = await this.store.getString(ACTIVE_INCENSE_KEY, '');
+    if (value.length === 0) {
+      return null;
+    }
+    try {
+      const parsed: IncenseSnapshot = JSON.parse(value) as IncenseSnapshot;
+      if ((parsed.status !== PracticeStatus.RUNNING && parsed.status !== PracticeStatus.PAUSED) ||
+        parsed.startedAt <= 0 || parsed.targetSeconds <= 0 || parsed.accumulatedPauseMs < 0) {
+        return null;
+      }
+      return new IncenseSnapshot(parsed.status, parsed.startedAt, parsed.targetSeconds,
+        parsed.pausedAt, parsed.accumulatedPauseMs, parsed.completionConsumed === true);
+    } catch {
+      return null;
+    }
+  }
+
+  async clearActiveIncense(): Promise<void> {
+    const operation: Promise<void> = this.mutationQueue.then(async (): Promise<void> => {
+      await this.store.remove(ACTIVE_INCENSE_KEY);
     });
     this.mutationQueue = operation.catch((): void => {});
     await operation;

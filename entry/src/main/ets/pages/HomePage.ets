@@ -1,5 +1,6 @@
 import { PracticeControlDock } from '../components/PracticeControlDock';
 import { BeadsView } from '../components/BeadsView';
+import { IncenseView } from '../components/IncenseView';
 import { TodaySummaryCard } from '../components/TodaySummaryCard';
 import { ToolSegmentedControl } from '../components/ToolSegmentedControl';
 import { WoodenFishView } from '../components/WoodenFishView';
@@ -25,6 +26,10 @@ export struct HomePage {
   onSoundToggle: (enabled: boolean) => void = (_enabled: boolean): void => {};
   onVolumeChange: (volume: number) => void = (_volume: number): void => {};
   onVibrationToggle: (enabled: boolean) => void = (_enabled: boolean): void => {};
+  onStartIncense: (durationSeconds: number) => void = (_durationSeconds: number): void => {};
+  onPauseIncense: () => void = (): void => {};
+  onResumeIncense: () => void = (): void => {};
+  onStopIncense: () => void = (): void => {};
   @State viewportWidth: number = 390;
 
   private pageBackground(): string {
@@ -51,6 +56,18 @@ export struct HomePage {
       return '静心计时';
     }
     return '功课次数';
+  }
+
+  private incenseTimeText(): string {
+    if (this.practice.incenseTargetSeconds === 0) {
+      return '尚未开始';
+    }
+    if (this.practice.status === PracticeStatus.COMPLETED) {
+      return '已完成';
+    }
+    const seconds: number = Math.max(0, this.practice.incenseRemainingSeconds);
+    return `${Math.floor(seconds / 60).toString().padStart(2, '0')}:${(seconds % 60)
+      .toString().padStart(2, '0')}`;
   }
 
   @Builder
@@ -95,16 +112,19 @@ export struct HomePage {
           onGesture: (gestureId: number): void => this.onBeadsGesture(gestureId)
         })
       } else {
-        Image($r('app.media.practice_incense'))
-          .width('100%').height(330).objectFit(ImageFit.Contain)
-          .padding(12)
-          .accessibilityText('一炷香静心计时区')
+        IncenseView({
+          targetSeconds: this.practice.incenseTargetSeconds,
+          remainingSeconds: this.practice.incenseRemainingSeconds,
+          status: this.practice.status,
+          dark: this.dark,
+          reducedMotion: this.settings.reducedMotion
+        })
       }
 
       Text(this.toolLabel())
         .fontSize(14)
         .fontColor(this.secondaryText())
-      Text(this.practice.selectedTool === ToolType.INCENSE ? '尚未开始' : `${this.countValue()}`)
+      Text(this.practice.selectedTool === ToolType.INCENSE ? this.incenseTimeText() : `${this.countValue()}`)
         .fontSize(this.practice.selectedTool === ToolType.INCENSE ? 24 : 54)
         .fontWeight(FontWeight.Bold)
         .fontColor(this.primaryText())
@@ -136,7 +156,12 @@ export struct HomePage {
       onIntervalChange: (intervalMs: number): void => this.onIntervalChange(intervalMs),
       onSoundToggle: (enabled: boolean): void => this.onSoundToggle(enabled),
       onVolumeChange: (volume: number): void => this.onVolumeChange(volume),
-      onVibrationToggle: (enabled: boolean): void => this.onVibrationToggle(enabled)
+      onVibrationToggle: (enabled: boolean): void => this.onVibrationToggle(enabled),
+      incenseTargetSeconds: this.practice.incenseTargetSeconds,
+      onStartIncense: (durationSeconds: number): void => this.onStartIncense(durationSeconds),
+      onPauseIncense: (): void => this.onPauseIncense(),
+      onResumeIncense: (): void => this.onResumeIncense(),
+      onStopIncense: (): void => this.onStopIncense()
     })
   }
 

@@ -1,4 +1,5 @@
 import { PracticeStatus } from '../models/Enums';
+import { IncenseSnapshot } from '../models/PracticeModels';
 
 export class IncenseTimer {
   status: PracticeStatus = PracticeStatus.IDLE;
@@ -47,6 +48,43 @@ export class IncenseTimer {
     const effectiveNow: number = this.status === PracticeStatus.PAUSED ? this.pausedAt : now;
     const elapsedMs: number = Math.max(0, effectiveNow - this.startedAt - this.accumulatedPauseMs);
     return Math.max(0, this.targetSeconds - Math.floor(elapsedMs / 1000));
+  }
+
+  elapsedSecondsAt(now: number): number {
+    if (this.startedAt === 0) {
+      return 0;
+    }
+    const effectiveNow: number = this.status === PracticeStatus.PAUSED ? this.pausedAt : now;
+    const elapsedMs: number = Math.max(0, effectiveNow - this.startedAt - this.accumulatedPauseMs);
+    return Math.min(this.targetSeconds, Math.floor(elapsedMs / 1000));
+  }
+
+  get startTime(): number {
+    return this.startedAt;
+  }
+
+  get durationSeconds(): number {
+    return this.targetSeconds;
+  }
+
+  snapshot(): IncenseSnapshot {
+    return new IncenseSnapshot(this.status, this.startedAt, this.targetSeconds, this.pausedAt,
+      this.accumulatedPauseMs, this.completionConsumed);
+  }
+
+  restore(snapshot: IncenseSnapshot): boolean {
+    if ((snapshot.status !== PracticeStatus.RUNNING && snapshot.status !== PracticeStatus.PAUSED) ||
+      snapshot.startedAt <= 0 || snapshot.targetSeconds <= 0 || snapshot.accumulatedPauseMs < 0 ||
+      (snapshot.status === PracticeStatus.PAUSED && snapshot.pausedAt < snapshot.startedAt)) {
+      return false;
+    }
+    this.status = snapshot.status;
+    this.startedAt = snapshot.startedAt;
+    this.targetSeconds = Math.floor(snapshot.targetSeconds);
+    this.pausedAt = snapshot.status === PracticeStatus.PAUSED ? snapshot.pausedAt : 0;
+    this.accumulatedPauseMs = snapshot.accumulatedPauseMs;
+    this.completionConsumed = snapshot.completionConsumed;
+    return true;
   }
 
   consumeCompletion(now: number): boolean {
