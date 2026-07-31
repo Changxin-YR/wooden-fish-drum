@@ -102,7 +102,7 @@ git commit -m "feat: 建立高保真主题语义"
 - Modify: `entry/src/main/ets/components/BottomNavBar.ets`
 - Modify: `entry/src/ohosTest/ets/test/CoreModels.test.ets`
 
-- [ ] **Step 1: 写入并验证视觉契约 RED**
+- [x] **Step 1: 写入并验证视觉契约 RED**
 
 增加纯逻辑断言，要求 phone 摘要高度、工具条高度和底栏高度为固定离散值：
 
@@ -114,7 +114,7 @@ expect(DesignTokens.bottomNavHeight(390)).assertEqual(76);
 
 运行 ohosTest 构建，预期因三个方法不存在而失败。
 
-- [ ] **Step 2: 实现共享尺寸和组件样式**
+- [x] **Step 2: 实现共享尺寸和组件样式**
 
 实现三个尺寸方法，并将组件改为：
 
@@ -123,7 +123,7 @@ expect(DesignTokens.bottomNavHeight(390)).assertEqual(76);
 - 底栏选中项使用金色图标明度、字重、背景和描边，不再显示 `✓ 首页` 文字前缀。
 - 所有按钮保持至少 48vp。
 
-- [ ] **Step 3: 验证并提交**
+- [x] **Step 3: 验证并提交**
 
 运行 ohosTest 构建、标准检查和 `git diff --check`。提交：
 

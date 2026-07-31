@@ -65,5 +65,11 @@ export default function coreModelsTest(): void {
       expect(DesignTokens.titleSize(390)).assertEqual(32);
       expect(DesignTokens.titleSize(1100)).assertEqual(34);
     });
+
+    it('usesStableReferenceComponentHeights', 0, (): void => {
+      expect(DesignTokens.summaryHeight(390)).assertEqual(76);
+      expect(DesignTokens.toolBarHeight(390)).assertEqual(52);
+      expect(DesignTokens.bottomNavHeight(390)).assertEqual(76);
+    });
   });
 }

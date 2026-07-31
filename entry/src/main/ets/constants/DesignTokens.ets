@@ -39,4 +39,16 @@ export class DesignTokens {
   static titleSize(width: number): number {
     return width < 1024 ? 32 : 34;
   }
+
+  static summaryHeight(_width: number): number {
+    return 76;
+  }
+
+  static toolBarHeight(_width: number): number {
+    return 52;
+  }
+
+  static bottomNavHeight(_width: number): number {
+    return 76;
+  }
 }

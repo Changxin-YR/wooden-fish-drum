@@ -1,5 +1,6 @@
 import { StatsSummary } from '../models/AppModels';
 import { DesignTokens } from '../constants/DesignTokens';
+import { ThemeColors, ThemePalette } from '../constants/ThemePalette';
 
 @Component
 export struct TodaySummaryCard {
@@ -7,53 +8,36 @@ export struct TodaySummaryCard {
   @Prop dark: boolean = false;
   @Prop compact: boolean = false;
 
-  private primaryText(): string {
-    return this.dark ? DesignTokens.darkText : '#56371F';
-  }
-
-  private secondaryText(): string {
-    return this.dark ? DesignTokens.darkSecondary : '#8C7C6D';
-  }
+  private colors(): ThemeColors { return ThemePalette.resolve(this.dark); }
 
   @Builder
-  Metric(symbol: string, label: string, value: string, unit: string) {
-    Row({ space: 10 }) {
-      Text(symbol)
-        .width(this.compact ? 34 : 42)
-        .height(this.compact ? 34 : 42)
-        .fontSize(this.compact ? 17 : 20)
-        .fontWeight(FontWeight.Bold)
-        .fontColor('#A86B37')
-        .textAlign(TextAlign.Center)
-        .backgroundColor(this.dark ? '#3A3028' : '#F8F1E8')
-        .borderRadius(this.compact ? 17 : 21)
-      Column({ space: 2 }) {
-        Text(label).fontSize(this.compact ? 11 : 12).fontColor(this.secondaryText())
-        Row({ space: 4 }) {
-          Text(value).fontSize(this.compact ? 18 : 20).fontWeight(FontWeight.Bold).fontColor(this.primaryText())
-          Text(unit).fontSize(this.compact ? 11 : 12).fontColor(this.secondaryText())
-        }
+  Metric(label: string, value: string, unit: string) {
+    Column({ space: 6 }) {
+      Text(label).fontSize(this.compact ? 13 : 14).fontColor(this.colors().secondary)
+      Row({ space: 5 }) {
+        Text(value).fontSize(this.compact ? 25 : 28).fontWeight(FontWeight.Medium).fontColor(this.colors().primary)
+        Text(unit).fontSize(12).fontColor(this.colors().secondary).margin({ top: 10 })
       }
-      .alignItems(HorizontalAlign.Start)
     }
     .layoutWeight(1)
-    .constraintSize({ minHeight: this.compact ? 52 : 64 })
+    .height(DesignTokens.summaryHeight(390))
+    .justifyContent(FlexAlign.Center)
   }
 
   build() {
     Row() {
-      this.Metric('今', '今日次数', this.summary.todayCount.toLocaleString(), '次')
-      Divider().vertical(true).height(44).color(this.dark ? DesignTokens.darkDivider : '#E9DED0')
-      this.Metric('累', '累计次数', this.summary.totalCount.toLocaleString(), '次')
-      Divider().vertical(true).height(44).color(this.dark ? DesignTokens.darkDivider : '#E9DED0')
-      this.Metric('续', '连续天数', `${this.summary.streakDays}`, '天')
+      this.Metric('今日次数', this.summary.todayCount.toLocaleString(), '次')
+      Divider().vertical(true).height(38).color(this.colors().divider)
+      this.Metric('累计次数', this.summary.totalCount.toLocaleString(), '次')
+      Divider().vertical(true).height(38).color(this.colors().divider)
+      this.Metric('连续天数', `${this.summary.streakDays}`, '天')
     }
     .width('100%')
-    .padding({ left: this.compact ? 10 : 14, right: this.compact ? 10 : 14,
-      top: this.compact ? 4 : 12, bottom: this.compact ? 4 : 12 })
-    .backgroundColor(this.dark ? DesignTokens.darkCard : '#FFFEFC')
+    .height(DesignTokens.summaryHeight(390))
+    .padding({ left: 8, right: 8 })
+    .backgroundColor(this.colors().card)
     .borderRadius(DesignTokens.radiusCard)
-    .border({ width: 1, color: this.dark ? DesignTokens.darkDivider : '#EFE5D9' })
-    .shadow({ radius: 14, color: this.dark ? '#22000000' : '#1F6E4A2D', offsetY: 5 })
+    .border({ width: 1, color: this.colors().divider })
+    .shadow({ radius: this.dark ? 8 : 16, color: this.dark ? '#2BCE914A' : '#185C4129', offsetY: 5 })
   }
 }

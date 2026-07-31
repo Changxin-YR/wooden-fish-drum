@@ -1,5 +1,6 @@
 import { AppTab } from '../models/Enums';
 import { DesignTokens } from '../constants/DesignTokens';
+import { ThemeColors, ThemePalette } from '../constants/ThemePalette';
 
 @Component
 export struct BottomNavBar {
@@ -7,6 +8,8 @@ export struct BottomNavBar {
   @Prop dark: boolean;
   @Prop interactionEnabled: boolean = true;
   onChange: (tab: AppTab) => void = (): void => {};
+
+  private colors(): ThemeColors { return ThemePalette.resolve(this.dark); }
 
   @Builder
   TabItem(tab: AppTab, icon: Resource, label: string) {
@@ -16,20 +19,19 @@ export struct BottomNavBar {
         .height(34)
         .objectFit(ImageFit.Cover)
         .borderRadius(9)
-        .opacity(this.selected === tab ? 1 : 0.72)
-      Text(this.selected === tab ? `✓ ${label}` : label)
-        .fontSize(12)
+        .opacity(this.selected === tab ? 1 : 0.58)
+      Text(label)
+        .fontSize(13)
         .fontWeight(this.selected === tab ? FontWeight.Bold : FontWeight.Regular)
-        .fontColor(this.selected === tab ? (this.dark ? DesignTokens.accentLight : DesignTokens.wood) :
-          (this.dark ? DesignTokens.darkSecondary : DesignTokens.lightSecondary))
+        .fontColor(this.selected === tab ? this.colors().accent : this.colors().secondary)
     }
     .layoutWeight(1)
-    .height(64)
+    .height(DesignTokens.bottomNavHeight(390) - 8)
     .justifyContent(FlexAlign.Center)
-    .backgroundColor(this.selected === tab ? (this.dark ? '#352F2A' : '#F7EFE4') : Color.Transparent)
+    .backgroundColor(this.selected === tab ? this.colors().accentSoft : Color.Transparent)
     .border({ width: this.selected === tab ? 1 : 0,
-      color: this.selected === tab ? DesignTokens.accent : Color.Transparent })
-    .borderRadius(8)
+      color: this.selected === tab ? this.colors().accent : Color.Transparent })
+    .borderRadius(12)
     .enabled(this.interactionEnabled)
     .onClick((): void => {
       if (this.interactionEnabled) {
@@ -46,7 +48,9 @@ export struct BottomNavBar {
       this.TabItem(AppTab.SETTINGS, $r('app.media.nav_settings'), '设置')
     }
     .width('100%')
-    .backgroundColor(this.dark ? DesignTokens.darkCard : DesignTokens.lightCard)
-    .border({ width: { top: 1 }, color: this.dark ? DesignTokens.darkDivider : DesignTokens.lightDivider })
+    .height(DesignTokens.bottomNavHeight(390))
+    .padding({ left: 12, right: 12, top: 4, bottom: 4 })
+    .backgroundColor(this.colors().card)
+    .border({ width: { top: 1 }, color: this.colors().divider })
   }
 }
