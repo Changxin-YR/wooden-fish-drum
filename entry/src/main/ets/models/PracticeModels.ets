@@ -1,4 +1,12 @@
-import { SceneMode, ToolType } from './Enums';
+import { PracticeStatus, SceneMode, ToolType } from './Enums';
+
+export class PracticeState {
+  selectedTool: ToolType = ToolType.WOODEN_FISH;
+  status: PracticeStatus = PracticeStatus.IDLE;
+  manualCount: number = 0;
+  automaticCount: number = 0;
+  hitSequence: number = 0;
+}
 
 export class DailyStats {
   date: string;

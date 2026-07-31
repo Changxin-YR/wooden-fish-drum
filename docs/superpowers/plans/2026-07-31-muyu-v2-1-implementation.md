@@ -220,7 +220,7 @@ git commit -m "feat: 增加多工具统计和真实练习历史"
 - Create: `entry/src/ohosTest/ets/test/PracticeController.test.ets`
 - Modify: `entry/src/ohosTest/ets/test/List.test.ets`
 
-- [ ] **Step 1: 写失败测试**
+- [x] **Step 1: 写失败测试**
 
 覆盖单定时器、木鱼/念珠计数、前台暂停继续、后台提交新会话、香计时墙钟校正和只完成一次：
 
@@ -241,15 +241,15 @@ timer.pause(61000);
 expect(timer.remainingAt(121000)).assertEqual(240);
 ```
 
-- [ ] **Step 2: 确认测试失败后实现最小状态机**
+- [x] **Step 2: 确认测试失败后实现最小状态机**
 
 Controller 通过回调发出强类型 `PracticeEvent`，不直接访问 ArkUI 或 Preferences。`AutoRhythmController` 只持有一个 timer id；`IncenseTimer` 接受可注入时间值，纯逻辑计算剩余时间。
 
-- [ ] **Step 3: 替换旧目标状态并验证**
+- [x] **Step 3: 注册新状态机并保留可构建过渡层**
 
-删除业务层 `TARGET` 入口和目标封顶分支；旧 `SessionMode` 仅在迁移兼容处保留。运行全部 ohosTest 构建和 debug 构建。
+将 `PracticeController` 注册到 `AppRuntime`。旧首页在 Task 7 接管前继续使用 `SessionService`，避免中间提交失去可运行主路径；Task 7 接入新控制器时删除业务层 `TARGET` 入口和目标封顶分支。运行全部 ohosTest 构建和 debug 构建。
 
-- [ ] **Step 4: 提交**
+- [x] **Step 4: 提交**
 
 ```powershell
 git add entry/src/main/ets/services entry/src/main/ets/models entry/src/ohosTest/ets/test
