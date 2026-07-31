@@ -177,7 +177,7 @@ git commit -m "feat: 增加 V2.1 设置模型和幂等迁移"
 - Modify: `entry/src/main/ets/data/JsonCodec.ets`
 - Modify: `entry/src/ohosTest/ets/test/List.test.ets`
 
-- [ ] **Step 1: 写失败测试**
+- [x] **Step 1: 写失败测试**
 
 ```typescript
 const oldJson: string = JSON.stringify([
@@ -196,15 +196,15 @@ await sessions.append(new PracticeSession('s1', ToolType.BEADS, SceneMode.DAILY,
 expect((await sessions.recent(10)).length).assertEqual(1);
 ```
 
-- [ ] **Step 2: 运行 ohosTest 构建并确认失败**
+- [x] **Step 2: 运行 ohosTest 构建并确认失败**
 
 预期：新模型、迁移和 Repository 尚不存在。
 
-- [ ] **Step 3: 实现 schema 与 Repository**
+- [x] **Step 3: 实现 schema 与 Repository**
 
 `DailyStats` 和 `PracticeSession` 字段严格使用设计规格命名。`StatsRepository.applySession(session)` 先按 session id 幂等，再更新对应日期；`PracticeSessionRepository` 使用串行写队列并提供 `append`、`recent(limit)`、`all`、`clearDate`、`clearAll`。
 
-- [ ] **Step 4: 验证快速并发、迁移和清除范围后提交**
+- [x] **Step 4: 验证快速并发、迁移和清除范围后提交**
 
 ```powershell
 git add entry/src/main/ets/models/PracticeModels.ets entry/src/main/ets/utils/StatsMigration.ets entry/src/main/ets/repositories entry/src/main/ets/data/JsonCodec.ets entry/src/ohosTest/ets/test
