@@ -13,8 +13,8 @@ export class ThemeColors {
 export class ThemePalette {
   static resolve(dark: boolean): ThemeColors {
     const colors: ThemeColors = new ThemeColors();
-    colors.page = dark ? '#0D0E0D' : '#F8F5EF';
-    colors.card = dark ? '#191816' : '#FFFDFA';
+    colors.page = dark ? '#171513' : '#F6F1E8';
+    colors.card = dark ? '#24211E' : '#FFFDF8';
     colors.primary = dark ? '#E7D4BF' : '#44352B';
     colors.secondary = dark ? '#9A8D80' : '#887A6E';
     colors.accent = dark ? '#CE914A' : '#C98C49';

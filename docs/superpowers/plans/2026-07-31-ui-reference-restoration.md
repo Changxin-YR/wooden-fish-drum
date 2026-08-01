@@ -6,7 +6,7 @@
 
 **Architecture:** 新增强类型 `ThemePalette` 作为页面语义色唯一入口，现有 `AppStore` 与 `PracticeController` 继续作为业务真相源。页面只重排 ArkUI 组件；Compact 贴合 phone 参考图，Medium/Expanded 复用同组件限宽双栏。
 
-**Tech Stack:** HarmonyOS API 24、ArkTS、ArkUI、Preferences、Hypium、Hvigor、HDC UI Test。
+**Tech Stack:** HarmonyOS 6.0.2 API 22、ArkTS、ArkUI、Preferences、Hypium、Hvigor、HDC UI Test。
 
 ---
 

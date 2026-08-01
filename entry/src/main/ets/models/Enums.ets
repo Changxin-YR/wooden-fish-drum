@@ -42,16 +42,19 @@ export enum AppTab {
 }
 
 export enum StatsPeriod {
-  DAY = 'day',
-  WEEK = 'week',
-  MONTH = 'month',
-  YEAR = 'year'
+  TODAY = 'today',
+  CURRENT_WEEK = 'current_week',
+  CURRENT_MONTH = 'current_month',
+  CURRENT_YEAR = 'current_year',
+  LAST_7_DAYS = 'last_7_days',
+  LAST_4_WEEKS = 'last_4_weeks',
+  LAST_3_MONTHS = 'last_3_months',
+  LAST_YEAR = 'last_year'
 }
 
 export enum SettingsRoute {
   NONE = 'none',
   PRIVACY = 'privacy',
   NOTICE = 'notice',
-  LICENSES = 'licenses',
   ABOUT = 'about'
 }

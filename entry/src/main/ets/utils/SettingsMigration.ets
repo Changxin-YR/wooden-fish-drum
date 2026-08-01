@@ -29,6 +29,8 @@ export class SettingsMigration {
         parsed.themeManuallyChanged : defaults.themeManuallyChanged;
       result.feedbackText = SettingsMigration.firstText(parsed.feedbackText, parsed.currentText,
         SettingsMigration.defaultFeedback(result.selectedSceneMode));
+      result.targetCount = SettingsMigration.validTarget(parsed.targetCount) ?
+        Math.floor(parsed.targetCount) : defaults.targetCount;
       result.customTexts = Array.isArray(parsed.customTexts) ? parsed.customTexts : [];
       result.feedbackTextEnabled = SettingsMigration.firstBoolean(parsed.feedbackTextEnabled,
         parsed.floatingTextEnabled, defaults.feedbackTextEnabled);
@@ -170,6 +172,10 @@ export class SettingsMigration {
 
   private static clamp(value: number, minimum: number, maximum: number): number {
     return Math.max(minimum, Math.min(maximum, value));
+  }
+
+  private static validTarget(value: number): boolean {
+    return typeof value === 'number' && Number.isInteger(value) && value > 0 && value <= 1000000000;
   }
 
   private static isSceneMode(value: SceneMode): boolean {

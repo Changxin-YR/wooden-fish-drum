@@ -95,6 +95,40 @@ export default function dataAndSessionTest(): void {
       expect(JsonCodec.decodeSettings(legacy).volume).assertEqual(0.35);
     });
 
+    it('savesFeedbackTextOnceAndRestoresItOnColdStart', 0, async (): Promise<void> => {
+      const memory: MemoryStore = new MemoryStore();
+      const store: AppStore = new AppStore(new SettingsRepository(memory), new StatsRepository(memory),
+        new PracticeSessionRepository(memory));
+      await store.initialize();
+
+      expect(await store.saveFeedbackText('  好运+1  ')).assertTrue();
+      expect(store.settings.feedbackText).assertEqual('好运+1');
+      expect(store.settings.currentText).assertEqual('好运+1');
+      expect(await store.saveFeedbackText('   ')).assertFalse();
+      expect(store.settings.feedbackText).assertEqual('好运+1');
+
+      const restored: AppStore = new AppStore(new SettingsRepository(memory), new StatsRepository(memory),
+        new PracticeSessionRepository(memory));
+      await restored.initialize();
+      expect(restored.settings.feedbackText).assertEqual('好运+1');
+    });
+
+    it('persistsOnlyValidTargetCounts', 0, async (): Promise<void> => {
+      const memory: MemoryStore = new MemoryStore();
+      const store: AppStore = new AppStore(new SettingsRepository(memory), new StatsRepository(memory),
+        new PracticeSessionRepository(memory));
+      await store.initialize();
+
+      expect(await store.saveTargetCount(10000)).assertTrue();
+      expect(await store.saveTargetCount(0)).assertFalse();
+      expect(store.settings.targetCount).assertEqual(10000);
+
+      const restored: AppStore = new AppStore(new SettingsRepository(memory), new StatsRepository(memory),
+        new PracticeSessionRepository(memory));
+      await restored.initialize();
+      expect(restored.settings.targetCount).assertEqual(10000);
+    });
+
     it('clearsOnlyTodayStatsAndSessionsWhileKeepingSettings', 0, async (): Promise<void> => {
       const memory: MemoryStore = new MemoryStore();
       const settingsRepository: SettingsRepository = new SettingsRepository(memory);

@@ -7,7 +7,7 @@ export class StatsPeriodService {
   static build(records: DailyRecord[], sessions: PracticeSession[], today: string,
     period: StatsPeriod): StatsPeriodView {
     const view: StatsPeriodView = new StatsPeriodView();
-    const range: string[] = StatsPeriodService.range(today, period, records);
+    const range: string[] = StatsPeriodService.range(today, period);
     view.scopeLabel = StatsPeriodService.scopeLabel(period);
     view.title = StatsPeriodService.title(period);
     view.buckets = StatsPeriodService.buckets(records, today, period);
@@ -19,48 +19,58 @@ export class StatsPeriodService {
   }
 
   private static scopeLabel(period: StatsPeriod): string {
-    if (period === StatsPeriod.DAY) {
-      return '今日';
-    }
-    if (period === StatsPeriod.WEEK) {
-      return '本周';
-    }
-    if (period === StatsPeriod.MONTH) {
-      return '本月';
-    }
-    return '全部';
+    if (period === StatsPeriod.TODAY) return '本日';
+    if (period === StatsPeriod.CURRENT_WEEK) return '本周';
+    if (period === StatsPeriod.CURRENT_MONTH) return '本月';
+    if (period === StatsPeriod.CURRENT_YEAR) return '本年';
+    if (period === StatsPeriod.LAST_7_DAYS) return '近七日';
+    if (period === StatsPeriod.LAST_4_WEEKS) return '近四周';
+    if (period === StatsPeriod.LAST_3_MONTHS) return '近三月';
+    return '近一年';
   }
 
   private static title(period: StatsPeriod): string {
-    if (period === StatsPeriod.DAY) {
-      return '最近 7 日趋势';
-    }
-    if (period === StatsPeriod.WEEK) {
-      return '本周每日趋势';
-    }
-    if (period === StatsPeriod.MONTH) {
-      return '本月每日趋势';
-    }
-    return '全部本地趋势';
+    return `${StatsPeriodService.scopeLabel(period)}趋势`;
   }
 
-  private static range(today: string, period: StatsPeriod, records: DailyRecord[]): string[] {
-    if (period === StatsPeriod.DAY) {
-      return [today, today];
+  private static range(today: string, period: StatsPeriod): string[] {
+    if (period === StatsPeriod.TODAY) return [today, today];
+    if (period === StatsPeriod.CURRENT_WEEK) return [StatsPeriodService.weekStart(today), today];
+    if (period === StatsPeriod.CURRENT_MONTH) return [`${today.slice(0, 7)}-01`, today];
+    if (period === StatsPeriod.CURRENT_YEAR) return [`${today.slice(0, 4)}-01-01`, today];
+    if (period === StatsPeriod.LAST_7_DAYS) return [DateUtil.addDays(today, -6), today];
+    if (period === StatsPeriod.LAST_4_WEEKS) {
+      return [DateUtil.addDays(StatsPeriodService.weekStart(today), -21), today];
     }
-    if (period === StatsPeriod.WEEK) {
-      return [StatsPeriodService.weekStart(today), today];
+    if (period === StatsPeriod.LAST_3_MONTHS) {
+      return [`${StatsPeriodService.addMonths(today.slice(0, 7), -2)}-01`, today];
     }
-    if (period === StatsPeriod.MONTH) {
-      return [`${today.slice(0, 7)}-01`, today];
+    return [`${StatsPeriodService.addMonths(today.slice(0, 7), -11)}-01`, today];
+  }
+
+  private static buckets(records: DailyRecord[], today: string, period: StatsPeriod): StatsBucket[] {
+    if (period === StatsPeriod.TODAY) return StatsPeriodService.dailyBuckets(records, today, today);
+    if (period === StatsPeriod.CURRENT_WEEK) {
+      return StatsPeriodService.dailyBuckets(records, StatsPeriodService.weekStart(today), today);
     }
-    let start: string = today;
-    records.forEach((record: DailyRecord): void => {
-      if (record.date < start) {
-        start = record.date;
-      }
-    });
-    return [start, today];
+    if (period === StatsPeriod.CURRENT_MONTH) {
+      return StatsPeriodService.dailyBuckets(records, `${today.slice(0, 7)}-01`, today);
+    }
+    if (period === StatsPeriod.CURRENT_YEAR) {
+      return StatsPeriodService.monthlyBuckets(records, `${today.slice(0, 4)}-01`, today.slice(0, 7));
+    }
+    if (period === StatsPeriod.LAST_7_DAYS) {
+      return StatsPeriodService.dailyBuckets(records, DateUtil.addDays(today, -6), today);
+    }
+    if (period === StatsPeriod.LAST_4_WEEKS) {
+      return StatsPeriodService.weeklyBuckets(records, DateUtil.addDays(StatsPeriodService.weekStart(today), -21), 4);
+    }
+    if (period === StatsPeriod.LAST_3_MONTHS) {
+      return StatsPeriodService.monthlyBuckets(records, StatsPeriodService.addMonths(today.slice(0, 7), -2),
+        today.slice(0, 7));
+    }
+    return StatsPeriodService.monthlyBuckets(records, StatsPeriodService.addMonths(today.slice(0, 7), -11),
+      today.slice(0, 7));
   }
 
   private static weekStart(today: string): string {
@@ -70,53 +80,61 @@ export class StatsPeriodService {
     return DateUtil.addDays(today, day === 0 ? -6 : 1 - day);
   }
 
-  private static buckets(records: DailyRecord[], today: string, period: StatsPeriod): StatsBucket[] {
-    if (period === StatsPeriod.DAY) {
-      return StatsPeriodService.dailyBuckets(records, DateUtil.addDays(today, -6), today);
-    }
-    if (period === StatsPeriod.WEEK) {
-      return StatsPeriodService.dailyBuckets(records, StatsPeriodService.weekStart(today), today);
-    }
-    if (period === StatsPeriod.MONTH) {
-      return StatsPeriodService.dailyBuckets(records, `${today.slice(0, 7)}-01`, today);
-    }
-    return StatsPeriodService.allBuckets(records);
+  private static addMonths(monthKey: string, offset: number): string {
+    const parts: string[] = monthKey.split('-');
+    const date: Date = new Date(Number(parts[0]), Number(parts[1]) - 1 + offset, 1);
+    return DateUtil.toKey(date).slice(0, 7);
   }
 
   private static dailyBuckets(records: DailyRecord[], start: string, end: string): StatsBucket[] {
     const result: StatsBucket[] = [];
     let current: string = start;
     while (current <= end) {
-      result.push(StatsPeriodService.bucketForDate(records, current));
+      result.push(StatsPeriodService.aggregateBucket(records, current, current, DateUtil.shortLabel(current)));
       current = DateUtil.addDays(current, 1);
     }
     return result;
   }
 
-  private static allBuckets(records: DailyRecord[]): StatsBucket[] {
-    const sorted: DailyRecord[] = records.slice().sort((left: DailyRecord, right: DailyRecord): number =>
-      left.date.localeCompare(right.date));
-    return sorted.map((record: DailyRecord): StatsBucket => StatsPeriodService.toBucket(record));
-  }
-
-  private static bucketForDate(records: DailyRecord[], date: string): StatsBucket {
-    const found: DailyRecord | undefined = records.find((record: DailyRecord): boolean => record.date === date);
-    if (found === undefined) {
-      return new StatsBucket(DateUtil.shortLabel(date));
+  private static weeklyBuckets(records: DailyRecord[], start: string, count: number): StatsBucket[] {
+    const result: StatsBucket[] = [];
+    for (let index: number = 0; index < count; index++) {
+      const weekStart: string = DateUtil.addDays(start, index * 7);
+      const weekEnd: string = DateUtil.addDays(weekStart, 6);
+      result.push(StatsPeriodService.aggregateBucket(records, weekStart, weekEnd,
+        `${DateUtil.shortLabel(weekStart)}`));
     }
-    return StatsPeriodService.toBucket(found);
+    return result;
   }
 
-  private static toBucket(record: DailyRecord): StatsBucket {
-    return new StatsBucket(DateUtil.shortLabel(record.date), record.manualCount, record.autoCount,
-      record.durationSeconds, record.incenseSeconds);
+  private static monthlyBuckets(records: DailyRecord[], startMonth: string, endMonth: string): StatsBucket[] {
+    const result: StatsBucket[] = [];
+    let current: string = startMonth;
+    while (current <= endMonth) {
+      const next: string = StatsPeriodService.addMonths(current, 1);
+      const end: string = DateUtil.addDays(`${next}-01`, -1);
+      result.push(StatsPeriodService.aggregateBucket(records, `${current}-01`, end, current.slice(5)));
+      current = next;
+    }
+    return result;
+  }
+
+  private static aggregateBucket(records: DailyRecord[], start: string, end: string, label: string): StatsBucket {
+    const bucket: StatsBucket = new StatsBucket(label);
+    records.forEach((record: DailyRecord): void => {
+      if (record.date < start || record.date > end) return;
+      bucket.manualCount += record.manualCount;
+      bucket.autoCount += record.autoCount;
+      bucket.totalCount += record.totalCount;
+      bucket.durationSeconds += record.durationSeconds;
+      bucket.incenseSeconds += record.incenseSeconds;
+    });
+    return bucket;
   }
 
   private static applyRecords(view: StatsPeriodView, records: DailyRecord[], start: string, end: string): void {
     records.forEach((record: DailyRecord): void => {
-      if (record.date < start || record.date > end) {
-        return;
-      }
+      if (record.date < start || record.date > end) return;
       view.totalCount += record.totalCount;
       view.manualCount += record.manualCount;
       view.autoCount += record.autoCount;
@@ -137,17 +155,13 @@ export class StatsPeriodService {
 
   private static maxCount(buckets: StatsBucket[]): number {
     let value: number = 1;
-    buckets.forEach((bucket: StatsBucket): void => {
-      value = Math.max(value, bucket.totalCount);
-    });
+    buckets.forEach((bucket: StatsBucket): void => { value = Math.max(value, bucket.totalCount); });
     return value;
   }
 
   private static maxDuration(buckets: StatsBucket[]): number {
     let value: number = 1;
-    buckets.forEach((bucket: StatsBucket): void => {
-      value = Math.max(value, bucket.durationSeconds);
-    });
+    buckets.forEach((bucket: StatsBucket): void => { value = Math.max(value, bucket.durationSeconds); });
     return value;
   }
 }

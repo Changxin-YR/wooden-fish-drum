@@ -17,6 +17,7 @@
 | `nav_settings.png` | 同上 | 875,193,150,170 | 底部导航：设置原始图标 |
 | `muyu_body_light.png` | `muyu_brand.png` | 派生编辑：仅移除静态木槌 | 浅色主题木鱼主体 |
 | `muyu_body_dark.png` | `muyu_dark.png` | 派生编辑：仅移除静态木槌 | 深色主题木鱼主体 |
+| `muyu_body_transparent.png` | `muyu_body_light.png` | 本地确定性处理：移除边缘 `#fbf5f1` 背景并按 alpha 主体裁切为 715×612 | 深浅主题共用的无背景、无静态木槌主体 |
 
 音频使用同机已有 HarmonyOS 工程中的本地短 WAV 资源复用并按低沉、清脆、柔和语义命名，不请求网络资源。
 
@@ -38,7 +39,7 @@
 | `practice_beads.png` | `codex-clipboard-2f33a980-e9a4-4c05-a283-c77cd51c4f3e.png` | 216,191,604,1095 | 待用户提供原创或商用授权证明 | 念珠基础层；逐珠高亮由 ArkUI 热点层实现 |
 | `practice_incense.png` | `codex-clipboard-0e62e54a-c38a-4a3a-8b39-55d61ae7d863.png` | 144,67,759,1329 | 待用户提供原创或商用授权证明 | 一炷香原型；主体和烟雾未分层，发布前需分层源图 |
 
-当前环境未提供内置图像编辑工具，且未获准使用需要 API Key 的 CLI 回退，因此未对木鱼纹理、光圈或香烟雾做生成式修补。原型开发可使用上述裁切图；“无光圈木鱼”“香体/烟雾分层”和“商用授权证明”在发布验收中保持 `blocked`。
+当前环境未提供内置图像编辑工具，且未获准使用需要 API Key 的 CLI 回退，因此未对木鱼纹理或香烟雾做生成式修补。`muyu_body_transparent.png` 仅以可复现色键和 alpha 裁切处理既有无木槌素材；“香体/烟雾分层”和“商用授权证明”在发布验收中保持 `blocked`。
 
 ## 2026-07-31 深浅主题 UI 基准
 

@@ -5,6 +5,11 @@ export class PracticeState {
   status: PracticeStatus = PracticeStatus.IDLE;
   manualCount: number = 0;
   automaticCount: number = 0;
+  automaticActive: boolean = false;
+  targetActive: boolean = false;
+  targetCompleted: boolean = false;
+  targetCount: number = 108;
+  sessionCount: number = 0;
   hitSequence: number = 0;
   lastMilestone: number = 0;
   startedAt: number = 0;

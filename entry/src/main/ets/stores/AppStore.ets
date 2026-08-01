@@ -7,8 +7,8 @@ import { SettingsRepository } from '../repositories/SettingsRepository';
 import { StatsRepository } from '../repositories/StatsRepository';
 import { PracticeSessionRepository } from '../repositories/PracticeSessionRepository';
 import { DateUtil } from '../utils/DateUtil';
-import { TextValidator } from '../utils/TextValidator';
 import { SettingsMigration } from '../utils/SettingsMigration';
+import { FeedbackText } from '../utils/FeedbackText';
 
 export class AppStore {
   settings: AppSettings = JsonCodec.createDefaultSettings();
@@ -42,20 +42,38 @@ export class AppStore {
     return this.settingsRepository.save(this.settings);
   }
 
-  async completeOnboarding(sceneMode: SceneMode, toolType: ToolType): Promise<boolean> {
-    SettingsMigration.applyOnboarding(this.settings, sceneMode, toolType);
-    return this.settingsRepository.save(this.settings);
-  }
-
-  async saveCustomText(value: string): Promise<boolean> {
-    const normalized: string = TextValidator.normalize(value);
-    if (!TextValidator.isValid(normalized)) {
+  async saveFeedbackText(value: string): Promise<boolean> {
+    const normalized: string = FeedbackText.normalize(value);
+    if (!FeedbackText.isValid(normalized)) {
       return false;
     }
-    if (!this.settings.customTexts.includes(normalized)) {
-      this.settings.customTexts.push(normalized);
-    }
+    const previousFeedback: string = this.settings.feedbackText;
+    const previousCurrent: string = this.settings.currentText;
+    this.settings.feedbackText = normalized;
     this.settings.currentText = normalized;
+    const saved: boolean = await this.settingsRepository.save(this.settings);
+    if (!saved) {
+      this.settings.feedbackText = previousFeedback;
+      this.settings.currentText = previousCurrent;
+    }
+    return saved;
+  }
+
+  async saveTargetCount(value: number): Promise<boolean> {
+    if (!Number.isInteger(value) || value <= 0 || value > 1000000000) {
+      return false;
+    }
+    const previous: number = this.settings.targetCount;
+    this.settings.targetCount = value;
+    const saved: boolean = await this.settingsRepository.save(this.settings);
+    if (!saved) {
+      this.settings.targetCount = previous;
+    }
+    return saved;
+  }
+
+  async completeOnboarding(sceneMode: SceneMode, toolType: ToolType): Promise<boolean> {
+    SettingsMigration.applyOnboarding(this.settings, sceneMode, toolType);
     return this.settingsRepository.save(this.settings);
   }
 

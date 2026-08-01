@@ -1,12 +1,13 @@
 import { describe, expect, it } from '@ohos/hypium';
 import { JsonCodec } from '../../../main/ets/data/JsonCodec';
 import { LayoutSize, ResponsiveLayout } from '../../../main/ets/utils/ResponsiveLayout';
-import { TextValidator } from '../../../main/ets/utils/TextValidator';
 import { SceneMode, ThemeMode, ToolType } from '../../../main/ets/models/Enums';
 import { ThemeResolver } from '../../../main/ets/utils/ThemeResolver';
 import { PracticeLayout } from '../../../main/ets/utils/PracticeLayout';
 import { DesignTokens } from '../../../main/ets/constants/DesignTokens';
 import { ThemePalette } from '../../../main/ets/constants/ThemePalette';
+import { FeedbackText } from '../../../main/ets/utils/FeedbackText';
+import { WindowAppearanceService } from '../../../main/ets/services/WindowAppearanceService';
 
 export default function coreModelsTest(): void {
   describe('CoreModels', (): void => {
@@ -15,7 +16,23 @@ export default function coreModelsTest(): void {
       expect(JsonCodec.createDefaultSettings().selectedSceneMode).assertEqual(SceneMode.DAILY);
       expect(JsonCodec.createDefaultSettings().selectedTool).assertEqual(ToolType.WOODEN_FISH);
       expect(JsonCodec.createDefaultSettings().feedbackText).assertEqual('放松+1');
+      expect(JsonCodec.createDefaultSettings().targetCount).assertEqual(108);
       expect(JsonCodec.createDefaultSettings().themeMode).assertEqual(ThemeMode.SYSTEM);
+    });
+
+    it('normalizesFeedbackTextAndDerivesTodayTitleLabel', 0, (): void => {
+      expect(FeedbackText.normalize('  好运+1  ')).assertEqual('好运+1');
+      expect(FeedbackText.normalize('   ')).assertEqual('');
+      expect(FeedbackText.label('好运+1')).assertEqual('好运');
+      expect(FeedbackText.label('平安＋100')).assertEqual('平安');
+      expect(FeedbackText.label('+1')).assertEqual('功德');
+      expect(FeedbackText.todayTitle('好运+1')).assertEqual('今日好运');
+    });
+
+    it('loadsAndSanitizesPersistedTargetCount', 0, (): void => {
+      expect(JsonCodec.decodeSettings('{"targetCount":1000}').targetCount).assertEqual(1000);
+      expect(JsonCodec.decodeSettings('{"targetCount":0}').targetCount).assertEqual(108);
+      expect(JsonCodec.decodeSettings('{"targetCount":-1}').targetCount).assertEqual(108);
     });
 
     it('usesDocumentedResponsiveBreakpoints', 0, (): void => {
@@ -38,26 +55,24 @@ export default function coreModelsTest(): void {
       expect(wide.canvasHeight).assertEqual(330);
     });
 
-    it('trimsAndLimitsCustomTextToTwelveCharacters', 0, (): void => {
-      expect(TextValidator.normalize('  保持专注  ')).assertEqual('保持专注');
-      expect(TextValidator.normalize('一二三四五六七八九十十一十二十三')).assertEqual('一二三四五六七八九十十一');
-      expect(TextValidator.isValid('   ')).assertFalse();
-      expect(TextValidator.validationMessage('   ')).assertEqual('请输入至少 1 个有效字符');
-      expect(TextValidator.validationMessage('保持专注')).assertEqual('');
-    });
-
     it('resolvesExplicitAndSystemThemeModes', 0, (): void => {
       expect(ThemeResolver.isDark(ThemeMode.DARK, false)).assertTrue();
       expect(ThemeResolver.isDark(ThemeMode.LIGHT, true)).assertFalse();
       expect(ThemeResolver.isDark(ThemeMode.SYSTEM, true)).assertTrue();
       expect(ThemeResolver.isDark(ThemeMode.SYSTEM, false)).assertFalse();
+      expect(ThemeResolver.toggle(false)).assertEqual(ThemeMode.DARK);
+      expect(ThemeResolver.toggle(true)).assertEqual(ThemeMode.LIGHT);
     });
 
     it('resolvesApprovedIvoryAndBlackGoldPalettes', 0, (): void => {
-      expect(ThemePalette.resolve(false).page).assertEqual('#F8F5EF');
+      expect(ThemePalette.resolve(false).page).assertEqual('#F6F1E8');
       expect(ThemePalette.resolve(false).primary).assertEqual('#44352B');
-      expect(ThemePalette.resolve(true).page).assertEqual('#0D0E0D');
+      expect(ThemePalette.resolve(true).page).assertEqual('#171513');
       expect(ThemePalette.resolve(true).accent).assertEqual('#CE914A');
+      expect(WindowAppearanceService.background(false)).assertEqual(ThemePalette.resolve(false).page);
+      expect(WindowAppearanceService.background(true)).assertEqual(ThemePalette.resolve(true).page);
+      expect(WindowAppearanceService.contentColor(false)).assertEqual('#2E2924');
+      expect(WindowAppearanceService.contentColor(true)).assertEqual('#F1ECE4');
     });
 
     it('usesDiscreteReferenceLayoutMetrics', 0, (): void => {

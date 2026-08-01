@@ -10,6 +10,7 @@ import { AppSettings, StatsSummary } from '../models/AppModels';
 import { PracticeState } from '../models/PracticeModels';
 import { PracticeStatus, ToolType } from '../models/Enums';
 import { PracticeLayout } from '../utils/PracticeLayout';
+import { FeedbackText } from '../utils/FeedbackText';
 
 @Component
 export struct HomePage {
@@ -21,6 +22,10 @@ export struct HomePage {
   onBeadsGesture: (gestureId: number) => void = (_gestureId: number): void => {};
   onToolChange: (toolType: ToolType) => void = (_toolType: ToolType): void => {};
   onStartAuto: (intervalMs: number) => void = (_intervalMs: number): void => {};
+  onStartTarget: () => void = (): void => {};
+  onRestartTarget: () => void = (): void => {};
+  onTargetChange: (targetCount: number) => Promise<boolean> = async (): Promise<boolean> => false;
+  onModalStateChange: (visible: boolean) => void = (_visible: boolean): void => {};
   onPause: () => void = (): void => {};
   onResume: () => void = (): void => {};
   onStop: () => void = (): void => {};
@@ -33,8 +38,35 @@ export struct HomePage {
   onResumeIncense: () => void = (): void => {};
   onStopIncense: () => void = (): void => {};
   @State viewportWidth: number = 390;
+  @State targetPickerOpen: boolean = false;
+  @State targetInput: string = '';
+  @State targetError: string = '';
+  @State targetSaving: boolean = false;
 
   private colors(): ThemeColors { return ThemePalette.resolve(this.dark); }
+
+  private openTargetPicker(): void {
+    this.targetInput = `${this.settings.targetCount}`;
+    this.targetError = '';
+    this.targetPickerOpen = true;
+    this.onModalStateChange(true);
+  }
+
+  private async applyTarget(value: number): Promise<void> {
+    if (!Number.isInteger(value) || value <= 0 || value > 1000000000) {
+      this.targetError = '请输入 1 至 1000000000 的正整数';
+      return;
+    }
+    this.targetSaving = true;
+    const saved: boolean = await this.onTargetChange(value);
+    this.targetSaving = false;
+    if (!saved) {
+      this.targetError = '目标保存失败，请重试';
+      return;
+    }
+    this.targetPickerOpen = false;
+    this.onModalStateChange(false);
+  }
 
   private countValue(): number {
     return this.practice.manualCount + this.practice.automaticCount;
@@ -78,7 +110,7 @@ export struct HomePage {
   @Builder
   Header(compact: boolean) {
     Column({ space: compact ? 5 : 8 }) {
-      Text('静心木鱼')
+      Text(FeedbackText.todayTitle(this.settings.feedbackText))
         .width('100%')
         .fontSize(DesignTokens.titleSize(this.viewportWidth))
         .fontWeight(FontWeight.Bold)
@@ -158,10 +190,18 @@ export struct HomePage {
     PracticeControlDock({
       settings: this.settings,
       status: this.practice.status,
+      automaticActive: this.practice.automaticActive,
+      targetActive: this.practice.targetActive,
+      targetCompleted: this.practice.targetCompleted,
+      targetCount: this.practice.targetCount,
+      sessionCount: this.practice.sessionCount,
       selectedTool: this.practice.selectedTool,
       dark: this.dark,
       compact: compact,
       onStartAuto: (intervalMs: number): void => this.onStartAuto(intervalMs),
+      onStartTarget: (): void => this.onStartTarget(),
+      onRestartTarget: (): void => this.onRestartTarget(),
+      onOpenTargetPicker: (): void => this.openTargetPicker(),
       onPause: (): void => this.onPause(),
       onResume: (): void => this.onResume(),
       onStop: (): void => this.onStop(),
@@ -216,20 +256,71 @@ export struct HomePage {
   }
 
   build() {
-    Scroll() {
-      if (this.viewportWidth >= 600) {
-        this.WideContent()
-      } else {
-        this.PhoneContent()
+    Stack({ alignContent: Alignment.Center }) {
+      Scroll() {
+        if (this.viewportWidth >= 600) {
+          this.WideContent()
+        } else {
+          this.PhoneContent()
+        }
+      }
+      .width('100%')
+      .height('100%')
+      .padding({ left: DesignTokens.pageInset(this.viewportWidth), right: DesignTokens.pageInset(this.viewportWidth),
+        top: this.viewportWidth < 600 ? 10 : 22,
+        bottom: this.viewportWidth < 600 ? 12 : 24 })
+      .scrollBar(BarState.Off)
+      .backgroundColor(this.colors().page)
+
+      if (this.targetPickerOpen) {
+        Row().width('100%').height('100%').backgroundColor('#73000000')
+          .onClick((): void => {
+            if (!this.targetSaving) {
+              this.targetPickerOpen = false;
+              this.onModalStateChange(false);
+            }
+          })
+          .accessibilityText('关闭目标选择')
+        Column({ space: 12 }) {
+          Text('设置本轮目标').fontSize(20).fontWeight(FontWeight.Bold).fontColor(this.colors().primary)
+          Row({ space: 6 }) {
+            ForEach([108, 1000, 10000], (value: number) => {
+              Button(value.toLocaleString()).layoutWeight(1).height(48).type(ButtonType.Normal)
+                .fontColor(this.settings.targetCount === value ? this.colors().selectedText : this.colors().primary)
+                .backgroundColor(this.settings.targetCount === value ? this.colors().accent : this.colors().accentSoft)
+                .borderRadius(8).onClick((): void => { this.applyTarget(value); })
+            }, (value: number): string => `${value}`)
+          }.width('100%')
+          TextInput({ text: this.targetInput, placeholder: '输入任意正整数' })
+            .width('100%').height(48).type(InputType.Number).fontColor(this.colors().primary)
+            .backgroundColor(this.colors().accentSoft).borderRadius(8)
+            .onChange((value: string): void => { this.targetInput = value; this.targetError = ''; })
+          if (this.targetError.length > 0) {
+            Text(this.targetError).width('100%').fontSize(12).fontColor('#B85C3A')
+          }
+          Row({ space: 10 }) {
+            Button('取消').layoutWeight(1).height(48).enabled(!this.targetSaving).onClick((): void => {
+              this.targetPickerOpen = false;
+              this.onModalStateChange(false);
+            })
+            Button(this.targetSaving ? '保存中…' : '保存并开始').layoutWeight(1).height(48)
+              .enabled(!this.targetSaving).backgroundColor(this.colors().accent).onClick((): void => {
+                const raw: string = this.targetInput.trim();
+                if (!/^\d+$/.test(raw)) {
+                  this.targetError = '请输入正整数';
+                  return;
+                }
+                this.applyTarget(Number(raw));
+              })
+          }
+        }
+        .width(this.viewportWidth < 600 ? '88%' : 420).padding(20)
+        .backgroundColor(this.colors().card).borderRadius(8)
+        .shadow({ radius: 18, color: '#4017130F', offsetY: 6 })
       }
     }
     .width('100%')
     .height('100%')
-    .padding({ left: DesignTokens.pageInset(this.viewportWidth), right: DesignTokens.pageInset(this.viewportWidth),
-      top: this.viewportWidth < 600 ? 10 : 22,
-      bottom: this.viewportWidth < 600 ? 12 : 24 })
-    .scrollBar(BarState.Off)
-    .backgroundColor(this.colors().page)
     .onAreaChange((_oldValue: Area, newValue: Area): void => {
       this.viewportWidth = Number(newValue.width);
     })

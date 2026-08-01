@@ -43,6 +43,46 @@ export default function practiceControllerTest(): void {
       expect(controller.state.manualCount).assertEqual(0);
     });
 
+    it('distinguishesManualSessionsFromAutomaticRhythm', 0, (): void => {
+      const controller: PracticeController = new PracticeController();
+      controller.recordManual();
+      expect(controller.state.automaticActive).assertFalse();
+      controller.startAuto(1000, 0);
+      expect(controller.state.automaticActive).assertTrue();
+      controller.pause();
+      expect(controller.state.automaticActive).assertTrue();
+      controller.stop();
+      expect(controller.state.automaticActive).assertFalse();
+    });
+
+    it('completesTargetWithoutCountingExtraHitsAndRestartsOnlyTheRound', 0, (): void => {
+      const controller: PracticeController = new PracticeController();
+      controller.selectTool(ToolType.WOODEN_FISH);
+      expect(controller.configureTarget(3)).assertTrue();
+      controller.startTarget();
+
+      expect(controller.recordManual()).assertTrue();
+      expect(controller.recordManual()).assertTrue();
+      expect(controller.recordManual()).assertTrue();
+      expect(controller.state.targetCompleted).assertTrue();
+      expect(controller.state.sessionCount).assertEqual(3);
+      expect(controller.recordManual()).assertFalse();
+      expect(controller.state.sessionCount).assertEqual(3);
+
+      controller.restartTarget();
+      expect(controller.state.targetCompleted).assertFalse();
+      expect(controller.state.sessionCount).assertEqual(0);
+      expect(controller.state.manualCount).assertEqual(3);
+    });
+
+    it('rejectsInvalidTargetCounts', 0, (): void => {
+      const controller: PracticeController = new PracticeController();
+      expect(controller.configureTarget(0)).assertFalse();
+      expect(controller.configureTarget(-1)).assertFalse();
+      expect(controller.configureTarget(1000000001)).assertFalse();
+      expect(controller.state.targetCount).assertEqual(108);
+    });
+
     it('keepsEveryRapidManualHitAndEmitsTypedEvents', 0, (): void => {
       const controller: PracticeController = new PracticeController();
       const events: PracticeEvent[] = [];

@@ -30,6 +30,8 @@ $requiredFiles = @(
   'entry\src\main\ets\pages\HomePage.ets',
   'entry\src\main\ets\pages\StatsPage.ets',
   'entry\src\main\ets\pages\SettingsPage.ets',
+  'entry\src\main\ets\pages\AboutPage.ets',
+  'entry\src\main\ets\constants\ThemePalette.ets',
   'entry\src\main\ets\components\TodaySummaryCard.ets',
   'entry\src\main\ets\components\BeadsView.ets',
   'entry\src\main\ets\components\IncenseView.ets',
@@ -46,6 +48,8 @@ $requiredFiles = @(
   'entry\src\main\resources\base\media\practice_wooden_fish.png',
   'entry\src\main\resources\base\media\practice_beads.png',
   'entry\src\main\resources\base\media\practice_incense.png',
+  'entry\src\main\resources\base\media\theme_mountain_light.png',
+  'entry\src\main\resources\base\media\theme_mountain_dark.png',
   'entry\src\main\resources\rawfile\sounds\deep.wav',
   'entry\src\main\resources\rawfile\sounds\crisp.wav',
   'entry\src\main\resources\rawfile\sounds\soft.wav',
@@ -92,8 +96,8 @@ if ($null -ne $rootProfile) {
   if ($null -eq $product) {
     $problems.Add('build-profile.json5 is missing the default product')
   }
-  elseif ($product.compatibleSdkVersion -ne '6.1.1(24)' -or $product.targetSdkVersion -ne '6.1.1(24)') {
-    $problems.Add('The default product must target HarmonyOS 6.1.1(24)')
+  elseif ($product.compatibleSdkVersion -ne '6.0.2(22)' -or $product.targetSdkVersion -ne '6.0.2(22)') {
+    $problems.Add('The default product must target HarmonyOS 6.0.2(22)')
   }
 }
 

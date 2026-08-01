@@ -8,10 +8,18 @@ import { PracticeLayout } from '../utils/PracticeLayout';
 export struct PracticeControlDock {
   @Prop settings: AppSettings;
   @Prop status: PracticeStatus = PracticeStatus.IDLE;
+  @Prop automaticActive: boolean = false;
+  @Prop targetActive: boolean = false;
+  @Prop targetCompleted: boolean = false;
+  @Prop targetCount: number = 108;
+  @Prop sessionCount: number = 0;
   @Prop selectedTool: ToolType = ToolType.WOODEN_FISH;
   @Prop dark: boolean = false;
   @Prop compact: boolean = false;
   onStartAuto: (intervalMs: number) => void = (_intervalMs: number): void => {};
+  onStartTarget: () => void = (): void => {};
+  onRestartTarget: () => void = (): void => {};
+  onOpenTargetPicker: () => void = (): void => {};
   onPause: () => void = (): void => {};
   onResume: () => void = (): void => {};
   onStop: () => void = (): void => {};
@@ -33,33 +41,37 @@ export struct PracticeControlDock {
     return this.dark ? $r('app.media.theme_mountain_dark') : $r('app.media.theme_mountain_light');
   }
 
-  private isAutomaticActive(): boolean {
-    return this.status === PracticeStatus.RUNNING || this.status === PracticeStatus.PAUSED;
-  }
-
   @Builder
-  ModeButton(automatic: boolean, label: string) {
+  ModeButton(mode: string, label: string) {
     Button() {
       Row({ space: 8 }) {
-        Text(automatic ? '↻' : '手').fontSize(17).fontWeight(FontWeight.Bold)
+        Text(mode === 'auto' ? '↻' : (mode === 'target' ? '◎' : '手'))
+          .fontSize(17).fontWeight(FontWeight.Bold)
         Text(label).fontSize(15).fontWeight(FontWeight.Medium)
       }
     }
     .layoutWeight(1)
     .height(48)
     .type(ButtonType.Normal)
-    .fontColor((automatic === this.isAutomaticActive()) ? this.colors().selectedText : this.colors().secondary)
-    .backgroundColor((automatic === this.isAutomaticActive()) ? this.colors().accent : Color.Transparent)
+    .fontColor(((mode === 'auto' && this.automaticActive) || (mode === 'target' && this.targetActive) ||
+      (mode === 'manual' && !this.automaticActive && !this.targetActive)) ?
+      this.colors().selectedText : this.colors().secondary)
+    .backgroundColor(((mode === 'auto' && this.automaticActive) || (mode === 'target' && this.targetActive) ||
+      (mode === 'manual' && !this.automaticActive && !this.targetActive)) ?
+      this.colors().accent : Color.Transparent)
     .borderRadius(24)
     .onClick((): void => {
-      if (automatic) {
-        if (this.status === PracticeStatus.RUNNING) {
+      if (mode === 'auto') {
+        if (this.automaticActive && this.status === PracticeStatus.RUNNING) {
           this.onPause();
-        } else if (this.status === PracticeStatus.PAUSED) {
+        } else if (this.automaticActive && this.status === PracticeStatus.PAUSED) {
           this.onResume();
         } else {
           this.onStartAuto(this.settings.autoIntervalMs);
         }
+      } else if (mode === 'target') {
+        if (this.targetCompleted) this.onRestartTarget();
+        else this.onStartTarget();
       } else {
         this.onStop();
       }
@@ -108,9 +120,10 @@ export struct PracticeControlDock {
     Column({ space: this.compact ? 5 : 14 }) {
       if (this.selectedTool !== ToolType.INCENSE) {
         Row({ space: 4 }) {
-          this.ModeButton(false, '手动')
-          this.ModeButton(true, this.status === PracticeStatus.PAUSED ? '继续' :
-            (this.status === PracticeStatus.RUNNING ? '暂停' : '自动'))
+          this.ModeButton('manual', '手动')
+          this.ModeButton('target', '目标')
+          this.ModeButton('auto', this.status === PracticeStatus.PAUSED && this.automaticActive ? '继续' :
+            (this.status === PracticeStatus.RUNNING && this.automaticActive ? '暂停' : '自动'))
         }
         .width('100%')
         .padding(this.compact ? 0 : 4)
@@ -118,16 +131,38 @@ export struct PracticeControlDock {
         .border({ width: 1, color: this.colors().divider })
         .borderRadius(28)
 
-        Row({ space: 4 }) {
-          this.IntervalButton(1000, '1.0秒')
-          this.IntervalButton(1500, '1.5秒')
-          this.IntervalButton(2000, '2.0秒')
+        if (this.targetActive) {
+          Row({ space: 8 }) {
+            Column({ space: 2 }) {
+              Text(this.targetCompleted ? '本轮已完成' : `本轮 ${this.sessionCount} / ${this.targetCount}`)
+                .fontSize(14).fontWeight(FontWeight.Medium).fontColor(this.colors().primary)
+              Text(this.targetCompleted ? '今日累计已保留' : `还差 ${Math.max(0, this.targetCount - this.sessionCount)} 次`)
+                .fontSize(10).fontColor(this.colors().secondary)
+            }
+            .layoutWeight(1).constraintSize({ minWidth: 0 }).alignItems(HorizontalAlign.Start)
+            Button(this.targetCompleted ? '再来一次' : '更改目标')
+              .height(48).constraintSize({ minWidth: 96 }).type(ButtonType.Normal)
+              .fontColor(this.colors().selectedText).backgroundColor(this.colors().accent).borderRadius(24)
+              .onClick((): void => {
+                if (this.targetCompleted) this.onRestartTarget();
+                else this.onOpenTargetPicker();
+              })
+          }
+          .width('100%').height(56).padding({ left: 14, right: 4 })
+          .backgroundColor(this.colors().card).border({ width: 1, color: this.colors().divider })
+          .borderRadius(28)
+        } else {
+          Row({ space: 4 }) {
+            this.IntervalButton(1000, '1.0秒')
+            this.IntervalButton(1500, '1.5秒')
+            this.IntervalButton(2000, '2.0秒')
+          }
+          .width('100%')
+          .padding(this.compact ? 0 : 4)
+          .backgroundColor(this.colors().card)
+          .border({ width: 1, color: this.colors().divider })
+          .borderRadius(28)
         }
-        .width('100%')
-        .padding(this.compact ? 0 : 4)
-        .backgroundColor(this.colors().card)
-        .border({ width: 1, color: this.colors().divider })
-        .borderRadius(28)
       } else {
         Row({ space: 2 }) {
           this.IncensePreset(300, '5分')
@@ -201,13 +236,13 @@ export struct PracticeControlDock {
         }
         .alignItems(HorizontalAlign.Start)
         .constraintSize({ minWidth: this.compact ? 56 : 88, maxWidth: this.compact ? 64 : 120 })
-        Button(this.status === PracticeStatus.RUNNING ? 'Ⅱ' : '▶')
+        Button(this.automaticActive && this.status === PracticeStatus.RUNNING ? 'Ⅱ' : '▶')
           .width(48).height(48).type(ButtonType.Circle)
           .fontSize(17).fontColor(this.colors().selectedText).backgroundColor(this.colors().accent)
           .onClick((): void => {
-            if (this.status === PracticeStatus.RUNNING) {
+            if (this.automaticActive && this.status === PracticeStatus.RUNNING) {
               this.onPause();
-            } else if (this.status === PracticeStatus.PAUSED) {
+            } else if (this.automaticActive && this.status === PracticeStatus.PAUSED) {
               this.onResume();
             } else if (this.selectedTool !== ToolType.INCENSE) {
               this.onStartAuto(this.settings.autoIntervalMs);

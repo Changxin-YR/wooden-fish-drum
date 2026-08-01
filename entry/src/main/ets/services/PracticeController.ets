@@ -39,18 +39,52 @@ export class PracticeController {
   }
 
   recordManual(): boolean {
-    if (!this.isCountableTool()) {
+    if (!this.isCountableTool() || this.state.targetCompleted) {
       return false;
     }
     this.ensureStarted();
     this.state.manualCount++;
     this.state.hitSequence++;
+    if (this.state.targetActive) {
+      this.state.sessionCount++;
+    }
     this.state.lastMilestone = this.currentMilestone();
     this.emitHit(false, this.state.lastMilestone);
     if (this.state.status === PracticeStatus.IDLE) {
       this.state.status = PracticeStatus.RUNNING;
     }
+    this.completeTargetIfNeeded();
     return true;
+  }
+
+  configureTarget(targetCount: number): boolean {
+    if (!Number.isInteger(targetCount) || targetCount <= 0 || targetCount > 1000000000) {
+      return false;
+    }
+    this.state.targetCount = targetCount;
+    return true;
+  }
+
+  startTarget(): boolean {
+    if (this.state.selectedTool !== ToolType.WOODEN_FISH) {
+      return false;
+    }
+    this.rhythm.stop();
+    this.state.automaticActive = false;
+    this.state.targetActive = true;
+    this.state.targetCompleted = false;
+    this.state.sessionCount = 0;
+    this.state.status = PracticeStatus.IDLE;
+    return true;
+  }
+
+  restartTarget(): void {
+    if (!this.state.targetActive) {
+      return;
+    }
+    this.state.targetCompleted = false;
+    this.state.sessionCount = 0;
+    this.state.status = PracticeStatus.IDLE;
   }
 
   recordBeadsGesture(gestureId: number): boolean {
@@ -66,6 +100,9 @@ export class PracticeController {
       return false;
     }
     this.ensureStarted();
+    this.state.targetActive = false;
+    this.state.targetCompleted = false;
+    this.state.sessionCount = 0;
     const started: boolean = this.rhythm.start(intervalMs, durationSeconds, (): void => {
       this.state.automaticCount++;
       this.state.hitSequence++;
@@ -74,6 +111,7 @@ export class PracticeController {
     });
     if (started) {
       this.state.status = PracticeStatus.RUNNING;
+      this.state.automaticActive = true;
     }
     return started;
   }
@@ -170,6 +208,10 @@ export class PracticeController {
   stop(): void {
     this.rhythm.stop();
     this.state.status = PracticeStatus.IDLE;
+    this.state.automaticActive = false;
+    this.state.targetActive = false;
+    this.state.targetCompleted = false;
+    this.state.sessionCount = 0;
   }
 
   onBackground(): void {
@@ -199,6 +241,16 @@ export class PracticeController {
     }
     const count: number = this.state.manualCount + this.state.automaticCount;
     return count === 27 || count === 54 || count === 108 ? count : 0;
+  }
+
+  private completeTargetIfNeeded(): void {
+    if (!this.state.targetActive || this.state.sessionCount < this.state.targetCount) {
+      return;
+    }
+    this.rhythm.stop();
+    this.state.automaticActive = false;
+    this.state.targetCompleted = true;
+    this.state.status = PracticeStatus.COMPLETED;
   }
 
   private ensureStarted(): void {

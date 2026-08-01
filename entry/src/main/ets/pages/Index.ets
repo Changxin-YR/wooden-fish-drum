@@ -11,17 +11,19 @@ import { StatsPage } from './StatsPage';
 import { ModeSelectPage } from './ModeSelectPage';
 import { PrivacyPolicyPage } from './PrivacyPolicyPage';
 import { UserNoticePage } from './UserNoticePage';
-import { OpenSourceLicensePage } from './OpenSourceLicensePage';
 import { AboutPage } from './AboutPage';
 import { appStore, practiceController, preferencesStore } from '../stores/AppRuntime';
 import { audioService } from '../services/AudioService';
 import { vibrationService } from '../services/VibrationService';
 import { ThemeResolver } from '../utils/ThemeResolver';
+import { WindowAppearanceService } from '../services/WindowAppearanceService';
 
 @Entry
 @Component
 struct Index {
-  @StorageLink('systemDark') systemDark: boolean = false;
+  @StorageLink('systemDark') @Watch('onSystemDarkChanged') systemDark: boolean = false;
+  @StorageLink('topSafeAreaPx') topSafeAreaPx: number = 0;
+  @StorageLink('bottomSafeAreaPx') bottomSafeAreaPx: number = 0;
   @State ready: boolean = false;
   @State selectedTab: AppTab = AppTab.HOME;
   @State settingsModalOpen: boolean = false;
@@ -91,7 +93,13 @@ struct Index {
     this.allRecords = appStore.allRecords;
     this.recentSessions = appStore.recentSessions;
     practiceController.selectTool(this.settings.selectedTool);
+    practiceController.configureTarget(this.settings.targetCount);
     this.refreshPracticeState();
+    WindowAppearanceService.applyTheme(this.isDark());
+  }
+
+  private onSystemDarkChanged(): void {
+    WindowAppearanceService.applyTheme(this.isDark());
   }
 
   private refreshPracticeState(): void {
@@ -101,6 +109,11 @@ struct Index {
     next.status = source.status;
     next.manualCount = source.manualCount;
     next.automaticCount = source.automaticCount;
+    next.automaticActive = source.automaticActive;
+    next.targetActive = source.targetActive;
+    next.targetCompleted = source.targetCompleted;
+    next.targetCount = source.targetCount;
+    next.sessionCount = source.sessionCount;
     next.hitSequence = source.hitSequence;
     next.lastMilestone = source.lastMilestone;
     next.startedAt = source.startedAt;
@@ -213,6 +226,28 @@ struct Index {
     this.refreshPracticeState();
   }
 
+  private handleStartTarget(): void {
+    practiceController.configureTarget(this.settings.targetCount);
+    practiceController.startTarget();
+    this.refreshPracticeState();
+  }
+
+  private handleRestartTarget(): void {
+    practiceController.restartTarget();
+    this.refreshPracticeState();
+  }
+
+  private async updateTargetCount(targetCount: number): Promise<boolean> {
+    const saved: boolean = await appStore.saveTargetCount(targetCount);
+    if (!saved) {
+      return false;
+    }
+    practiceController.configureTarget(targetCount);
+    practiceController.startTarget();
+    this.syncFromStore();
+    return true;
+  }
+
   private handlePause(): void {
     practiceController.pause();
     this.refreshPracticeState();
@@ -254,9 +289,9 @@ struct Index {
       appStore.settings.tapSoundEnabled = value;
     } else if (action === 'vibration') {
       appStore.settings.vibrationEnabled = value;
-    } else if (action === 'floating' || action === 'feedback') {
-      appStore.settings.floatingTextEnabled = value;
+    } else if (action === 'floating') {
       appStore.settings.feedbackTextEnabled = value;
+      appStore.settings.floatingTextEnabled = value;
     } else {
       appStore.settings.reducedMotion = value;
     }
@@ -270,8 +305,6 @@ struct Index {
       PrivacyPolicyPage({ dark: this.isDark(), onBack: (): void => { this.settingsRoute = SettingsRoute.NONE; } })
     } else if (this.settingsRoute === SettingsRoute.NOTICE) {
       UserNoticePage({ dark: this.isDark(), onBack: (): void => { this.settingsRoute = SettingsRoute.NONE; } })
-    } else if (this.settingsRoute === SettingsRoute.LICENSES) {
-      OpenSourceLicensePage({ dark: this.isDark(), onBack: (): void => { this.settingsRoute = SettingsRoute.NONE; } })
     } else if (this.settingsRoute === SettingsRoute.ABOUT) {
       AboutPage({ dark: this.isDark(), onBack: (): void => { this.settingsRoute = SettingsRoute.NONE; } })
     } else if (!this.settings.initialized) {
@@ -291,6 +324,10 @@ struct Index {
         onBeadsGesture: (gestureId: number): void => this.handleBeadsGesture(gestureId),
         onToolChange: (toolType: ToolType): void => this.handleToolChange(toolType),
         onStartAuto: (intervalMs: number): void => this.handleStartAuto(intervalMs),
+        onStartTarget: (): void => this.handleStartTarget(),
+        onRestartTarget: (): void => this.handleRestartTarget(),
+        onTargetChange: async (targetCount: number): Promise<boolean> => this.updateTargetCount(targetCount),
+        onModalStateChange: (visible: boolean): void => { this.settingsModalOpen = visible; },
         onPause: (): void => this.handlePause(),
         onResume: (): void => this.handleResume(),
         onStop: (): void => this.handleStop(),
@@ -332,17 +369,21 @@ struct Index {
         onVibrationToggle: (enabled: boolean): void => {
           this.updateSetting('vibration', enabled);
         },
-        onFeedbackToggle: (enabled: boolean): void => {
-          this.updateSetting('feedback', enabled);
+        onFeedbackTextToggle: (enabled: boolean): void => {
+          this.updateSetting('floating', enabled);
+        },
+        onFeedbackTextSave: async (value: string): Promise<boolean> => {
+          const saved: boolean = await appStore.saveFeedbackText(value);
+          if (saved) {
+            this.syncFromStore();
+          }
+          return saved;
         },
         onReducedMotionToggle: (enabled: boolean): void => {
           this.updateSetting('motion', enabled);
         },
         onThemeChange: (mode: ThemeMode): void => {
           appStore.setThemeMode(mode).then((): void => this.syncFromStore());
-        },
-        onCustomText: (value: string): void => {
-          appStore.saveCustomText(value).then((): void => this.syncFromStore());
         },
         onClearToday: (): void => {
           appStore.clearToday().then((): void => this.syncFromStore());
@@ -410,6 +451,10 @@ struct Index {
         }
         .width('100%')
         .height('100%')
+        .padding({
+          top: this.getUIContext().px2vp(this.topSafeAreaPx),
+          bottom: this.getUIContext().px2vp(this.bottomSafeAreaPx)
+        })
         .constraintSize({ maxWidth: this.contentMaxWidth() })
         .backgroundColor(this.isDark() ? DesignTokens.darkBackground : DesignTokens.lightBackground)
         .shadow(this.viewportWidth >= 600 ?

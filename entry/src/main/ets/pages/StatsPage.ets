@@ -13,7 +13,7 @@ export struct StatsPage {
   @Prop records: DailyRecord[];
   @Prop dark: boolean;
   @Prop sessions: PracticeSession[] = [];
-  @State period: StatsPeriod = StatsPeriod.DAY;
+  @StorageLink('statsPeriod') period: StatsPeriod = StatsPeriod.TODAY;
   @State viewportWidth: number = 390;
 
   private colors(): ThemeColors { return ThemePalette.resolve(this.dark); }
@@ -65,16 +65,20 @@ export struct StatsPage {
   }
 
   private trendTitle(): string {
-    if (this.period === StatsPeriod.DAY) {
-      return '最近 7 日趋势';
+    if (this.period === StatsPeriod.TODAY) {
+      return '本日趋势';
     }
-    if (this.period === StatsPeriod.WEEK) {
-      return '最近 8 周趋势';
+    if (this.period === StatsPeriod.CURRENT_WEEK) {
+      return '本周趋势';
     }
-    if (this.period === StatsPeriod.MONTH) {
-      return '最近 12 月趋势';
+    if (this.period === StatsPeriod.CURRENT_MONTH) {
+      return '本月趋势';
     }
-    return '近 5 年趋势';
+    if (this.period === StatsPeriod.CURRENT_YEAR) return '本年趋势';
+    if (this.period === StatsPeriod.LAST_7_DAYS) return '近七日趋势';
+    if (this.period === StatsPeriod.LAST_4_WEEKS) return '近四周趋势';
+    if (this.period === StatsPeriod.LAST_3_MONTHS) return '近三月趋势';
+    return '近一年趋势';
   }
 
   private formatTime(value: number): string {
@@ -301,14 +305,25 @@ export struct StatsPage {
         }
         .width('100%')
 
-        Row({ space: 2 }) {
-          this.PeriodTab(StatsPeriod.DAY, '今日')
-          this.PeriodTab(StatsPeriod.WEEK, '本周')
-          this.PeriodTab(StatsPeriod.MONTH, '本月')
-          this.PeriodTab(StatsPeriod.YEAR, '全部')
+        Column({ space: 2 }) {
+          Row({ space: 2 }) {
+            this.PeriodTab(StatsPeriod.TODAY, '本日')
+            this.PeriodTab(StatsPeriod.CURRENT_WEEK, '本周')
+            this.PeriodTab(StatsPeriod.CURRENT_MONTH, '本月')
+            this.PeriodTab(StatsPeriod.CURRENT_YEAR, '本年')
+          }
+          .width('100%')
+          .height(48)
+          Row({ space: 2 }) {
+            this.PeriodTab(StatsPeriod.LAST_7_DAYS, '近七日')
+            this.PeriodTab(StatsPeriod.LAST_4_WEEKS, '近四周')
+            this.PeriodTab(StatsPeriod.LAST_3_MONTHS, '近三月')
+            this.PeriodTab(StatsPeriod.LAST_YEAR, '近一年')
+          }
+          .width('100%')
+          .height(48)
         }
         .width('100%')
-        .height(52)
         .padding(2)
         .backgroundColor(this.colors().card)
         .borderRadius(8)

@@ -8,6 +8,7 @@ export class AppSettings {
   selectedTool: ToolType = ToolType.WOODEN_FISH;
   feedbackText: string = '放松+1';
   feedbackTextEnabled: boolean = true;
+  targetCount: number = 108;
   tapSoundEnabled: boolean = true;
   tapVolume: number = 0.7;
   selectedSoundId: SoundType = SoundType.SOFT;
