@@ -162,13 +162,20 @@ export struct SettingsPage {
             }
             Divider().color(this.divider())
             Row() {
-              this.SettingRow('♬', '音色选择', this.soundLabel())
-              Text('›').fontSize(28).fontColor('#8A5635')
+              this.SettingRow('≋', '振动反馈', '')
+              Toggle({ type: ToggleType.Switch, isOn: this.settings.vibrationEnabled })
+                .selectedColor('#9A612C')
+                .onChange((value: boolean): void => this.onVibrationToggle(value))
+                .accessibilityText('振动反馈开关')
             }
-            .onClick((): void => {
-              this.showSoundPicker = true;
-            })
-            .accessibilityText(`当前音色：${this.soundLabel()}，点击选择音色`)
+            Divider().color(this.divider())
+            Row() {
+              this.SettingRow('T', '浮动文字', '显示敲击功德浮动文字')
+              Toggle({ type: ToggleType.Switch, isOn: this.settings.floatingTextEnabled })
+                .selectedColor('#9A612C')
+                .onChange((value: boolean): void => this.onFloatingToggle(value))
+                .accessibilityText('浮动文字开关')
+            }
             Divider().color(this.divider())
             Column({ space: 4 }) {
               Row() {
@@ -189,20 +196,13 @@ export struct SettingsPage {
             }
             Divider().color(this.divider())
             Row() {
-              this.SettingRow('≋', '振动反馈', '')
-              Toggle({ type: ToggleType.Switch, isOn: this.settings.vibrationEnabled })
-                .selectedColor('#9A612C')
-                .onChange((value: boolean): void => this.onVibrationToggle(value))
-                .accessibilityText('振动反馈开关')
+              this.SettingRow('♬', '音色选择', this.soundLabel())
+              Text('›').fontSize(28).fontColor('#8A5635')
             }
-            Divider().color(this.divider())
-            Row() {
-              this.SettingRow('T', '浮动文字', '显示敲击功德浮动文字')
-              Toggle({ type: ToggleType.Switch, isOn: this.settings.floatingTextEnabled })
-                .selectedColor('#9A612C')
-                .onChange((value: boolean): void => this.onFloatingToggle(value))
-                .accessibilityText('浮动文字开关')
-            }
+            .onClick((): void => {
+              this.showSoundPicker = true;
+            })
+            .accessibilityText(`当前音色：${this.soundLabel()}，点击选择音色`)
             Divider().color(this.divider())
             Row() {
               this.SettingRow('✎', '自定义文字', this.settings.currentText)

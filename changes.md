@@ -1,5 +1,26 @@
 # 变更记录
 
+## 2026-08-02｜设置反馈项分组排序
+
+- 状态：`done`
+- 用户请求：把带开关的设置项放在一起、带箭头的设置项放在一起，并保持其余内容不变。
+
+### 已完成改动
+
+- “敲击反馈”调整为音效开关、振动反馈、浮动文字、音量、音色选择、自定义文字。
+- 三个开关连续排列，音量作为视觉过渡，两个箭头入口连续排列。
+- 仅移动现有设置项代码块，保留原有样式、间距、颜色、控件、回调和行为。
+
+### 验证
+
+- 设置项顺序断言、项目标准检查与 `git diff --check`：`passed`。
+- debug 主 HAP：`passed`，4,648,798 bytes。
+- debug ohosTest HAP：`passed`，5,635,128 bytes。
+- release 主 HAP：`passed`，4,418,416 bytes。
+- phone 模拟器 Hypium：`passed`，18/18，Failure 0，Error 0，`OHOS_REPORT_CODE: 0`。
+- phone 视觉验收：`passed`，证据见 `docs/qa/2026-08-02-settings-feedback-order.md`。
+- tablet、2in1 视觉验收：`blocked`，当前无对应设备。
+
 ## 2026-07-30｜用户反馈改版
 
 - 状态：`done`
