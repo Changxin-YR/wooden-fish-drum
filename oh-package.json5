@@ -1,6 +1,6 @@
 {
   "modelVersion": "6.0.0",
-  "description": "敲敲木鱼 API 24 原生 HarmonyOS 单机应用",
+  "description": "敲敲木鱼 HarmonyOS 6.0.2(22) 原生单机电子木鱼",
   "dependencies": {
   },
   "devDependencies": {
