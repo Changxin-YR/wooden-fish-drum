@@ -49,6 +49,12 @@ export class JsonCodec {
         parsed.floatingTextEnabled : defaults.floatingTextEnabled;
       result.autoInterval = typeof parsed.autoInterval === 'number' ?
         Math.max(500, Math.min(2000, parsed.autoInterval)) : defaults.autoInterval;
+      result.targetCount = typeof parsed.targetCount === 'number' ?
+        Math.max(1, Math.min(9999, parsed.targetCount)) : defaults.targetCount;
+      result.homeCountBaseline = typeof parsed.homeCountBaseline === 'number' ?
+        Math.max(0, parsed.homeCountBaseline) : defaults.homeCountBaseline;
+      result.homeCountDate = typeof parsed.homeCountDate === 'string' ?
+        parsed.homeCountDate : defaults.homeCountDate;
       return result;
     } catch {
       return defaults;
@@ -73,17 +79,13 @@ export class JsonCodec {
         if (item !== null && typeof item.date === 'string' &&
           typeof item.manualCount === 'number' && typeof item.autoCount === 'number') {
           records.push(new DailyRecord(item.date, Math.max(0, item.manualCount),
-            Math.max(0, item.autoCount), Math.max(0, item.durationSeconds ?? 0)));
+            Math.max(0, item.autoCount)));
         }
       });
       return records;
     } catch {
       return [];
     }
-  }
-
-  private static isUserMode(value: UserMode): boolean {
-    return value === UserMode.PROGRAMMER || value === UserMode.MONK || value === UserMode.GENERAL;
   }
 
   private static isThemeMode(value: ThemeMode): boolean {

@@ -2,7 +2,7 @@
 
 ## 产品目标
 
-构建东方极简、温暖、安静的 HarmonyOS 单机功德木鱼应用。完整设计见 `docs/superpowers/specs/2026-07-29-muyu-v1-design.md`。
+构建东方极简、温暖、安静的 HarmonyOS 单机木鱼应用“敲敲木鱼”。完整设计见 `docs/superpowers/specs/2026-07-29-muyu-v1-design.md`。
 
 ## 页面信息架构
 

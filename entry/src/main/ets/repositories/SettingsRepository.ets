@@ -6,6 +6,7 @@ const SETTINGS_KEY: string = 'settings';
 
 export class SettingsRepository {
   private readonly store: LocalStoreAdapter;
+  private mutationQueue: Promise<void> = Promise.resolve();
 
   constructor(store: LocalStoreAdapter) {
     this.store = store;
@@ -16,11 +17,16 @@ export class SettingsRepository {
   }
 
   async save(settings: AppSettings): Promise<boolean> {
-    try {
-      await this.store.putString(SETTINGS_KEY, JsonCodec.encodeSettings(settings));
-      return true;
-    } catch {
-      return false;
-    }
+    const snapshot: string = JsonCodec.encodeSettings(settings);
+    const operation: Promise<boolean> = this.mutationQueue.then(async (): Promise<boolean> => {
+      try {
+        await this.store.putString(SETTINGS_KEY, snapshot);
+        return true;
+      } catch {
+        return false;
+      }
+    });
+    this.mutationQueue = operation.then((_saved: boolean): void => {});
+    return operation;
   }
 }

@@ -15,6 +15,7 @@ export struct BottomNavBar {
         .height(34)
         .objectFit(ImageFit.Cover)
         .borderRadius(9)
+        .opacity(this.selected === tab ? 1.0 : 0.45)
       Text(label)
         .fontSize(12)
         .fontColor(this.selected === tab ? (this.dark ? DesignTokens.accentLight : DesignTokens.wood) :

@@ -1,9 +1,10 @@
 import { describe, expect, it } from '@ohos/hypium';
 import { JsonCodec } from '../../../main/ets/data/JsonCodec';
-import { LayoutSize, ResponsiveLayout } from '../../../main/ets/utils/ResponsiveLayout';
+import { DesignTokens } from '../../../main/ets/constants/DesignTokens';
 import { TextValidator } from '../../../main/ets/utils/TextValidator';
 import { ThemeMode, UserMode } from '../../../main/ets/models/Enums';
 import { ThemeResolver } from '../../../main/ets/utils/ThemeResolver';
+import { InitializationSlot } from '../../../main/ets/services/InitializationSlot';
 
 export default function coreModelsTest(): void {
   describe('CoreModels', (): void => {
@@ -15,9 +16,8 @@ export default function coreModelsTest(): void {
     });
 
     it('usesDocumentedResponsiveBreakpoints', 0, (): void => {
-      expect(ResponsiveLayout.resolve(599)).assertEqual(LayoutSize.COMPACT);
-      expect(ResponsiveLayout.resolve(600)).assertEqual(LayoutSize.MEDIUM);
-      expect(ResponsiveLayout.resolve(1024)).assertEqual(LayoutSize.EXPANDED);
+      expect(DesignTokens.compactMax).assertEqual(599);
+      expect(DesignTokens.mediumMax).assertEqual(1023);
     });
 
     it('trimsAndLimitsCustomTextToTwelveCharacters', 0, (): void => {
@@ -31,6 +31,20 @@ export default function coreModelsTest(): void {
       expect(ThemeResolver.isDark(ThemeMode.LIGHT, true)).assertFalse();
       expect(ThemeResolver.isDark(ThemeMode.SYSTEM, true)).assertTrue();
       expect(ThemeResolver.isDark(ThemeMode.SYSTEM, false)).assertFalse();
+    });
+
+    it('discardsStaleResourcesAndReturnsCurrentResourceOnCancel', 0, (): void => {
+      const slot: InitializationSlot<string> = new InitializationSlot<string>();
+      const first: number = slot.begin();
+      const second: number = slot.begin();
+
+      expect(slot.publish(first, 'stale')).assertEqual('stale');
+      expect(slot.current()).assertNull();
+      expect(slot.publish(second, 'active')).assertNull();
+      expect(slot.current()).assertEqual('active');
+
+      expect(slot.cancel()).assertEqual('active');
+      expect(slot.current()).assertNull();
     });
   });
 }

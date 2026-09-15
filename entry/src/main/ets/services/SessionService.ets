@@ -2,17 +2,14 @@ import { SessionState } from '../models/AppModels';
 import { SessionMode } from '../models/Enums';
 
 export type HitCallback = (automatic: boolean) => void;
-export type TickCallback = (remainingSeconds: number) => void;
 
 export class SessionService {
   state: SessionState = new SessionState();
   private timerId: number = -1;
   private onHit: HitCallback | null = null;
-  private onTick: TickCallback | null = null;
 
-  setCallbacks(onHit: HitCallback, onTick: TickCallback): void {
+  setCallbacks(onHit: HitCallback): void {
     this.onHit = onHit;
-    this.onTick = onTick;
   }
 
   recordManualHit(): boolean {
@@ -119,14 +116,10 @@ export class SessionService {
     this.state.startedAt = Date.now();
   }
 
-  private stopTimerOnly(): void {
+  private clearTimer(): void {
     if (this.timerId !== -1) {
       clearInterval(this.timerId);
       this.timerId = -1;
     }
-  }
-
-  private clearTimer(): void {
-    this.stopTimerOnly();
   }
 }

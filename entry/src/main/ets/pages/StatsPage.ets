@@ -8,9 +8,23 @@ import { DesignTokens } from '../constants/DesignTokens';
 @Component
 export struct StatsPage {
   @Prop summary: StatsSummary;
-  @Prop records: DailyRecord[];
+  @Prop @Watch('onRecordsChanged') records: DailyRecord[];
   @Prop dark: boolean;
   @State period: StatsPeriod = StatsPeriod.DAY;
+  @State periodView: StatsPeriodView = new StatsPeriodView();
+  @State chartScrollRequest: number = 0;
+
+  aboutToAppear(): void {
+    this.rebuildPeriodView();
+  }
+
+  private onRecordsChanged(): void {
+    this.rebuildPeriodView();
+  }
+
+  private rebuildPeriodView(): void {
+    this.periodView = StatsPeriodService.build(this.records, DateUtil.todayKey(), this.period);
+  }
 
   private pageBackground(): string {
     return this.dark ? DesignTokens.darkBackground : DesignTokens.lightBackground;
@@ -28,8 +42,24 @@ export struct StatsPage {
     return this.dark ? DesignTokens.darkSecondary : DesignTokens.lightSecondary;
   }
 
-  private currentView(): StatsPeriodView {
-    return StatsPeriodService.build(this.records, DateUtil.todayKey(), this.period);
+  private trendTitle(): string {
+    if (this.summary.todayCount === 0) {
+      return '今日待开始';
+    }
+    if (this.summary.todayCount >= this.summary.maxDailyCount && this.summary.todayCount > 1) {
+      return '今日最佳';
+    }
+    return '继续加油';
+  }
+
+  private trendDetail(): string {
+    if (this.summary.todayCount === 0) {
+      return '去首页敲一敲，开启今日功德';
+    }
+    if (this.summary.todayCount >= this.summary.maxDailyCount && this.summary.todayCount > 1) {
+      return `刷新纪录，今日已敲 ${this.summary.todayCount} 次`;
+    }
+    return `距离历史纪录还差 ${this.summary.maxDailyCount - this.summary.todayCount} 次`;
   }
 
   @Builder
@@ -44,6 +74,8 @@ export struct StatsPage {
       .borderRadius(23)
       .onClick((): void => {
         this.period = period;
+        this.rebuildPeriodView();
+        this.chartScrollRequest++;
       })
       .accessibilityText(`切换${label}统计`)
   }
@@ -79,7 +111,6 @@ export struct StatsPage {
           this.PeriodTab(StatsPeriod.DAY, '日')
           this.PeriodTab(StatsPeriod.WEEK, '周')
           this.PeriodTab(StatsPeriod.MONTH, '月')
-          this.PeriodTab(StatsPeriod.YEAR, '年')
         }
         .padding(4)
         .width('100%')
@@ -87,13 +118,13 @@ export struct StatsPage {
         .borderRadius(27)
 
         Row() {
-          this.SummaryItem('▣', this.currentView().scopeLabel,
-            (): string => this.currentView().totalCount.toLocaleString(), '当前口径')
+          this.SummaryItem('▣', this.periodView.scopeLabel,
+            (): string => this.periodView.totalCount.toLocaleString(), '当前口径')
           this.SummaryItem('◇', '总计功德', (): string => this.summary.totalCount.toLocaleString(), '累计功德')
           this.SummaryItem('♧', '手动敲击',
-            (): string => this.currentView().manualCount.toLocaleString(), '当前口径')
+            (): string => this.periodView.manualCount.toLocaleString(), '当前口径')
           this.SummaryItem('◉', '自动敲击',
-            (): string => this.currentView().autoCount.toLocaleString(), '当前口径')
+            (): string => this.periodView.autoCount.toLocaleString(), '当前口径')
         }
         .width('100%')
         .padding({ top: 22, bottom: 22 })
@@ -103,7 +134,7 @@ export struct StatsPage {
 
         Column({ space: 14 }) {
           Row() {
-            Text(this.currentView().title)
+            Text(this.periodView.title)
               .fontSize(19)
               .fontWeight(FontWeight.Medium)
               .fontColor(this.primaryText())
@@ -112,7 +143,11 @@ export struct StatsPage {
               .fontSize(12)
               .fontColor(this.secondaryText())
           }
-          StatsBarChart({ buckets: this.currentView().buckets, dark: this.dark })
+          StatsBarChart({
+            buckets: this.periodView.buckets,
+            dark: this.dark,
+            scrollRequest: this.chartScrollRequest
+          })
         }
         .width('100%')
         .padding(18)
@@ -132,11 +167,11 @@ export struct StatsPage {
           .alignItems(HorizontalAlign.Start)
           Column({ space: 8 }) {
             Text('敲击趋势').fontSize(16).fontColor(this.primaryText())
-            Text(this.summary.todayCount >= this.summary.maxDailyCount ? '今日最佳' : '稳步上升')
+            Text(this.trendTitle())
               .fontSize(27)
               .fontWeight(FontWeight.Bold)
               .fontColor('#8A5635')
-            Text('继续保持哦').fontSize(12).fontColor(this.secondaryText())
+            Text(this.trendDetail()).fontSize(12).fontColor(this.secondaryText())
           }
           .layoutWeight(1)
           .alignItems(HorizontalAlign.Start)

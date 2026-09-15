@@ -13,20 +13,20 @@ export class AppSettings {
   vibrationEnabled: boolean = true;
   floatingTextEnabled: boolean = true;
   autoInterval: number = 1000;
+  targetCount: number = 108;
+  homeCountBaseline: number = 0;
+  homeCountDate: string = '';
 }
 
 export class DailyRecord {
   date: string;
   manualCount: number;
   autoCount: number;
-  durationSeconds: number;
 
-  constructor(date: string, manualCount: number = 0, autoCount: number = 0,
-    durationSeconds: number = 0) {
+  constructor(date: string, manualCount: number = 0, autoCount: number = 0) {
     this.date = date;
     this.manualCount = manualCount;
     this.autoCount = autoCount;
-    this.durationSeconds = durationSeconds;
   }
 
   get totalCount(): number {
@@ -75,6 +75,19 @@ export class SessionState {
   currentCount: number = 0;
   targetCount: number = 0;
   startedAt: number = 0;
+
+  snapshot(): SessionState {
+    const copy: SessionState = new SessionState();
+    copy.mode = this.mode;
+    copy.hitSequence = this.hitSequence;
+    copy.running = this.running;
+    copy.paused = this.paused;
+    copy.targetCompleted = this.targetCompleted;
+    copy.currentCount = this.currentCount;
+    copy.targetCount = this.targetCount;
+    copy.startedAt = this.startedAt;
+    return copy;
+  }
 }
 
 export interface UserModeConfig {

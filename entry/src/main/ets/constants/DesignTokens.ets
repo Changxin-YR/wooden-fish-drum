@@ -1,5 +1,6 @@
 export class DesignTokens {
   static readonly lightBackground: string = '#F6F1E8';
+  static readonly homeLightBackground: string = '#FAF4EF';
   static readonly lightCard: string = '#FFFDF8';
   static readonly lightText: string = '#2E2924';
   static readonly lightSecondary: string = '#817970';

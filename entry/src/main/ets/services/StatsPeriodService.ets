@@ -3,6 +3,10 @@ import { StatsPeriod } from '../models/Enums';
 import { DateUtil } from '../utils/DateUtil';
 
 export class StatsPeriodService {
+  static supportedPeriods(): StatsPeriod[] {
+    return [StatsPeriod.DAY, StatsPeriod.WEEK, StatsPeriod.MONTH];
+  }
+
   static build(records: DailyRecord[], today: string, period: StatsPeriod): StatsPeriodView {
     const view: StatsPeriodView = new StatsPeriodView();
     if (period === StatsPeriod.DAY) {
@@ -15,16 +19,11 @@ export class StatsPeriodService {
       view.scopeLabel = '近 7 日';
       view.buckets = StatsPeriodService.weeklyBuckets(records, today);
       StatsPeriodService.applyRange(view, records, DateUtil.addDays(today, -6), today);
-    } else if (period === StatsPeriod.MONTH) {
+    } else {
       view.title = '近 12 月趋势';
       view.scopeLabel = '本月';
       view.buckets = StatsPeriodService.monthlyBuckets(records, today);
       StatsPeriodService.applyPrefix(view, records, today.slice(0, 7));
-    } else {
-      view.title = '近 5 年趋势';
-      view.scopeLabel = '本年';
-      view.buckets = StatsPeriodService.yearlyBuckets(records, today);
-      StatsPeriodService.applyPrefix(view, records, today.slice(0, 4));
     }
     return view;
   }
@@ -53,16 +52,6 @@ export class StatsPeriodService {
     for (let index: number = 11; index >= 0; index--) {
       const key: string = StatsPeriodService.monthKey(today, -index);
       buckets.push(StatsPeriodService.bucketForPrefix(records, `${key.slice(5)}月`, key));
-    }
-    return buckets;
-  }
-
-  private static yearlyBuckets(records: DailyRecord[], today: string): StatsBucket[] {
-    const buckets: StatsBucket[] = [];
-    const currentYear: number = Number(today.slice(0, 4));
-    for (let index: number = 4; index >= 0; index--) {
-      const key: string = `${currentYear - index}`;
-      buckets.push(StatsPeriodService.bucketForPrefix(records, key, key));
     }
     return buckets;
   }

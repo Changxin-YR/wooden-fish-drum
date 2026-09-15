@@ -50,7 +50,7 @@ export class StatsRepository {
         record.manualCount++;
       }
       await this.persist();
-      result = new DailyRecord(record.date, record.manualCount, record.autoCount, record.durationSeconds);
+      result = new DailyRecord(record.date, record.manualCount, record.autoCount);
     });
     this.mutationQueue = operation.catch((): void => {});
     await operation;
@@ -83,7 +83,7 @@ export class StatsRepository {
       const record: DailyRecord | undefined =
         this.records.find((item: DailyRecord): boolean => item.date === key);
       result.push(record === undefined ? new DailyRecord(key) :
-        new DailyRecord(record.date, record.manualCount, record.autoCount, record.durationSeconds));
+        new DailyRecord(record.date, record.manualCount, record.autoCount));
     }
     return result;
   }
@@ -104,9 +104,12 @@ export class StatsRepository {
   }
 
   private streak(today: string): number {
+    const todayRecord: DailyRecord | undefined =
+      this.records.find((item: DailyRecord): boolean => item.date === today && item.totalCount > 0);
+    const initialOffset: number = todayRecord === undefined ? 1 : 0;
     let days: number = 0;
     while (true) {
-      const key: string = DateUtil.addDays(today, -days);
+      const key: string = DateUtil.addDays(today, -(initialOffset + days));
       const record: DailyRecord | undefined =
         this.records.find((item: DailyRecord): boolean => item.date === key && item.totalCount > 0);
       if (record === undefined) {
@@ -118,11 +121,20 @@ export class StatsRepository {
   }
 
   private async persist(): Promise<void> {
+    this.pruneOldRecords();
     await this.store.putString(STATS_KEY, JsonCodec.encodeRecords(this.records));
+  }
+
+  private pruneOldRecords(): void {
+    const currentYear: number = Number(DateUtil.todayKey().slice(0, 4));
+    const cutoff: string = `${currentYear - 5}-01-01`;
+    const kept: DailyRecord[] = this.records.filter((record: DailyRecord): boolean =>
+      record.date >= cutoff);
+    this.records = kept;
   }
 
   private copyRecords(records: DailyRecord[]): DailyRecord[] {
     return records.map((item: DailyRecord): DailyRecord =>
-      new DailyRecord(item.date, item.manualCount, item.autoCount, item.durationSeconds));
+      new DailyRecord(item.date, item.manualCount, item.autoCount));
   }
 }

@@ -31,6 +31,5 @@ export enum AppTab {
 export enum StatsPeriod {
   DAY = 'day',
   WEEK = 'week',
-  MONTH = 'month',
-  YEAR = 'year'
+  MONTH = 'month'
 }

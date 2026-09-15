@@ -7,7 +7,7 @@
     "buildTool": "hvigor",
     "directoryLevel": "project"
   },
-  "description": "功德木鱼 API 24 原生 HarmonyOS 单机应用",
+  "description": "敲敲木鱼 API 24 原生 HarmonyOS 单机应用",
   "license": "UNLICENSED",
   "dependencies": {
     "@ohos/hvigor": "6.24.3",

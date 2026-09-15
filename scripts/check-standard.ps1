@@ -26,23 +26,29 @@ $requiredFiles = @(
   'entry\src\main\module.json5',
   'entry\src\main\ets\entryability\EntryAbility.ets',
   'entry\src\main\ets\pages\Index.ets',
-  'entry\src\main\ets\pages\ModeSelectPage.ets',
   'entry\src\main\ets\pages\HomePage.ets',
   'entry\src\main\ets\pages\StatsPage.ets',
   'entry\src\main\ets\pages\SettingsPage.ets',
   'entry\src\main\ets\services\SessionService.ets',
   'entry\src\main\ets\services\AudioService.ets',
+  'entry\src\main\ets\services\InitializationSlot.ets',
+  'entry\src\main\ets\services\WindowChromeService.ets',
   'entry\src\main\ets\services\VibrationService.ets',
+  'entry\src\main\ets\utils\SystemBarStyleResolver.ets',
   'entry\src\main\resources\base\media\app_icon.png',
   'entry\src\main\resources\base\media\muyu_brand.png',
-  'entry\src\main\resources\base\media\muyu_dark.png',
+  'entry\src\main\resources\base\media\muyu_body_dark.png',
   'entry\src\main\resources\rawfile\sounds\deep.wav',
   'entry\src\main\resources\rawfile\sounds\crisp.wav',
   'entry\src\main\resources\rawfile\sounds\soft.wav',
   'entry\src\main\resources\base\profile\main_pages.json',
   'entry\src\ohosTest\module.json5',
   'entry\src\ohosTest\ets\test\List.test.ets',
-  'vendor\hypium\oh-package.json5'
+  'vendor\hypium\oh-package.json5',
+  'scripts\check-pause-icon.ps1',
+  'scripts\check-app-name.ps1',
+  'scripts\check-startup-flow.ps1',
+  'scripts\check-system-bars.ps1'
 )
 
 foreach ($relativePath in $requiredFiles) {
@@ -81,8 +87,8 @@ if ($null -ne $rootProfile) {
   if ($null -eq $product) {
     $problems.Add('build-profile.json5 is missing the default product')
   }
-  elseif ($product.compatibleSdkVersion -ne '6.1.1(24)' -or $product.targetSdkVersion -ne '6.1.1(24)') {
-    $problems.Add('The default product must target HarmonyOS 6.1.1(24)')
+  elseif ($product.compatibleSdkVersion -ne '6.0.2(22)' -or $product.targetSdkVersion -ne '6.0.2(22)') {
+    $problems.Add('The default product must target HarmonyOS 6.0.2(22)')
   }
 }
 
@@ -124,6 +130,12 @@ if ($problems.Count -gt 0) {
   }
   exit 1
 }
+
+& (Join-Path $PSScriptRoot 'check-pause-icon.ps1')
+& (Join-Path $PSScriptRoot 'check-app-name.ps1')
+& (Join-Path $PSScriptRoot 'check-startup-flow.ps1')
+& (Join-Path $PSScriptRoot 'check-system-bars.ps1')
+& (Join-Path $PSScriptRoot 'check-mallet-layout.ps1')
 
 Write-Host 'Standard project check passed.' -ForegroundColor Green
 Write-Host "Project: $projectRoot"

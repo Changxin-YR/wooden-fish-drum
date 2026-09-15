@@ -4,6 +4,22 @@ import { StatsBucket } from '../models/AppModels';
 export struct StatsBarChart {
   @Prop buckets: StatsBucket[];
   @Prop dark: boolean;
+  @Prop @Watch('onScrollRequestChanged') scrollRequest: number;
+  private scroller: Scroller = new Scroller();
+
+  aboutToAppear(): void {
+    this.scrollToLatest();
+  }
+
+  private onScrollRequestChanged(): void {
+    this.scrollToLatest();
+  }
+
+  private scrollToLatest(): void {
+    setTimeout((): void => {
+      this.scroller.scrollEdge(Edge.End);
+    }, 0);
+  }
 
   private maxValue(): number {
     let value: number = 1;
@@ -18,7 +34,7 @@ export struct StatsBarChart {
   }
 
   build() {
-    Scroll() {
+    Scroll(this.scroller) {
       Row({ space: 8 }) {
         ForEach(this.buckets, (bucket: StatsBucket, index: number) => {
           Column({ space: 5 }) {

@@ -22,6 +22,11 @@ export class AppStore {
   async initialize(): Promise<void> {
     this.settings = await this.settingsRepository.load();
     await this.refreshStats();
+    const today: string = DateUtil.todayKey();
+    if (this.settings.homeCountDate === today && this.settings.homeCountBaseline > this.summary.todayCount) {
+      this.settings.homeCountBaseline = 0;
+      await this.settingsRepository.save(this.settings);
+    }
   }
 
   async setThemeMode(mode: ThemeMode): Promise<boolean> {
@@ -34,6 +39,10 @@ export class AppStore {
     return this.settingsRepository.save(this.settings);
   }
 
+  settingsSnapshot(): AppSettings {
+    return JsonCodec.decodeSettings(JsonCodec.encodeSettings(this.settings));
+  }
+
   async saveCustomText(value: string): Promise<boolean> {
     const normalized: string = TextValidator.normalize(value);
     if (!TextValidator.isValid(normalized)) {
@@ -42,8 +51,19 @@ export class AppStore {
     if (!this.settings.customTexts.includes(normalized)) {
       this.settings.customTexts.push(normalized);
     }
-    this.settings.currentText = normalized;
+    if (normalized !== this.settings.currentText) {
+      this.settings.currentText = normalized;
+      this.settings.homeCountBaseline = this.summary.todayCount;
+      this.settings.homeCountDate = DateUtil.todayKey();
+    }
     return this.settingsRepository.save(this.settings);
+  }
+
+  currentTextCount(today: string = DateUtil.todayKey()): number {
+    if (this.settings.homeCountDate !== today) {
+      return this.summary.todayCount;
+    }
+    return Math.max(0, this.summary.todayCount - this.settings.homeCountBaseline);
   }
 
   async recordHit(automatic: boolean): Promise<void> {
@@ -58,8 +78,11 @@ export class AppStore {
     this.allRecords = await this.statsRepository.allRecords();
   }
 
-  async clearStats(): Promise<void> {
+  async clearStats(): Promise<boolean> {
     await this.statsRepository.clear();
     await this.refreshStats();
+    this.settings.homeCountBaseline = 0;
+    this.settings.homeCountDate = DateUtil.todayKey();
+    return this.settingsRepository.save(this.settings);
   }
 }

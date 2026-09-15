@@ -1,10 +1,12 @@
 import { describe, expect, it } from '@ohos/hypium';
 import { JsonCodec } from '../../../main/ets/data/JsonCodec';
 import { LocalStoreAdapter } from '../../../main/ets/data/LocalStoreAdapter';
-import { DailyRecord } from '../../../main/ets/models/AppModels';
+import { AppSettings, DailyRecord, SessionState } from '../../../main/ets/models/AppModels';
 import { SessionMode, SoundType, ThemeMode, UserMode } from '../../../main/ets/models/Enums';
 import { StatsRepository } from '../../../main/ets/repositories/StatsRepository';
+import { SettingsRepository } from '../../../main/ets/repositories/SettingsRepository';
 import { SessionService } from '../../../main/ets/services/SessionService';
+import { AppStore } from '../../../main/ets/stores/AppStore';
 
 class MemoryStore implements LocalStoreAdapter {
   private values: Map<string, string> = new Map<string, string>();
@@ -44,6 +46,26 @@ class ReorderedWriteStore implements LocalStoreAdapter {
   }
 }
 
+class FailingSettingsStore implements LocalStoreAdapter {
+  failSettingsWrites: boolean = false;
+  private values: Map<string, string> = new Map<string, string>();
+
+  async getString(key: string, fallback: string): Promise<string> {
+    return this.values.get(key) ?? fallback;
+  }
+
+  async putString(key: string, value: string): Promise<void> {
+    if (key === 'settings' && this.failSettingsWrites) {
+      throw new Error('settings write failed');
+    }
+    this.values.set(key, value);
+  }
+
+  async remove(key: string): Promise<void> {
+    this.values.delete(key);
+  }
+}
+
 export default function dataAndSessionTest(): void {
   describe('DataAndSession', (): void => {
     it('loadsSafeDefaultsFromInvalidSettings', 0, (): void => {
@@ -63,6 +85,29 @@ export default function dataAndSessionTest(): void {
       expect(recent[6].date).assertEqual('2026-07-29');
     });
 
+    it('preservesStreakBeforeTodaysFirstHit', 0, async (): Promise<void> => {
+      const repository: StatsRepository = new StatsRepository(new MemoryStore());
+      await repository.replace([
+        new DailyRecord('2026-08-01', 1, 0),
+        new DailyRecord('2026-08-02', 1, 0)
+      ]);
+      expect((await repository.summary('2026-08-03')).streakDays).assertEqual(2);
+    });
+
+    it('includesTodayAfterFirstHitAndStopsAtGaps', 0, async (): Promise<void> => {
+      const active: StatsRepository = new StatsRepository(new MemoryStore());
+      await active.replace([
+        new DailyRecord('2026-08-01', 1, 0),
+        new DailyRecord('2026-08-02', 1, 0),
+        new DailyRecord('2026-08-03', 1, 0)
+      ]);
+      expect((await active.summary('2026-08-03')).streakDays).assertEqual(3);
+
+      const broken: StatsRepository = new StatsRepository(new MemoryStore());
+      await broken.replace([new DailyRecord('2026-08-01', 1, 0)]);
+      expect((await broken.summary('2026-08-03')).streakDays).assertEqual(0);
+    });
+
     it('persistsRapidHitsInOrder', 0, async (): Promise<void> => {
       const memory: ReorderedWriteStore = new ReorderedWriteStore();
       const repository: StatsRepository = new StatsRepository(memory);
@@ -73,6 +118,103 @@ export default function dataAndSessionTest(): void {
       ]);
       const restored: StatsRepository = new StatsRepository(memory);
       expect((await restored.summary('2026-07-30')).totalCount).assertEqual(3);
+    });
+
+    it('persistsLatestSettingsWhenWritesCompleteOutOfOrder', 0, async (): Promise<void> => {
+      const memory: ReorderedWriteStore = new ReorderedWriteStore();
+      const repository: SettingsRepository = new SettingsRepository(memory);
+      const first: AppSettings = JsonCodec.createDefaultSettings();
+      first.currentText = '第一次';
+      const second: AppSettings = JsonCodec.createDefaultSettings();
+      second.currentText = '第二次';
+
+      await Promise.all([repository.save(first), repository.save(second)]);
+
+      expect((await repository.load()).currentText).assertEqual('第二次');
+    });
+
+    it('resetsOnlyHomeTextCountWhenTextChanges', 0, async (): Promise<void> => {
+      const memory: MemoryStore = new MemoryStore();
+      const store: AppStore = new AppStore(new SettingsRepository(memory), new StatsRepository(memory));
+      await store.initialize();
+      await store.recordHit(false);
+      await store.recordHit(false);
+
+      await store.saveCustomText('今日好运');
+      expect(store.summary.todayCount).assertEqual(2);
+      expect(store.currentTextCount()).assertEqual(0);
+
+      await store.recordHit(false);
+      expect(store.currentTextCount()).assertEqual(1);
+      await store.saveCustomText('今日好运');
+      expect(store.currentTextCount()).assertEqual(1);
+
+      const restored: AppStore = new AppStore(new SettingsRepository(memory), new StatsRepository(memory));
+      await restored.initialize();
+      expect(restored.settings.currentText).assertEqual('今日好运');
+      expect(restored.summary.todayCount).assertEqual(3);
+      expect(restored.currentTextCount()).assertEqual(1);
+
+      store.settings.homeCountDate = '2000-01-01';
+      expect(store.currentTextCount()).assertEqual(3);
+
+      await restored.clearStats();
+      await restored.recordHit(false);
+      expect(restored.currentTextCount()).assertEqual(1);
+      const afterClear: AppStore = new AppStore(new SettingsRepository(memory), new StatsRepository(memory));
+      await afterClear.initialize();
+      expect(afterClear.currentTextCount()).assertEqual(1);
+    });
+
+    it('reportsAndRepairsFailedBaselineResetAfterClearingStats', 0, async (): Promise<void> => {
+      const memory: FailingSettingsStore = new FailingSettingsStore();
+      const store: AppStore = new AppStore(new SettingsRepository(memory), new StatsRepository(memory));
+      await store.initialize();
+      await store.recordHit(false);
+      await store.recordHit(false);
+      await store.saveCustomText('今日好运');
+
+      memory.failSettingsWrites = true;
+      expect(await store.clearStats()).assertFalse();
+      memory.failSettingsWrites = false;
+
+      const restored: AppStore = new AppStore(new SettingsRepository(memory), new StatsRepository(memory));
+      await restored.initialize();
+      await restored.recordHit(false);
+      expect(restored.currentTextCount()).assertEqual(1);
+    });
+
+    it('createsIndependentSettingsSnapshotsForImmediateUiRefresh', 0, async (): Promise<void> => {
+      const memory: MemoryStore = new MemoryStore();
+      const store: AppStore = new AppStore(new SettingsRepository(memory), new StatsRepository(memory));
+      await store.initialize();
+
+      const before: AppSettings = store.settingsSnapshot();
+      store.settings.volume = 0.35;
+      store.settings.currentText = '平安喜乐';
+      const after: AppSettings = store.settingsSnapshot();
+
+      expect(before === after).assertFalse();
+      expect(before.volume).assertEqual(0.7);
+      expect(before.currentText).assertEqual('功德+1');
+      expect(after.volume).assertEqual(0.35);
+      expect(after.currentText).assertEqual('平安喜乐');
+    });
+
+    it('updatesRuntimeSettingsBeforePersistenceCompletes', 0, async (): Promise<void> => {
+      const memory: ReorderedWriteStore = new ReorderedWriteStore();
+      const store: AppStore = new AppStore(new SettingsRepository(memory), new StatsRepository(memory));
+      await store.initialize();
+
+      const themeSave: Promise<boolean> = store.setThemeMode(ThemeMode.DARK);
+      expect(store.settings.themeMode).assertEqual(ThemeMode.DARK);
+      expect(store.settingsSnapshot().themeMode).assertEqual(ThemeMode.DARK);
+      await themeSave;
+
+      const textSave: Promise<boolean> = store.saveCustomText('诸事顺意');
+      expect(store.settings.currentText).assertEqual('诸事顺意');
+      expect(store.settingsSnapshot().currentText).assertEqual('诸事顺意');
+      await textSave;
     });
 
     it('countsRapidHitsAndStopsExactlyAtTarget', 0, (): void => {
@@ -90,6 +232,31 @@ export default function dataAndSessionTest(): void {
       expect(session.state.currentCount).assertEqual(3);
       expect(session.recordManualHit()).assertFalse();
       expect(session.state.currentCount).assertEqual(3);
+    });
+
+    it('createsCompleteIndependentSessionSnapshots', 0, (): void => {
+      const source: SessionState = new SessionState();
+      source.mode = SessionMode.TARGET;
+      source.hitSequence = 7;
+      source.running = true;
+      source.paused = true;
+      source.targetCompleted = true;
+      source.currentCount = 6;
+      source.targetCount = 8;
+      source.startedAt = 1234;
+
+      const snapshot: SessionState = source.snapshot();
+      source.currentCount = 99;
+
+      expect(snapshot === source).assertFalse();
+      expect(snapshot.mode).assertEqual(SessionMode.TARGET);
+      expect(snapshot.hitSequence).assertEqual(7);
+      expect(snapshot.running).assertTrue();
+      expect(snapshot.paused).assertTrue();
+      expect(snapshot.targetCompleted).assertTrue();
+      expect(snapshot.currentCount).assertEqual(6);
+      expect(snapshot.targetCount).assertEqual(8);
+      expect(snapshot.startedAt).assertEqual(1234);
     });
 
     it('stopsAutoImmediatelyWhenAnotherModeIsSelected', 0, (): void => {
